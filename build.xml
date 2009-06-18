@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<project name="PicnomeSerial" default="compile">
+  <target name="clean">
+    <delete>
+      <fileset dir="." includes="PicnomeSerial.jar"/>
+    </delete>
+  </target>
+  <target name="clean-win">
+    <delete>
+      <fileset dir="." includes="PicnomeSerial-win.jar"/>
+    </delete>
+  </target>
+  <target name="compile" depends="clean">
+    <javac srcdir="Src" destdir="Class" extdirs="/Library/Java/Extensions:~/Library/Java/Extensions:Extensions"/>
+  </target>
+  <target name="compile-win" depends="clean-win">
+    <javac srcdir="Src" destdir="Class\Win" extdirs="C:\Program Files\Java\jdk1.5.0_19:lib"/>
+  </target>
+  <target name="jar" depends="compile">
+    <tstamp/>
+    <jar destfile="PicnomeSerial.jar" basedir="Class" includes="*.class">
+      <manifest>
+	<attribute name="Main-Class" value="PicnomeSerial"/>
+	<attribute name="Build-Date" value="${TODAY}"/>
+	<section name="General Information">
+	  <attribute name="Produced-By" value="Shunichi Yamamoto"/>
+	  <attribute name="Project-URL" value="http://atelier.tkrworks.net/"/>
+	</section>
+      </manifest>
+    </jar>
+  </target>
+  <target name="jar-win" depends="compile-win">
+    <tstamp/>
+    <jar destfile="PicnomeSerial-win.jar" basedir="Class\Win" includes="*.class">
+      <manifest>
+	<attribute name="Main-Class" value="PicnomeSerial"/>
+	<attribute name="Build-Date" value="${TODAY}"/>
+	<section name="General Information">
+	  <attribute name="Produced-By" value="Shunichi Yamamoto"/>
+	  <attribute name="Project-URL" value="http://atelier.tkrworks.net/"/>
+	</section>
+      </manifest>
+    </jar>
+  </target>
+</project>
