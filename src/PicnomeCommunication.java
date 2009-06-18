@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.0.97 2009/06/12
+ * PicnomeCommunication.java,v.0.98 2009/06/18
  */
 
 // RXTX
@@ -28,7 +28,6 @@ import com.illposed.osc.utility.*;
 
 // JavaMIDI
 import javax.sound.midi.*;
-import de.humatic.mmj.*;
 
 import javax.swing.*;
 import java.util.*;
@@ -43,8 +42,8 @@ class PicnomeCommunication
   JButton hex_b, update_b;
   JProgressBar update_pb;
 
-  JTextField debug_tf;
 /* for DEBUG
+  JTextField debug_tf;
   JTextField debug2_tf;
 */
   CommPortIdentifier portId;
@@ -59,6 +58,7 @@ class PicnomeCommunication
   //for Windows XP/Vista
   MidiDevice myjin,myjout;
   Receiver myjr;
+  Transmitter myjt;
 
   PicnomeCommunication()
   {
@@ -127,6 +127,7 @@ class PicnomeCommunication
 	    {
 	      this.myjin = javax.sound.midi.MidiSystem.getMidiDevice(info[i]);
 	      this.myjin.open();
+	      this.myjt = this.myjin.getTransmitter();
 	    }
 	    else if(info[i].getName().equals("Out To MIDI Yoke:  1"))
 	    {
@@ -137,6 +138,8 @@ class PicnomeCommunication
 	  }
 	}
 	catch(MidiUnavailableException mue){}
+
+	this.initMidiListener();
       }
     }
     catch(IOException e){}
@@ -168,8 +171,10 @@ class PicnomeCommunication
 	this.oscpin.stopListening();
       else
       {
-	this.midiin.close();
-	this.midiout.close();
+	this.myjin.close();
+	this.myjout.close();
+	this.myjr.close();
+	this.myjt.close();
       }
       this.inr.close();
       this.in.close();
@@ -309,10 +314,15 @@ class PicnomeCommunication
 
   public void enableMidiLed()
   {
-    MidiListener listener = new MidiListener()
+    Receiver rcv = new Receiver()
       {
-	public void midiInput(byte[] data)
+	public void close(){}
+
+	public void send(MidiMessage message, long timeStamp)
 	{
+
+	  byte[] data = message.getMessage();
+
 	  if((256 + data[0]) == 144 || (256 + data[0]) == 128)// NOTE_ON -> 144, NOTE_OFF -> 128
 	  {
 	    int sc = Integer.parseInt(startcolumn_tf.getText());
@@ -335,7 +345,7 @@ class PicnomeCommunication
 	  }
 	}
       };
-    this.midiin.addMidiListener(listener);
+    this.myjt.setReceiver(rcv);
   }
 
 
