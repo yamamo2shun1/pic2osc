@@ -21,4 +21,17 @@
       </manifest>
     </jar>
   </target>
+  <target name="wrap" depends="jar">
+    <exec executable="exewrap">
+      <arg value="-g"/>
+      <arg value="-i"/>
+      <arg file="icon\PicnomeSerial.ico"/>
+      <arg line="-v ${version}"/>
+      <arg value="-c 'Shunichi Yamamoto by tkrworks'"/>
+      <arg value="-j"/>
+      <arg file="PicnomeSerial-windows.jar"/>
+      <arg value="-o"/>
+      <arg file="PICnomeSerial-windows.exe"/>
+    </exec>
+  </target>
 </project>
