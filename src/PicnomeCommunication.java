@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.0.97 2009/06/12
+ * PicnomeCommunication.java,v.0.98 2009/06/18
  */
 
 // RXTX
