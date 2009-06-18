@@ -6,7 +6,7 @@
     </delete>
   </target>
   <target name="compile" depends="clean">
-    <javac srcdir="src" destdir="class" extdirs="/Library/Java/Extensions:~/Library/Java/Extensions:Extensions"/>
+    <javac srcdir="src" destdir="class" extdirs="/Library/Java/Extensions:~/Library/Java/Extensions:lib"/>
   </target>
   <target name="jar" depends="compile">
     <tstamp/>
