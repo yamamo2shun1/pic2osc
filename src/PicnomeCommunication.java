@@ -76,16 +76,16 @@ class PicnomeCommunication
       device_name = ((CommPortIdentifier)e.nextElement()).getName();
       if(System.getProperty("os.name").startsWith("Mac OS X"))
       {
-	if(device_name.indexOf("/dev/cu.") != -1)
-	  this.device_vec.add(device_name);
+        if(device_name.indexOf("/dev/cu.") != -1)
+          this.device_vec.add(device_name);
       }
       else if(System.getProperty("os.name").startsWith("Windows"))
       {
-	this.device_vec.add(device_name);
+        this.device_vec.add(device_name);
       }
     }
   }
-
+  
   boolean openSerialPort()
   {
     try
@@ -113,33 +113,33 @@ class PicnomeCommunication
 
       if(((String)this.protocol_cb.getSelectedItem()).equals("Open Sound Control"))
       {
-	this.initOSCPort();
-	this.initOSCListener();
+        this.initOSCPort();
+        this.initOSCListener();
       }
       else
       {
-	try
-	{
-	  javax.sound.midi.MidiDevice.Info[] info = javax.sound.midi.MidiSystem.getMidiDeviceInfo();
-	  for(int i = 0; i < info.length; i++)
-	  {
-	    if(info[i].getName().equals("In From MIDI Yoke:  1"))
-	    {
-	      this.myjin = javax.sound.midi.MidiSystem.getMidiDevice(info[i]);
-	      this.myjin.open();
-	      this.myjt = this.myjin.getTransmitter();
-	    }
-	    else if(info[i].getName().equals("Out To MIDI Yoke:  1"))
-	    {
-	      this.myjout = javax.sound.midi.MidiSystem.getMidiDevice(info[i]);
-	      this.myjout.open();
-	      this.myjr = this.myjout.getReceiver();
-	    }
-	  }
-	}
-	catch(MidiUnavailableException mue){}
+        try
+        {
+          javax.sound.midi.MidiDevice.Info[] info = javax.sound.midi.MidiSystem.getMidiDeviceInfo();
+          for(int i = 0; i < info.length; i++)
+          {
+            if(info[i].getName().equals("In From MIDI Yoke:  1"))
+            {
+              this.myjin = javax.sound.midi.MidiSystem.getMidiDevice(info[i]);
+              this.myjin.open();
+              this.myjt = this.myjin.getTransmitter();
+            }
+            else if(info[i].getName().equals("Out To MIDI Yoke:  1"))
+            {
+              this.myjout = javax.sound.midi.MidiSystem.getMidiDevice(info[i]);
+              this.myjout.open();
+              this.myjr = this.myjout.getReceiver();
+            }
+          }
+        }
+        catch(MidiUnavailableException mue){}
 
-	this.initMidiListener();
+        this.initMidiListener();
       }
     }
     catch(IOException e){}
@@ -168,13 +168,13 @@ class PicnomeCommunication
     try
     {
       if(((String)this.protocol_cb.getSelectedItem()).equals("Open Sound Control"))
-	this.oscpin.stopListening();
+        this.oscpin.stopListening();
       else
       {
-	this.myjin.close();
-	this.myjout.close();
-	this.myjr.close();
-	this.myjt.close();
+        this.myjin.close();
+        this.myjout.close();
+        this.myjr.close();
+        this.myjt.close();
       }
       this.inr.close();
       this.in.close();
@@ -224,36 +224,36 @@ class PicnomeCommunication
     {
       if(((String)this.protocol_cb.getSelectedItem()).equals("Open Sound Control"))
       {
-	args = new Object[3];
+        args = new Object[3];
 
-	args[0] = Integer.valueOf(st.nextToken()); // X
-	args[1] = Integer.valueOf(st.nextToken()); // Y
-	args[2] = Integer.valueOf(st.nextToken()); // State
+        args[0] = Integer.valueOf(st.nextToken()); // X
+        args[1] = Integer.valueOf(st.nextToken()); // Y
+        args[2] = Integer.valueOf(st.nextToken()); // State
 
-	msg = new OSCMessage(this.prefix_tf.getText() + "/press", args);
-	try
-	{
-	  this.oscpout.send(msg);
-	}
-	catch(IOException e){}
+        msg = new OSCMessage(this.prefix_tf.getText() + "/press", args);
+        try
+        {
+          this.oscpout.send(msg);
+        }
+        catch(IOException e){}
       }
       else // for MIDI
       {
-	int notex = Integer.valueOf(st.nextToken());
-	int notey = Integer.valueOf(st.nextToken());
-	int state = Integer.valueOf(st.nextToken());
-	int note = notex + (notey * 8);
+        int notex = Integer.valueOf(st.nextToken());
+        int notey = Integer.valueOf(st.nextToken());
+        int state = Integer.valueOf(st.nextToken());
+        int note = notex + (notey * 8);
 
-	try
-	{
-	  ShortMessage sm = new ShortMessage();
-	  if(state == 1)
-	    sm.setMessage(ShortMessage.NOTE_ON, (byte)note, 127);
-	  else
-	    sm.setMessage(ShortMessage.NOTE_OFF, (byte)note, 0);
-	  this.myjr.send(sm, 1);
-	}
-	catch(InvalidMidiDataException imde){}
+        try
+        {
+          ShortMessage sm = new ShortMessage();
+          if(state == 1)
+            sm.setMessage(ShortMessage.NOTE_ON, (byte)note, 127);
+          else
+            sm.setMessage(ShortMessage.NOTE_OFF, (byte)note, 0);
+          this.myjr.send(sm, 1);
+        }
+        catch(InvalidMidiDataException imde){}
       }
     }
     else if(token.equals("adc"))
@@ -266,7 +266,7 @@ class PicnomeCommunication
       msg = new OSCMessage(this.prefix_tf.getText() + "/adc", args);
       try
       {
-	this.oscpout.send(msg);
+        this.oscpout.send(msg);
       }
       catch(IOException e){}
     }
@@ -279,9 +279,9 @@ class PicnomeCommunication
 
       if(v2 == 1)
       {
-	this.hex_tf.setEnabled(false);
-	this.hex_b.setEnabled(false);
-	this.update_b.setEnabled(false);
+        this.hex_tf.setEnabled(false);
+        this.hex_b.setEnabled(false);
+        this.update_b.setEnabled(false);
       }
     }
   }
@@ -290,24 +290,24 @@ class PicnomeCommunication
   {
     OSCListener listener = new OSCListener()
       {
-	public void acceptMessage(java.util.Date time, OSCMessage message)
-	{
-	  Object[] args = message.getArguments();
-	  int sc = Integer.parseInt(startcolumn_tf.getText());
-	  int sr = Integer.parseInt(startrow_tf.getText());
-	  sc = (Integer)args[0] - sc;
-	  sr = (Integer)args[1] - sr;
-	  if(sc < 0) sc = 0;
-	  if(sr < 0) sr = 0;
+        public void acceptMessage(java.util.Date time, OSCMessage message)
+        {
+          Object[] args = message.getArguments();
+          int sc = Integer.parseInt(startcolumn_tf.getText());
+          int sr = Integer.parseInt(startrow_tf.getText());
+          sc = (Integer)args[0] - sc;
+          sr = (Integer)args[1] - sr;
+          if(sc < 0) sc = 0;
+          if(sr < 0) sr = 0;
 
-	  try
-	  {
-	    String str =new String("led " + sc + " " + sr + " " + (Integer)args[2] + (char)0x0D);
-	    //debug debug_tf.setText(str);
-	    out.write(str.getBytes());
-	  }
-	  catch(IOException e){}
-	}
+          try
+          {
+            String str =new String("led " + sc + " " + sr + " " + (Integer)args[2] + (char)0x0D);
+            //debug debug_tf.setText(str);
+            out.write(str.getBytes());
+          }
+          catch(IOException e){}
+        }
       };
     this.oscpin.addListener(this.prefix_tf.getText() + "/led", listener);
   }
@@ -316,34 +316,33 @@ class PicnomeCommunication
   {
     Receiver rcv = new Receiver()
       {
-	public void close(){}
+        public void close(){}
 
-	public void send(MidiMessage message, long timeStamp)
-	{
+        public void send(MidiMessage message, long timeStamp)
+        {
+          byte[] data = message.getMessage();
 
-	  byte[] data = message.getMessage();
+          if((256 + data[0]) == 144 || (256 + data[0]) == 128)// NOTE_ON -> 144, NOTE_OFF -> 128
+          {
+            int sc = Integer.parseInt(startcolumn_tf.getText());
+            int sr = Integer.parseInt(startrow_tf.getText());
+            sc = (data[1] % 8) - sc;
+            sr = (data[1] / 8) - sr;
+            if(sc < 0) sc = 0;
+            if(sr < 0) sr = 0;
 
-	  if((256 + data[0]) == 144 || (256 + data[0]) == 128)// NOTE_ON -> 144, NOTE_OFF -> 128
-	  {
-	    int sc = Integer.parseInt(startcolumn_tf.getText());
-	    int sr = Integer.parseInt(startrow_tf.getText());
-	    sc = (data[1] % 8) - sc;
-	    sr = (data[1] / 8) - sr;
-	    if(sc < 0) sc = 0;
-	    if(sr < 0) sr = 0;
-
-	    try
-	    {
-	      String str;
-	      if(data[2] == 0)
-		str =new String("led " + sc + " " + sr + " " + 0 + (char)0x0D);
-	      else
-		str =new String("led " + sc + " " + sr + " " + 1 + (char)0x0D);
-	      out.write(str.getBytes());
-	    }
-	    catch(IOException e){}
-	  }
-	}
+            try
+            {
+              String str;
+              if(data[2] == 0)
+                str =new String("led " + sc + " " + sr + " " + 0 + (char)0x0D);
+              else
+                str =new String("led " + sc + " " + sr + " " + 1 + (char)0x0D);
+              out.write(str.getBytes());
+            }
+            catch(IOException e){}
+          }
+        }
       };
     this.myjt.setReceiver(rcv);
   }
@@ -353,25 +352,25 @@ class PicnomeCommunication
   {
     OSCListener listener = new OSCListener()
       {
-	public void acceptMessage(java.util.Date time, OSCMessage message)
-	{
-	  Object[] args = message.getArguments();
-	  int sc = Integer.parseInt(startcolumn_tf.getText());
-	  sc = (Integer)args[0] - sc;
-	  if(sc < 0) sc = 0;
+        public void acceptMessage(java.util.Date time, OSCMessage message)
+        {
+          Object[] args = message.getArguments();
+          int sc = Integer.parseInt(startcolumn_tf.getText());
+          sc = (Integer)args[0] - sc;
+          if(sc < 0) sc = 0;
 
-	  int shift = Integer.parseInt(startrow_tf.getText()) % 8;
+          int shift = Integer.parseInt(startrow_tf.getText()) % 8;
 
-	  int sr = (short)(((Integer)args[1]).shortValue() >> shift);
+          int sr = (short)(((Integer)args[1]).shortValue() >> shift);
 
-	  try
-	  {
-	    String str =new String("led_col " + sc + " " + sr + (char)0x0D);
-	    //debug debug_tf.setText(str);
-	    out.write(str.getBytes());
-	  }
-	  catch(IOException e){}
-	}
+          try
+          {
+            String str =new String("led_col " + sc + " " + sr + (char)0x0D);
+            //debug debug_tf.setText(str);
+            out.write(str.getBytes());
+          }
+          catch(IOException e){}
+        }
       };
     this.oscpin.addListener(this.prefix_tf.getText() + "/led_col", listener);
   }
@@ -380,25 +379,25 @@ class PicnomeCommunication
   {
     OSCListener listener = new OSCListener()
       {
-	public void acceptMessage(java.util.Date time, OSCMessage message)
-	{
-	  Object[] args = message.getArguments();
-	  int sr = Integer.parseInt(startrow_tf.getText());
-	  sr = (Integer)args[0] - sr;
-	  if(sr < 0) sr = 0;
+        public void acceptMessage(java.util.Date time, OSCMessage message)
+        {
+          Object[] args = message.getArguments();
+          int sr = Integer.parseInt(startrow_tf.getText());
+          sr = (Integer)args[0] - sr;
+          if(sr < 0) sr = 0;
 
-	  int shift = Integer.parseInt(startcolumn_tf.getText()) % 8;
+          int shift = Integer.parseInt(startcolumn_tf.getText()) % 8;
 
-	  int sc = (short)(((Integer)args[1]).shortValue() >> shift);
+          int sc = (short)(((Integer)args[1]).shortValue() >> shift);
 
-	  try
-	  {
-	    String str =new String("led_row " + sr + " " + sc + (char)0x0D);
-	    //debug debug_tf.setText(str);
-	    out.write(str.getBytes());
-	  }
-	  catch(IOException e){}
-	}
+          try
+          {
+            String str =new String("led_row " + sr + " " + sc + (char)0x0D);
+            //debug debug_tf.setText(str);
+            out.write(str.getBytes());
+          }
+          catch(IOException e){}
+        }
       };
     this.oscpin.addListener(this.prefix_tf.getText() + "/led_row", listener);
   }
@@ -407,28 +406,28 @@ class PicnomeCommunication
   {
     OSCListener listener = new OSCListener()
       {
-	public void acceptMessage(java.util.Date time, OSCMessage message)
-	{
-	  Object[] args = message.getArguments();
+        public void acceptMessage(java.util.Date time, OSCMessage message)
+        {
+          Object[] args = message.getArguments();
 
-	  int sr = Integer.parseInt(startrow_tf.getText());
-	  int shift = Integer.parseInt(startcolumn_tf.getText()) % 8;
+          int sr = Integer.parseInt(startrow_tf.getText());
+          int shift = Integer.parseInt(startcolumn_tf.getText()) % 8;
 
-	  for(int i = 0; i < 8; i++)
-	  {
-	    if(i < sr) return;
+          for(int i = 0; i < 8; i++)
+          {
+            if(i < sr) return;
 
-	    int sc = (short)(((Integer)args[i]).shortValue() >> shift);
+            int sc = (short)(((Integer)args[i]).shortValue() >> shift);
 
-	    try
-	    {
-	      String str =new String("led_row " + (i - sr) + " " + sc + (char)0x0D);
-	      //debug debug_tf.setText(str);
-	      out.write(str.getBytes());
-	    }
-	    catch(IOException e){}
-	  }
-	}
+            try
+            {
+              String str =new String("led_row " + (i - sr) + " " + sc + (char)0x0D);
+              //debug debug_tf.setText(str);
+              out.write(str.getBytes());
+            }
+            catch(IOException e){}
+          }
+        }
       };
     this.oscpin.addListener(this.prefix_tf.getText() + "/frame", listener);
   }
@@ -437,26 +436,26 @@ class PicnomeCommunication
   {
     OSCListener listener = new OSCListener()
       {
-	public void acceptMessage(java.util.Date time, OSCMessage message)
-	{
-	  Object[] args = message.getArguments();
-	  for(int i = 0; i < 8; i++)
-	  {
-	    short state;
-	    if(((Integer)args[0]).intValue() == 0)
-	      state = (short)0x00;
-	    else
-	      state = (short)0xFF;
+        public void acceptMessage(java.util.Date time, OSCMessage message)
+        {
+          Object[] args = message.getArguments();
+          for(int i = 0; i < 8; i++)
+          {
+            short state;
+            if(((Integer)args[0]).intValue() == 0)
+              state = (short)0x00;
+            else
+              state = (short)0xFF;
 
-	    try
-	    {
-	      String str =new String("led_row " + i + " " + state + (char)0x0D);
-	      //debug debug_tf.setText(str);
-	      out.write(str.getBytes());
-	    }
-	    catch(IOException e){}
-	  }
-	}
+            try
+            {
+              String str =new String("led_row " + i + " " + state + (char)0x0D);
+              //debug debug_tf.setText(str);
+              out.write(str.getBytes());
+            }
+            catch(IOException e){}
+          }
+        }
       };
     this.oscpin.addListener(this.prefix_tf.getText() + "/clear", listener);
   }
@@ -465,18 +464,18 @@ class PicnomeCommunication
   {
     OSCListener listener = new OSCListener()
       {
-	public void acceptMessage(java.util.Date time, OSCMessage message)
-	{
-	  Object[] args = message.getArguments();
+        public void acceptMessage(java.util.Date time, OSCMessage message)
+        {
+          Object[] args = message.getArguments();
 
-	  try
-	  {
-	    String str =new String("adc_enable " + (Integer)args[0] + " " + (Integer)args[1] + (char)0x0D);
-	    //debug debug_tf.setText(str);
-	    out.write(str.getBytes());
-	  }
-	  catch(IOException e){}
-	}
+          try
+          {
+            String str =new String("adc_enable " + (Integer)args[0] + " " + (Integer)args[1] + (char)0x0D);
+            //debug debug_tf.setText(str);
+            out.write(str.getBytes());
+          }
+          catch(IOException e){}
+        }
       };
     this.oscpin.addListener(this.prefix_tf.getText() + "/adc_enable", listener);
   }
@@ -485,17 +484,17 @@ class PicnomeCommunication
   {
     OSCListener listener = new OSCListener()
       {
-	public void acceptMessage(java.util.Date time, OSCMessage message)
-	{
-	  Object[] args = message.getArguments();
-	  prefix_tf.setText((String)args[0]);
-	  PicnomeCommunication.this.enableMsgLed();
-	  PicnomeCommunication.this.enableMsgLedCol();
-	  PicnomeCommunication.this.enableMsgLedRow();
-	  PicnomeCommunication.this.enableMsgLedFrame();
-	  PicnomeCommunication.this.enableMsgClear();
-	  PicnomeCommunication.this.enableMsgAdcEnable();
-	}
+        public void acceptMessage(java.util.Date time, OSCMessage message)
+        {
+          Object[] args = message.getArguments();
+          prefix_tf.setText((String)args[0]);
+          PicnomeCommunication.this.enableMsgLed();
+          PicnomeCommunication.this.enableMsgLedCol();
+          PicnomeCommunication.this.enableMsgLedRow();
+          PicnomeCommunication.this.enableMsgLedFrame();
+          PicnomeCommunication.this.enableMsgClear();
+          PicnomeCommunication.this.enableMsgAdcEnable();
+        }
       };
     this.oscpin.addListener("/sys/prefix", listener);
   }
@@ -504,18 +503,18 @@ class PicnomeCommunication
   {
     OSCListener listener = new OSCListener()
       {
-	public void acceptMessage(java.util.Date time, OSCMessage message)
-	{
-	  Object[] args = message.getArguments();
+        public void acceptMessage(java.util.Date time, OSCMessage message)
+        {
+          Object[] args = message.getArguments();
 
-	  try
-	  {
-	    String str =new String("intensity " + (Integer)args[0] + (char)0x0D);
-	    //debug debug_tf.setText(str);
-	    out.write(str.getBytes());
-	  }
-	  catch(IOException e){}
-	}
+          try
+          {
+            String str =new String("intensity " + (Integer)args[0] + (char)0x0D);
+            //debug debug_tf.setText(str);
+            out.write(str.getBytes());
+          }
+          catch(IOException e){}
+        }
       };
     this.oscpin.addListener("/sys/intensity", listener);
   }
@@ -524,18 +523,18 @@ class PicnomeCommunication
   {
     OSCListener listener = new OSCListener()
       {
-	public void acceptMessage(java.util.Date time, OSCMessage message)
-	{
-	  Object[] args = message.getArguments();
+        public void acceptMessage(java.util.Date time, OSCMessage message)
+        {
+          Object[] args = message.getArguments();
 
-	  try
-	  {
-	    String str =new String("test " + (Integer)args[0] + (char)0x0D);
-	    //debug debug_tf.setText(str);
-	    out.write(str.getBytes());
-	  }
-	  catch(IOException e){}
-	}
+          try
+          {
+            String str =new String("test " + (Integer)args[0] + (char)0x0D);
+            //debug debug_tf.setText(str);
+            out.write(str.getBytes());
+          }
+          catch(IOException e){}
+        }
       };
     this.oscpin.addListener("/sys/test", listener);
   }
@@ -544,18 +543,18 @@ class PicnomeCommunication
   {
     OSCListener listener = new OSCListener()
       {
-	public void acceptMessage(java.util.Date time, OSCMessage message)
-	{
-	  Object[] args = message.getArguments();
+        public void acceptMessage(java.util.Date time, OSCMessage message)
+        {
+          Object[] args = message.getArguments();
 
-	  try
-	  {
-	    String str =new String("shutdown " + (Integer)args[0] + (char)0x0D);
-	    //debug debug_tf.setText(str);
-	    out.write(str.getBytes());
-	  }
-	  catch(IOException e){}
-	}
+          try
+          {
+            String str =new String("shutdown " + (Integer)args[0] + (char)0x0D);
+            //debug debug_tf.setText(str);
+            out.write(str.getBytes());
+          }
+          catch(IOException e){}
+        }
       };
     this.oscpin.addListener("/sys/shutdown", listener);
   }
@@ -564,33 +563,32 @@ class PicnomeCommunication
   {
     OSCListener listener = new OSCListener()
       {
-	public void acceptMessage(java.util.Date time, OSCMessage message)
-	{
-	  Object[] args = message.getArguments();
+        public void acceptMessage(java.util.Date time, OSCMessage message)
+        {
+          Object[] args = message.getArguments();
 
-	  try
-	  {
-	    String str =new String("report " + (Integer)args[0] + (char)0x0D);
-	    //debug debug_tf.setText(str);
-	    out.write(str.getBytes());
-	  }
+          try
+          {
+            String str =new String("report " + (Integer)args[0] + (char)0x0D);
+            //debug debug_tf.setText(str);
+            out.write(str.getBytes());
+          }
 	  catch(IOException e){}
-	}
+        }
       };
     this.oscpin.addListener("/sys/report", listener);
   }
-
 
   public void enableMsgOffset()
   {
     OSCListener listener = new OSCListener()
       {
-	public void acceptMessage(java.util.Date time, OSCMessage message)
-	{
-	  Object[] args = message.getArguments();
-	  startcolumn_tf.setText(((Integer)args[0]).toString());
-	  startrow_tf.setText(((Integer)args[1]).toString());
-	}
+        public void acceptMessage(java.util.Date time, OSCMessage message)
+        {
+          Object[] args = message.getArguments();
+          startcolumn_tf.setText(((Integer)args[0]).toString());
+          startrow_tf.setText(((Integer)args[1]).toString());
+        }
       };
     this.oscpin.addListener("/sys/offset", listener);
   }
@@ -623,21 +621,21 @@ class PicnomeCommunication
     {
       if(event.getEventType() == SerialPortEvent.DATA_AVAILABLE)
       {
-	int buffer = 0;
-	try
-	{
-	  StringBuffer sb = new StringBuffer();
-	  while((buffer = inr.read()) != -1)
-	  {
-	    if(buffer != 0x0A || buffer != 0x0D)
-	      sb.append((char)buffer);
-	    if(buffer == 0x0A || buffer == 0x0D)
-	      break;
-	  }
-	  //sy debug2_tf.setText(sb.toString());
-	  sendOSCMessageFromHw(sb.toString());
-	}
-	catch(IOException e){}
+        int buffer = 0;
+        try
+        {
+          StringBuffer sb = new StringBuffer();
+          while((buffer = inr.read()) != -1)
+          {
+            if(buffer != 0x0A || buffer != 0x0D)
+              sb.append((char)buffer);
+            if(buffer == 0x0A || buffer == 0x0D)
+              break;
+          }
+          //sy debug2_tf.setText(sb.toString());
+          sendOSCMessageFromHw(sb.toString());
+        }
+        catch(IOException e){}
       }
     }
   }

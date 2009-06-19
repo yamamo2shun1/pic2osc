@@ -44,9 +44,9 @@ public class PicnomeSerial extends JFrame implements ActionListener{
 
     psgui.addWindowListener(
       new WindowAdapter(){
-	public void windowClosing(WindowEvent e){
-	  System.exit(0);
-	}
+        public void windowClosing(WindowEvent e){
+          System.exit(0);
+        }
       }
       );
 
@@ -320,25 +320,25 @@ public class PicnomeSerial extends JFrame implements ActionListener{
       int selected = fc.showOpenDialog(this);
       if (selected == JFileChooser.APPROVE_OPTION)
       {
-	this.hex_f = fc.getSelectedFile();
-	this.pserial.hex_tf.setText(this.hex_f.getName());
-	this.pserial.update_b.setEnabled(true);
+        this.hex_f = fc.getSelectedFile();
+        this.pserial.hex_tf.setText(this.hex_f.getName());
+        this.pserial.update_b.setEnabled(true);
       }
     }
     else if(cmd.equals("Update"))
     {
       try
       {
-	this.hex_fr = new FileReader(this.hex_f);
-	this. size = 0;
-	this.count = 0;
-	this.bar = 0;
-	while(this.hex_fr.read() != -1)
-	  this.size++;
-	//sy this.pserial.debug2_tf.setText(((Integer)size).toString());
-	this.timer.start();
-	//sy fr.close();
-	this.hex_fr = new FileReader(this.hex_f);
+        this.hex_fr = new FileReader(this.hex_f);
+        this. size = 0;
+        this.count = 0;
+        this.bar = 0;
+        while(this.hex_fr.read() != -1)
+          this.size++;
+        //sy this.pserial.debug2_tf.setText(((Integer)size).toString());
+        this.timer.start();
+        //sy fr.close();
+        this.hex_fr = new FileReader(this.hex_f);
       }
       catch(IOException ioe){}
     }
@@ -346,23 +346,23 @@ public class PicnomeSerial extends JFrame implements ActionListener{
     {
       try
       {
-	if((this.ch = this.hex_fr.read()) != -1)
-	{
-	  this.bar = (int)(((double)this.count / (double)this.size) * 100);
-	  //sy System.out.println(this.bar);
-	  this.pserial.update_pb.setValue(this.bar);
-	  //sy this.pserial.debug2_tf.setText(((Integer)this.count).toString());
-	  this.count++;
-	  this.pserial.out.write(this.ch);
-	}
-	if(this.ch == -1)
-	{
-	  this.pserial.update_pb.setValue(0);
-	  this.pserial.closeSerialPort();
-	  this.openclose_b.setText("Open");
-	  this.hex_fr.close();
-	  this.timer.stop();
-	}
+        if((this.ch = this.hex_fr.read()) != -1)
+        {
+          this.bar = (int)(((double)this.count / (double)this.size) * 100);
+          //sy System.out.println(this.bar);
+          this.pserial.update_pb.setValue(this.bar);
+          //sy this.pserial.debug2_tf.setText(((Integer)this.count).toString());
+          this.count++;
+          this.pserial.out.write(this.ch);
+        }
+        if(this.ch == -1)
+        {
+          this.pserial.update_pb.setValue(0);
+          this.pserial.closeSerialPort();
+          this.openclose_b.setText("Open");
+          this.hex_fr.close();
+          this.timer.stop();
+        }
       }
       catch(IOException ioe){}
     }
