@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.0.98 2009/06/18
+ * PicnomeCommunication.java,v.0.99 2009/06/26
  */
 
 // RXTX
@@ -480,6 +480,27 @@ class PicnomeCommunication
     this.oscpin.addListener(this.prefix_tf.getText() + "/adc_enable", listener);
   }
 
+  public void enableMsgPwm()
+  {
+    OSCListener listener = new OSCListener()
+      {
+        public void acceptMessage(java.util.Date time, OSCMessage message)
+        {
+          Object[] args = message.getArguments();
+
+          try
+          {
+            String str =new String("pwm " + (Integer)args[0] + " " + (Integer)args[1] + " " + (Float)args[2] + (char)0x0D);
+            //debug debug_tf.setText(str);
+            out.write(str.getBytes());
+          }
+          catch(IOException e){}
+        }
+      };
+    this.oscpin.addListener(this.prefix_tf.getText() + "/pwm", listener);
+  }
+
+
   public void enableMsgPrefix()
   {
     OSCListener listener = new OSCListener()
@@ -494,6 +515,7 @@ class PicnomeCommunication
           PicnomeCommunication.this.enableMsgLedFrame();
           PicnomeCommunication.this.enableMsgClear();
           PicnomeCommunication.this.enableMsgAdcEnable();
+          PicnomeCommunication.this.enableMsgPwm();
         }
       };
     this.oscpin.addListener("/sys/prefix", listener);
@@ -601,6 +623,7 @@ class PicnomeCommunication
     this.enableMsgLedFrame();
     this.enableMsgClear();
     this.enableMsgAdcEnable();
+    this.enableMsgPwm();
     this.enableMsgPrefix();
     this.enableMsgIntensity();
     this.enableMsgTest();
