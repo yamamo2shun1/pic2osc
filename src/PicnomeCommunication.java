@@ -233,6 +233,20 @@ class PicnomeCommunication
           this.midiout.sendMidi(new byte[]{(byte)ShortMessage.NOTE_ON, (byte)note, 0});
       }
     }
+    else if(token.equals("input"))
+    {
+      args = new Object[2];
+
+      args[0] = Integer.valueOf(st.nextToken()); // Pin
+      args[1] = Integer.valueOf(st.nextToken()); // State
+
+      msg = new OSCMessage(this.prefix_tf.getText() + "/input", args);
+      try
+      {
+        this.oscpout.send(msg);
+      }
+      catch(IOException e){}
+    }
     else if(token.equals("adc"))
     {
       args = new Object[2];
@@ -473,6 +487,7 @@ class PicnomeCommunication
     this.oscpin.addListener(this.prefix_tf.getText() + "/pwm", listener);
   }
 
+/*sy
   public void enableMsgOutput()
   {
     OSCListener listener = new OSCListener()
@@ -492,6 +507,7 @@ class PicnomeCommunication
       };
     this.oscpin.addListener(this.prefix_tf.getText() + "/output", listener);
   }
+*/
 
   public void enableMsgPrefix()
   {
@@ -508,7 +524,7 @@ class PicnomeCommunication
           PicnomeCommunication.this.enableMsgClear();
           PicnomeCommunication.this.enableMsgAdcEnable();
           PicnomeCommunication.this.enableMsgPwm();
-          PicnomeCommunication.this.enableMsgOutput();
+          //sy PicnomeCommunication.this.enableMsgOutput();
         }
       };
     this.oscpin.addListener("/sys/prefix", listener);
@@ -618,7 +634,7 @@ class PicnomeCommunication
     this.enableMsgClear();
     this.enableMsgAdcEnable();
     this.enableMsgPwm();
-    this.enableMsgOutput();
+    //sy this.enableMsgOutput();
     this.enableMsgPrefix();
     this.enableMsgIntensity();
     this.enableMsgTest();
