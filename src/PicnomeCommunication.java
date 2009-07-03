@@ -500,6 +500,25 @@ class PicnomeCommunication
     this.oscpin.addListener(this.prefix_tf.getText() + "/pwm", listener);
   }
 
+  public void enableMsgOutput()
+  {
+    OSCListener listener = new OSCListener()
+      {
+        public void acceptMessage(java.util.Date time, OSCMessage message)
+        {
+          Object[] args = message.getArguments();
+
+          try
+          {
+            String str =new String("output " + (Integer)args[0] + " " + (Integer)args[1] + (char)0x0D);
+            //debug debug_tf.setText(str);
+            out.write(str.getBytes());
+          }
+          catch(IOException e){}
+        }
+      };
+    this.oscpin.addListener(this.prefix_tf.getText() + "/output", listener);
+  }
 
   public void enableMsgPrefix()
   {
@@ -516,6 +535,7 @@ class PicnomeCommunication
           PicnomeCommunication.this.enableMsgClear();
           PicnomeCommunication.this.enableMsgAdcEnable();
           PicnomeCommunication.this.enableMsgPwm();
+          PicnomeCommunication.this.enableMsgOutput();
         }
       };
     this.oscpin.addListener("/sys/prefix", listener);
@@ -624,6 +644,7 @@ class PicnomeCommunication
     this.enableMsgClear();
     this.enableMsgAdcEnable();
     this.enableMsgPwm();
+    this.enableMsgOutput();
     this.enableMsgPrefix();
     this.enableMsgIntensity();
     this.enableMsgTest();

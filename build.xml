@@ -31,7 +31,7 @@
       <arg value="-j"/>
       <arg file="PicnomeSerial-windows.jar"/>
       <arg value="-o"/>
-      <arg file="PICnomeSerial-windows.exe"/>
+      <arg file="PICnomeSerial.exe"/>
     </exec>
   </target>
 </project>
