@@ -38,7 +38,7 @@ import java.net.*;
 class PicnomeCommunication
 {
   Vector<String> device_vec = new Vector<String>();
-  JComboBox protocol_cb, device_cb;
+  JComboBox protocol_cb, device_cb, cable_cb;
   JTextField hostaddress_tf, prefix_tf,startcolumn_tf,startrow_tf, hostport_tf, listenport_tf, hex_tf;
   JButton hex_b, update_b;
   JProgressBar update_pb;
@@ -209,9 +209,31 @@ class PicnomeCommunication
       {
         args = new Object[3];
 
-        args[0] = Integer.valueOf(st.nextToken()); // X
-        args[1] = Integer.valueOf(st.nextToken()); // Y
+        int sc = Integer.parseInt(startcolumn_tf.getText());
+        int sr = Integer.parseInt(startrow_tf.getText());
+
+        if(((String)this.cable_cb.getSelectedItem()).equals("Left"))
+        {
+          args[0] = Integer.valueOf(st.nextToken()) + sc; // X
+          args[1] = Integer.valueOf(st.nextToken()) + sr; // Y
+        }
+        else if(((String)this.cable_cb.getSelectedItem()).equals("Right"))
+        {
+          args[0] = 7 - Integer.valueOf(st.nextToken()) + sc; // X
+          args[1] = 7 - Integer.valueOf(st.nextToken()) + sr; // Y
+        }
+        else if(((String)this.cable_cb.getSelectedItem()).equals("Up"))
+        {
+          args[1] = 7 - Integer.valueOf(st.nextToken()) + sr; // Y
+          args[0] = Integer.valueOf(st.nextToken()) + sc;     // X
+        }
+        else if(((String)this.cable_cb.getSelectedItem()).equals("Down"))
+        {
+          args[1] = Integer.valueOf(st.nextToken()) + sr;     // Y
+          args[0] = 7 - Integer.valueOf(st.nextToken()) + sc; // X
+        }
         args[2] = Integer.valueOf(st.nextToken()); // State
+
 
         msg = new OSCMessage(this.prefix_tf.getText() + "/press", args);
         try
@@ -286,8 +308,32 @@ class PicnomeCommunication
           Object[] args = message.getArguments();
           int sc = Integer.parseInt(startcolumn_tf.getText());
           int sr = Integer.parseInt(startrow_tf.getText());
-          sc = (Integer)args[0] - sc;
-          sr = (Integer)args[1] - sr;
+
+          if(((String)cable_cb.getSelectedItem()).equals("Left"))
+          {
+            sc = (Integer)args[0] - sc;
+            sr = (Integer)args[1] - sr;
+          }
+          else if(((String)cable_cb.getSelectedItem()).equals("Right"))
+          {
+            sc = 7 - (Integer)args[0] + sc;
+            sr = 7 - (Integer)args[1] + sr;
+          }
+          else if(((String)cable_cb.getSelectedItem()).equals("Up"))
+          {
+            int sc1 = 7 - (Integer)args[1] + sr;
+            int sr1 = (Integer)args[0] - sc;
+            sc = sc1;
+            sr = sr1;
+          }
+          else if(((String)cable_cb.getSelectedItem()).equals("Down"))
+          {
+            int sc1 = (Integer)args[1] - sr;
+            int sr1 = 7 - (Integer)args[0] + sc;
+            sc = sc1;
+            sr = sr1;
+          }
+
           if(sc < 0) sc = 0;
           if(sr < 0) sr = 0;
 
