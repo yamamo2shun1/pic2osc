@@ -414,17 +414,51 @@ class PicnomeCommunication
         public void acceptMessage(java.util.Date time, OSCMessage message)
         {
           Object[] args = message.getArguments();
-          int sc = Integer.parseInt(startcolumn_tf.getText());
-          sc = (Integer)args[0] - sc;
+          int sc = 0, sr = 0;
+
+          if(((String)cable_cb.getSelectedItem()).equals("Left"))
+            sc = (Integer)args[0] - Integer.parseInt(startcolumn_tf.getText());
+          else if(((String)cable_cb.getSelectedItem()).equals("Right"))
+            sc = 7 - (Integer)args[0] + Integer.parseInt(startcolumn_tf.getText());
+          else if(((String)cable_cb.getSelectedItem()).equals("Up"))
+            sc = (Integer)args[0] - Integer.parseInt(startcolumn_tf.getText());
+          else if(((String)cable_cb.getSelectedItem()).equals("Down"))
+            sc = 7 - (Integer)args[0] + Integer.parseInt(startcolumn_tf.getText());
+
           if(sc < 0) sc = 0;
 
           int shift = Integer.parseInt(startrow_tf.getText()) % 8;
 
-          int sr = (short)(((Integer)args[1]).shortValue() >> shift);
+          if(((String)cable_cb.getSelectedItem()).equals("Left"))
+            sr = (short)(((Integer)args[1]).shortValue() >> shift);
+          else if(((String)cable_cb.getSelectedItem()).equals("Right"))
+          {
+            short sr0 = ((Integer)args[1]).shortValue();
+            short sr1 = 0;
+            for(int i = 0; i < 8; i++)
+              if((sr0 & (0x01 << i)) == (0x01 << i))
+                sr1 |= (0x01 << (7 - i));
+            sr = (short)(sr1 << shift);
+          }
+          else if(((String)cable_cb.getSelectedItem()).equals("Up"))
+          {
+            short sr0 = ((Integer)args[1]).shortValue();
+            short sr1 = 0;
+            for(int i = 0; i < 8; i++)
+              if((sr0 & (0x01 << i)) == (0x01 << i))
+                sr1 |= (0x01 << (7 - i));
+            sr = (short)(sr1 << shift);
+          }
+          else if(((String)cable_cb.getSelectedItem()).equals("Down"))
+            sr = (short)(((Integer)args[1]).shortValue() >> shift);
 
           try
           {
-            String str =new String("led_col " + sc + " " + sr + (char)0x0D);
+            String str;
+            if(((String)cable_cb.getSelectedItem()).equals("Left") || ((String)cable_cb.getSelectedItem()).equals("Right"))
+              str =new String("led_col " + sc + " " + sr + (char)0x0D);
+            else
+              str =new String("led_row " + sc + " " + sr + (char)0x0D);
             //debug debug_tf.setText(str);
             out.write(str.getBytes());
           }
