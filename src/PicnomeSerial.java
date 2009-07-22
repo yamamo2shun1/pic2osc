@@ -157,12 +157,15 @@ public class PicnomeSerial extends JFrame implements ActionListener{
     ds_sl.putConstraint(SpringLayout.WEST, openclose_b, 10, SpringLayout.EAST, this.pserial.device_cb);
     ds_p.add(openclose_b);
 
-/*
     JLabel cable_l = new JLabel("Cable Orientation :");
     ds_sl.putConstraint(SpringLayout.NORTH, cable_l, 40, SpringLayout.NORTH, ds_p);
     ds_sl.putConstraint(SpringLayout.WEST, cable_l, 22, SpringLayout.WEST, ds_p);
     ds_p.add(cable_l);
-*/
+    String[] cable_str = {"Left", "Right", "Up", "Down"};
+    this.pserial.cable_cb = new JComboBox(cable_str);
+    ds_sl.putConstraint(SpringLayout.NORTH, this.pserial.cable_cb, -4, SpringLayout.NORTH, cable_l);
+    ds_sl.putConstraint(SpringLayout.WEST, this.pserial.cable_cb, 10, SpringLayout.EAST, cable_l);
+    ds_p.add(this.pserial.cable_cb);
 
 /* for DEBUG
     this.pserial.debug_tf = new JTextField("", 8);
