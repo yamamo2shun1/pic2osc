@@ -537,19 +537,54 @@ class PicnomeCommunication
         public void acceptMessage(java.util.Date time, OSCMessage message)
         {
           Object[] args = message.getArguments();
+          int sc = 0, sr = 0;
 
-          int sr = Integer.parseInt(startrow_tf.getText());
           int shift = Integer.parseInt(startcolumn_tf.getText()) % 8;
 
           for(int i = 0; i < 8; i++)
           {
-            if(i < sr) return;
+            if(((String)cable_cb.getSelectedItem()).equals("Left"))
+              sr = i - Integer.parseInt(startrow_tf.getText());
+            else if(((String)cable_cb.getSelectedItem()).equals("Right"))
+              sr = 7 - i + Integer.parseInt(startrow_tf.getText());
+            else if(((String)cable_cb.getSelectedItem()).equals("Up"))
+              sr = 7 - i + Integer.parseInt(startrow_tf.getText());
+            else if(((String)cable_cb.getSelectedItem()).equals("Down"))
+              sr = i - Integer.parseInt(startrow_tf.getText());
 
-            int sc = (short)(((Integer)args[i]).shortValue() >> shift);
+            if(i < Integer.parseInt(startrow_tf.getText())) return;
+
+            if(((String)cable_cb.getSelectedItem()).equals("Left"))
+              sc = (short)(((Integer)args[i]).shortValue() >> shift);
+            else if(((String)cable_cb.getSelectedItem()).equals("Right"))
+            {
+              short sc0 = ((Integer)args[i]).shortValue();
+              short sc1 = 0;
+              for(int j = 0; j < 8; j++)
+                if((sc0 & (0x01 << j)) == (0x01 << j))
+                  sc1 |= (0x01 << (7 - j));
+              sc = (short)(sc1 << shift);
+            }
+            else if(((String)cable_cb.getSelectedItem()).equals("Up"))
+              sc = (short)(((Integer)args[i]).shortValue() >> shift);
+            else if(((String)cable_cb.getSelectedItem()).equals("Down"))
+            {
+              short sc0 = ((Integer)args[i]).shortValue();
+              short sc1 = 0;
+              for(int j = 0; j < 8; j++)
+                if((sc0 & (0x01 << j)) == (0x01 << j))
+                  sc1 |= (0x01 << (7 - j));
+              sc = (short)(sc1 << shift);
+            }
 
             try
             {
-              String str =new String("led_row " + (i - sr) + " " + sc + (char)0x0D);
+              String str;
+              if(((String)cable_cb.getSelectedItem()).equals("Left") || ((String)cable_cb.getSelectedItem()).equals("Right"))
+                str =new String("led_row " + sr + " " + sc + (char)0x0D);
+              else
+                str =new String("led_col " + sr + " " + sc + (char)0x0D);
+
               //debug debug_tf.setText(str);
               out.write(str.getBytes());
             }
