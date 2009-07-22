@@ -412,7 +412,7 @@ class PicnomeCommunication
             for(int i = 0; i < 8; i++)
               if((sr0 & (0x01 << i)) == (0x01 << i))
                 sr1 |= (0x01 << (7 - i));
-            sr = (short)(sr1 >> shift);
+            sr = (short)(sr1 << shift);
           }
           else if(((String)cable_cb.getSelectedItem()).equals("Up"))
           {
@@ -421,7 +421,7 @@ class PicnomeCommunication
             for(int i = 0; i < 8; i++)
               if((sr0 & (0x01 << i)) == (0x01 << i))
                 sr1 |= (0x01 << (7 - i));
-            sr = (short)(sr1 >> shift);
+            sr = (short)(sr1 << shift);
           }
           else if(((String)cable_cb.getSelectedItem()).equals("Down"))
             sr = (short)(((Integer)args[1]).shortValue() >> shift);
@@ -449,17 +449,59 @@ class PicnomeCommunication
         public void acceptMessage(java.util.Date time, OSCMessage message)
         {
           Object[] args = message.getArguments();
-          int sr = Integer.parseInt(startrow_tf.getText());
-          sr = (Integer)args[0] - sr;
+          int sc = 0, sr = 0;
+
+          //sy int sr = Integer.parseInt(startrow_tf.getText());
+          //sy sr = (Integer)args[0] - sr;
+
+          if(((String)cable_cb.getSelectedItem()).equals("Left"))
+            sr = (Integer)args[0] - Integer.parseInt(startrow_tf.getText());
+          else if(((String)cable_cb.getSelectedItem()).equals("Right"))
+            sr = 7 - (Integer)args[0] + Integer.parseInt(startrow_tf.getText());
+          else if(((String)cable_cb.getSelectedItem()).equals("Up"))
+            sr = 7 - (Integer)args[0] + Integer.parseInt(startrow_tf.getText());
+          else if(((String)cable_cb.getSelectedItem()).equals("Down"))
+            sr = (Integer)args[0] - Integer.parseInt(startrow_tf.getText());
+
           if(sr < 0) sr = 0;
 
           int shift = Integer.parseInt(startcolumn_tf.getText()) % 8;
 
-          int sc = (short)(((Integer)args[1]).shortValue() >> shift);
+          //sy int sc = (short)(((Integer)args[1]).shortValue() >> shift);
+
+          if(((String)cable_cb.getSelectedItem()).equals("Left"))
+            sc = (short)(((Integer)args[1]).shortValue() >> shift);
+          else if(((String)cable_cb.getSelectedItem()).equals("Right"))
+          {
+            short sc0 = ((Integer)args[1]).shortValue();
+            short sc1 = 0;
+            for(int i = 0; i < 8; i++)
+              if((sc0 & (0x01 << i)) == (0x01 << i))
+                sc1 |= (0x01 << (7 - i));
+            sc = (short)(sc1 << shift);
+          }
+          else if(((String)cable_cb.getSelectedItem()).equals("Up"))
+            sc = (short)(((Integer)args[1]).shortValue() >> shift);
+          else if(((String)cable_cb.getSelectedItem()).equals("Down"))
+          {
+            short sc0 = ((Integer)args[1]).shortValue();
+            short sc1 = 0;
+            for(int i = 0; i < 8; i++)
+              if((sc0 & (0x01 << i)) == (0x01 << i))
+                sc1 |= (0x01 << (7 - i));
+            sc = (short)(sc1 << shift);
+          }
 
           try
           {
-            String str =new String("led_row " + sr + " " + sc + (char)0x0D);
+            //sy String str =new String("led_row " + sr + " " + sc + (char)0x0D);
+
+            String str;
+            if(((String)cable_cb.getSelectedItem()).equals("Left") || ((String)cable_cb.getSelectedItem()).equals("Right"))
+              str =new String("led_row " + sr + " " + sc + (char)0x0D);
+            else
+              str =new String("led_col " + sr + " " + sc + (char)0x0D);
+
             //debug debug_tf.setText(str);
             out.write(str.getBytes());
           }
