@@ -775,6 +775,19 @@ class PicnomeCommunication
     this.oscpin.addListener("/sys/offset", listener);
   }
 
+  public void enableMsgCable()
+  {
+    OSCListener listener = new OSCListener()
+      {
+        public void acceptMessage(java.util.Date time, OSCMessage message)
+        {
+          Object[] args = message.getArguments();
+          cable_cb.setSelectedItem(((String)args[0]));
+        }
+      };
+    this.oscpin.addListener("/sys/cable", listener);
+  }
+
   public void initOSCListener()
   {
     this.enableMsgLed();
@@ -791,6 +804,7 @@ class PicnomeCommunication
     this.enableMsgShutdown();
     this.enableMsgReport();
     this.enableMsgOffset();
+    this.enableMsgCable();
     this.oscpin.startListening();
   }
 
