@@ -195,6 +195,7 @@ public class PicnomeSerial extends JFrame implements ActionListener{
     dsps_sl.putConstraint(SpringLayout.WEST, prefix_l, 65, SpringLayout.WEST, dsps_p);
     dsps_p.add(prefix_l);
     this.pserial.prefix_tf = new JTextField("/test", 5);
+    this.pserial.prefix_tf.addActionListener(this);
     dsps_sl.putConstraint(SpringLayout.NORTH, this.pserial.prefix_tf, -4, SpringLayout.NORTH, prefix_l);
     dsps_sl.putConstraint(SpringLayout.WEST, this.pserial.prefix_tf, 10, SpringLayout.EAST, prefix_l);
     dsps_p.add(this.pserial.prefix_tf);
@@ -290,7 +291,10 @@ public class PicnomeSerial extends JFrame implements ActionListener{
   public void actionPerformed(ActionEvent e)
   {
     String cmd = e.getActionCommand();
-    if(cmd == null)
+
+    if(cmd.equals(this.pserial.prefix_tf.getText()))
+      cmd = "Prefix";
+    else if(cmd == null)
       cmd = "timer";
 
     if(cmd.equals("Open"))
@@ -344,6 +348,16 @@ public class PicnomeSerial extends JFrame implements ActionListener{
         this.hex_fr = new FileReader(this.hex_f);
       }
       catch(IOException ioe){}
+    }
+    else if(cmd.equals("Prefix"))
+    {
+      this.pserial.enableMsgLed();
+      this.pserial.enableMsgLedCol();
+      this.pserial.enableMsgLedRow();
+      this.pserial.enableMsgLedFrame();
+      this.pserial.enableMsgClear();
+      this.pserial.enableMsgAdcEnable();
+      this.pserial.enableMsgPwm();
     }
     else if(cmd.equals("timer"))
     {
