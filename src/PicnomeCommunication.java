@@ -39,6 +39,7 @@ class PicnomeCommunication
   Vector<String> device_vec = new Vector<String>();
   JComboBox protocol_cb, device_cb, cable_cb;
   JTextField hostaddress_tf, prefix_tf,startcolumn_tf,startrow_tf, hostport_tf, listenport_tf, hex_tf;
+  JCheckBox adc0_cb, adc1_cb, adc2_cb, adc3_cb, adc4_cb, adc5_cb, adc6_cb;
   JButton hex_b, update_b;
   JProgressBar update_pb;
 
