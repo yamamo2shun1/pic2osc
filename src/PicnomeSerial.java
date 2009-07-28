@@ -212,10 +212,12 @@ public class PicnomeSerial extends JFrame implements ActionListener{
       dsps_sl.putConstraint(SpringLayout.WEST, startcolumn_l, 103, SpringLayout.WEST, dsps_p);
     }
     dsps_p.add(startcolumn_l);
-    this.pserial.startcolumn_tf = new JTextField("0", 3);
-    dsps_sl.putConstraint(SpringLayout.NORTH, this.pserial.startcolumn_tf, -4, SpringLayout.NORTH, startcolumn_l);
-    dsps_sl.putConstraint(SpringLayout.WEST, this.pserial.startcolumn_tf, 10, SpringLayout.EAST, startcolumn_l);
-    dsps_p.add(this.pserial.startcolumn_tf);
+    SpinnerNumberModel startcolumn_m = new SpinnerNumberModel(0, 0, null, 1);
+    this.pserial.startcolumn_s = new JSpinner(startcolumn_m);
+    this.pserial.startcolumn_s.setPreferredSize(new Dimension(50, 22));
+    dsps_sl.putConstraint(SpringLayout.NORTH, this.pserial.startcolumn_s, -4, SpringLayout.NORTH, startcolumn_l);
+    dsps_sl.putConstraint(SpringLayout.WEST, this.pserial.startcolumn_s, 10, SpringLayout.EAST, startcolumn_l);
+    dsps_p.add(this.pserial.startcolumn_s);
 
     JLabel startrow_l = new JLabel("Starting Row :");
     if(System.getProperty("os.name").startsWith("Mac OS X"))
@@ -229,10 +231,12 @@ public class PicnomeSerial extends JFrame implements ActionListener{
       dsps_sl.putConstraint(SpringLayout.WEST, startrow_l, 122, SpringLayout.WEST, dsps_p);
     }
     dsps_p.add(startrow_l);
-    this.pserial.startrow_tf = new JTextField("0", 3);
-    dsps_sl.putConstraint(SpringLayout.NORTH, this.pserial.startrow_tf, -4, SpringLayout.NORTH, startrow_l);
-    dsps_sl.putConstraint(SpringLayout.WEST, this.pserial.startrow_tf, 10, SpringLayout.EAST, startrow_l);
-    dsps_p.add(this.pserial.startrow_tf);
+    SpinnerNumberModel startrow_m = new SpinnerNumberModel(0, 0, null, 1);
+    this.pserial.startrow_s = new JSpinner(startrow_m);
+    this.pserial.startrow_s.setPreferredSize(new Dimension(50, 22));
+    dsps_sl.putConstraint(SpringLayout.NORTH, this.pserial.startrow_s, -4, SpringLayout.NORTH, startrow_l);
+    dsps_sl.putConstraint(SpringLayout.WEST, this.pserial.startrow_s, 10, SpringLayout.EAST, startrow_l);
+    dsps_p.add(this.pserial.startrow_s);
 
     JPanel ais_p = new JPanel();
     SpringLayout ais_sl = new SpringLayout();

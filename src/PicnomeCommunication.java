@@ -39,7 +39,8 @@ class PicnomeCommunication
 {
   Vector<String> device_vec = new Vector<String>();
   JComboBox protocol_cb, device_cb, cable_cb;
-  JTextField hostaddress_tf, prefix_tf,startcolumn_tf,startrow_tf, hostport_tf, listenport_tf, hex_tf;
+  JTextField hostaddress_tf, prefix_tf, hostport_tf, listenport_tf, hex_tf;
+  JSpinner startcolumn_s, startrow_s;
   JCheckBox adc0_cb, adc1_cb, adc2_cb, adc3_cb, adc4_cb, adc5_cb, adc6_cb;
   JButton hex_b, update_b;
   JProgressBar update_pb;
@@ -210,8 +211,8 @@ class PicnomeCommunication
       {
         args = new Object[3];
 
-        int sc = Integer.parseInt(startcolumn_tf.getText());
-        int sr = Integer.parseInt(startrow_tf.getText());
+        int sc = (Integer)startcolumn_s.getValue();
+        int sr = (Integer)startrow_s.getValue();
 
         if(((String)this.cable_cb.getSelectedItem()).equals("Left"))
         {
@@ -307,8 +308,8 @@ class PicnomeCommunication
         public void acceptMessage(java.util.Date time, OSCMessage message)
         {
           Object[] args = message.getArguments();
-          int sc = Integer.parseInt(startcolumn_tf.getText());
-          int sr = Integer.parseInt(startrow_tf.getText());
+          int sc = (Integer)startcolumn_s.getValue();
+          int sr = (Integer)startrow_s.getValue();
 
           if(((String)cable_cb.getSelectedItem()).equals("Left"))
           {
@@ -358,8 +359,8 @@ class PicnomeCommunication
         {
           if((256 + data[0]) == 144 || (256 + data[0]) == 128)// NOTE_ON -> 144, NOTE_OFF -> 128
           {
-            int sc = Integer.parseInt(startcolumn_tf.getText());
-            int sr = Integer.parseInt(startrow_tf.getText());
+            int sc = (Integer)startcolumn_s.getValue();
+            int sr = (Integer)startrow_s.getValue();
             sc = (data[1] % 8) - sc;
             sr = (data[1] / 8) - sr;
             if(sc < 0) sc = 0;
@@ -392,17 +393,17 @@ class PicnomeCommunication
           int sc = 0, sr = 0;
 
           if(((String)cable_cb.getSelectedItem()).equals("Left"))
-            sc = (Integer)args[0] - Integer.parseInt(startcolumn_tf.getText());
+            sc = (Integer)args[0] - (Integer)startcolumn_s.getValue();
           else if(((String)cable_cb.getSelectedItem()).equals("Right"))
-            sc = 7 - (Integer)args[0] + Integer.parseInt(startcolumn_tf.getText());
+            sc = 7 - (Integer)args[0] + (Integer)startcolumn_s.getValue();
           else if(((String)cable_cb.getSelectedItem()).equals("Up"))
-            sc = (Integer)args[0] - Integer.parseInt(startcolumn_tf.getText());
+            sc = (Integer)args[0] - (Integer)startcolumn_s.getValue();
           else if(((String)cable_cb.getSelectedItem()).equals("Down"))
-            sc = 7 - (Integer)args[0] + Integer.parseInt(startcolumn_tf.getText());
+            sc = 7 - (Integer)args[0] + (Integer)startcolumn_s.getValue();
 
           if(sc < 0) sc = 0;
 
-          int shift = Integer.parseInt(startrow_tf.getText()) % 8;
+          int shift = (Integer)startrow_s.getValue() % 8;
 
           if(((String)cable_cb.getSelectedItem()).equals("Left"))
             sr = (short)(((Integer)args[1]).shortValue() >> shift);
@@ -453,17 +454,17 @@ class PicnomeCommunication
           int sc = 0, sr = 0;
 
           if(((String)cable_cb.getSelectedItem()).equals("Left"))
-            sr = (Integer)args[0] - Integer.parseInt(startrow_tf.getText());
+            sr = (Integer)args[0] - (Integer)startrow_s.getValue();
           else if(((String)cable_cb.getSelectedItem()).equals("Right"))
-            sr = 7 - (Integer)args[0] + Integer.parseInt(startrow_tf.getText());
+            sr = 7 - (Integer)args[0] + (Integer)startrow_s.getValue();
           else if(((String)cable_cb.getSelectedItem()).equals("Up"))
-            sr = 7 - (Integer)args[0] + Integer.parseInt(startrow_tf.getText());
+            sr = 7 - (Integer)args[0] + (Integer)startrow_s.getValue();
           else if(((String)cable_cb.getSelectedItem()).equals("Down"))
-            sr = (Integer)args[0] - Integer.parseInt(startrow_tf.getText());
+            sr = (Integer)args[0] - (Integer)startrow_s.getValue();
 
           if(sr < 0) sr = 0;
 
-          int shift = Integer.parseInt(startcolumn_tf.getText()) % 8;
+          int shift = (Integer)startcolumn_s.getValue() % 8;
 
           if(((String)cable_cb.getSelectedItem()).equals("Left"))
             sc = (short)(((Integer)args[1]).shortValue() >> shift);
@@ -514,20 +515,20 @@ class PicnomeCommunication
           Object[] args = message.getArguments();
           int sc = 0, sr = 0;
 
-          int shift = Integer.parseInt(startcolumn_tf.getText()) % 8;
+          int shift = (Integer)startcolumn_s.getValue() % 8;
 
           for(int i = 0; i < 8; i++)
           {
             if(((String)cable_cb.getSelectedItem()).equals("Left"))
-              sr = i - Integer.parseInt(startrow_tf.getText());
+              sr = i - (Integer)startrow_s.getValue();
             else if(((String)cable_cb.getSelectedItem()).equals("Right"))
-              sr = 7 - i + Integer.parseInt(startrow_tf.getText());
+              sr = 7 - i + (Integer)startrow_s.getValue();
             else if(((String)cable_cb.getSelectedItem()).equals("Up"))
-              sr = 7 - i + Integer.parseInt(startrow_tf.getText());
+              sr = 7 - i + (Integer)startrow_s.getValue();
             else if(((String)cable_cb.getSelectedItem()).equals("Down"))
-              sr = i - Integer.parseInt(startrow_tf.getText());
+              sr = i - (Integer)startrow_s.getValue();
 
-            if(i < Integer.parseInt(startrow_tf.getText())) return;
+            if(i < (Integer)startrow_s.getValue()) return;
 
             if(((String)cable_cb.getSelectedItem()).equals("Left"))
               sc = (short)(((Integer)args[i]).shortValue() >> shift);
@@ -769,8 +770,8 @@ class PicnomeCommunication
         public void acceptMessage(java.util.Date time, OSCMessage message)
         {
           Object[] args = message.getArguments();
-          startcolumn_tf.setText(((Integer)args[0]).toString());
-          startrow_tf.setText(((Integer)args[1]).toString());
+          startcolumn_s.setValue((Integer)args[0]);
+          startrow_s.setValue((Integer)args[1]);
         }
       };
     this.oscpin.addListener("/sys/offset", listener);
