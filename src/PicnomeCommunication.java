@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.0 2009/07/28
+ * PicnomeCommunication.java,v.1.01 2009/07/29
  */
 
 // RXTX
@@ -669,14 +669,10 @@ class PicnomeCommunication
         {
           Object[] args = message.getArguments();
           prefix_tf.setText((String)args[0]);
-          PicnomeCommunication.this.enableMsgLed();
-          PicnomeCommunication.this.enableMsgLedCol();
-          PicnomeCommunication.this.enableMsgLedRow();
-          PicnomeCommunication.this.enableMsgLedFrame();
-          PicnomeCommunication.this.enableMsgClear();
-          PicnomeCommunication.this.enableMsgAdcEnable();
-          PicnomeCommunication.this.enableMsgPwm();
-          //sy PicnomeCommunication.this.enableMsgOutput();
+          PicnomeCommunication.this.oscpin.close();
+          PicnomeCommunication.this.oscpout.close();
+          PicnomeCommunication.this.initOSCPort();
+          PicnomeCommunication.this.initOSCListener();
         }
       };
     this.oscpin.addListener("/sys/prefix", listener);
