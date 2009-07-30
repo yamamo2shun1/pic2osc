@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.0.1 2009/07/29
+ * PicnomeCommunication.java,v.1.0.2 2009/07/30
  */
 
 // RXTX
@@ -199,6 +199,19 @@ class PicnomeCommunication
     catch(SocketException e){}
   }
 
+  boolean checkAddressPatternPrefix(OSCMessage message)
+  {
+    boolean b;
+    String address = message.getAddress();
+    int location = address.lastIndexOf("/");
+    String prefix = address.substring(0, location);
+    if(prefix.equals(prefix_tf.getText()))
+      b = true;
+    else
+      b = false;
+    return b;
+  }
+
   void sendOSCMessageFromHw(String str)
   {
     StringTokenizer st = new StringTokenizer(str);
@@ -307,6 +320,9 @@ class PicnomeCommunication
       {
         public void acceptMessage(java.util.Date time, OSCMessage message)
         {
+          if(!checkAddressPatternPrefix(message))
+            return ;
+
           Object[] args = message.getArguments();
           int sc = (Integer)startcolumn_s.getValue();
           int sr = (Integer)startrow_s.getValue();
@@ -389,6 +405,9 @@ class PicnomeCommunication
       {
         public void acceptMessage(java.util.Date time, OSCMessage message)
         {
+          if(!checkAddressPatternPrefix(message))
+            return ;
+
           Object[] args = message.getArguments();
           int sc = 0, sr = 0;
 
@@ -450,6 +469,9 @@ class PicnomeCommunication
       {
         public void acceptMessage(java.util.Date time, OSCMessage message)
         {
+          if(!checkAddressPatternPrefix(message))
+            return ;
+
           Object[] args = message.getArguments();
           int sc = 0, sr = 0;
 
@@ -512,6 +534,9 @@ class PicnomeCommunication
       {
         public void acceptMessage(java.util.Date time, OSCMessage message)
         {
+          if(!checkAddressPatternPrefix(message))
+            return ;
+
           Object[] args = message.getArguments();
           int sc = 0, sr = 0;
 
@@ -577,6 +602,9 @@ class PicnomeCommunication
       {
         public void acceptMessage(java.util.Date time, OSCMessage message)
         {
+          if(!checkAddressPatternPrefix(message))
+            return ;
+
           Object[] args = message.getArguments();
           for(int i = 0; i < 8; i++)
           {
@@ -605,6 +633,9 @@ class PicnomeCommunication
       {
         public void acceptMessage(java.util.Date time, OSCMessage message)
         {
+          if(!checkAddressPatternPrefix(message))
+            return ;
+
           Object[] args = message.getArguments();
 
           try
@@ -669,10 +700,13 @@ class PicnomeCommunication
         {
           Object[] args = message.getArguments();
           prefix_tf.setText((String)args[0]);
-          PicnomeCommunication.this.oscpin.close();
-          PicnomeCommunication.this.oscpout.close();
-          PicnomeCommunication.this.initOSCPort();
-          PicnomeCommunication.this.initOSCListener();
+          PicnomeCommunication.this.enableMsgLed();
+          PicnomeCommunication.this.enableMsgLedCol();
+          PicnomeCommunication.this.enableMsgLedRow();
+          PicnomeCommunication.this.enableMsgLedFrame();
+          PicnomeCommunication.this.enableMsgClear();
+          PicnomeCommunication.this.enableMsgAdcEnable();
+          PicnomeCommunication.this.enableMsgPwm();
         }
       };
     this.oscpin.addListener("/sys/prefix", listener);
