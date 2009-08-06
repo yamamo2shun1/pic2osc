@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.0.2 2009/07/30
+ * PicnomeSerial.java,v.1.0.3 2009/08/06
  */
 
 import java.io.*;
@@ -343,10 +343,10 @@ public class PicnomeSerial extends JFrame implements ActionListener{
   {
     String cmd = e.getActionCommand();
 
-    if(cmd.equals(this.pserial.prefix_tf.getText()))
-      cmd = "Prefix";
-    else if(cmd == null)
+    if(cmd == null)
       cmd = "timer";
+    else if(cmd.equals(this.pserial.prefix_tf.getText()))
+      cmd = "Prefix";
 
     if(cmd.equals("Open"))
     {
