@@ -28,7 +28,7 @@ import javax.swing.border.*;
 public class PicnomeSerial extends JFrame implements ActionListener{
   PicnomeCommunication pserial = new PicnomeCommunication();
 
-  JButton openclose_b;
+  //sy JButton openclose_b;
   File hex_f;
   FileReader hex_fr;
   Timer timer;
@@ -148,14 +148,15 @@ public class PicnomeSerial extends JFrame implements ActionListener{
     ds_sl.putConstraint(SpringLayout.WEST, device_l, 22, SpringLayout.WEST, ds_p);
     ds_p.add(device_l);
     this.pserial.device_cb = new JComboBox(this.pserial.device_vec);
+    this.pserial.device_cb.addActionListener(this);
     ds_sl.putConstraint(SpringLayout.NORTH, this.pserial.device_cb, -4, SpringLayout.NORTH, device_l);
     ds_sl.putConstraint(SpringLayout.WEST, this.pserial.device_cb, 10, SpringLayout.EAST, device_l);
     ds_p.add(this.pserial.device_cb);
-    this.openclose_b = new JButton("Open");
-    this.openclose_b.addActionListener(this);
-    ds_sl.putConstraint(SpringLayout.NORTH, openclose_b, -2, SpringLayout.NORTH, this.pserial.device_cb);
-    ds_sl.putConstraint(SpringLayout.WEST, openclose_b, 10, SpringLayout.EAST, this.pserial.device_cb);
-    ds_p.add(openclose_b);
+    this.pserial.openclose_b = new JButton("Open");
+    this.pserial.openclose_b.addActionListener(this);
+    ds_sl.putConstraint(SpringLayout.NORTH, this.pserial.openclose_b, -2, SpringLayout.NORTH, this.pserial.device_cb);
+    ds_sl.putConstraint(SpringLayout.WEST, this.pserial.openclose_b, 10, SpringLayout.EAST, this.pserial.device_cb);
+    ds_p.add(this.pserial.openclose_b);
 
     JLabel cable_l = new JLabel("Cable Orientation :");
     ds_sl.putConstraint(SpringLayout.NORTH, cable_l, 40, SpringLayout.NORTH, ds_p);
@@ -167,12 +168,12 @@ public class PicnomeSerial extends JFrame implements ActionListener{
     ds_sl.putConstraint(SpringLayout.WEST, this.pserial.cable_cb, 10, SpringLayout.EAST, cable_l);
     ds_p.add(this.pserial.cable_cb);
 
-/* for DEBUG
+
     this.pserial.debug_tf = new JTextField("", 8);
     ds_sl.putConstraint(SpringLayout.NORTH, this.pserial.debug_tf, 35, SpringLayout.NORTH, ds_p);
     ds_sl.putConstraint(SpringLayout.WEST, this.pserial.debug_tf, 250, SpringLayout.WEST, ds_p);
     ds_p.add(this.pserial.debug_tf);
-
+/* for DEBUG
     this.pserial.debug2_tf = new JTextField("", 8);
     ds_sl.putConstraint(SpringLayout.NORTH, this.pserial.debug2_tf, 35, SpringLayout.NORTH, ds_p);
     ds_sl.putConstraint(SpringLayout.WEST, this.pserial.debug2_tf, 270, SpringLayout.WEST, ds_p);
@@ -348,30 +349,52 @@ public class PicnomeSerial extends JFrame implements ActionListener{
     else if(cmd.equals(this.pserial.prefix_tf.getText()))
       cmd = "Prefix";
 
+    //DEBUG this.pserial.debug_tf.setText(cmd);
 
-    if(cmd.equals("Open"))
+    if(cmd.equals("comboBoxChanged"))
+    {
+      if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0]))
+        this.pserial.changeDeviceSettings(0);
+      else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1]))
+        this.pserial.changeDeviceSettings(1);
+    }
+    else if(cmd.equals("Open"))
     {
       boolean b;
-      b = this.pserial.openSerialPort();
-      b = this.pserial.setSerialPort();
+
+      if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0]))
+      {
+        b = this.pserial.openSerialPort(0);
+        b = this.pserial.setSerialPort(0);
+      }
+      else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1]))
+      {
+        b = this.pserial.openSerialPort(1);
+        b = this.pserial.setSerialPort(1);
+      }
 /*sy
       if(b)
         System.out.println("Open Serial Port.");
       else
         System.out.println("Not Open Serial Port.");
 */
-      this.openclose_b.setText("Close");
+      this.pserial.openclose_b.setText("Close");
     }
     else if(cmd.equals("Close"))
     {
-      boolean b = this.pserial.closeSerialPort();
+      boolean b;
+
+      if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0]))
+        b = this.pserial.closeSerialPort(0);
+      else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1]))
+        b = this.pserial.closeSerialPort(1);
 /*sy
       if(b)
         System.out.println("Close Serial Port.");
       else
         System.out.println("Not Close Serial Port.");
 */
-      this.openclose_b.setText("Open");
+      this.pserial.openclose_b.setText("Open");
     }
     else if(cmd.equals("Select"))
     {
@@ -403,13 +426,26 @@ public class PicnomeSerial extends JFrame implements ActionListener{
     }
     else if(cmd.equals("Prefix"))
     {
-      this.pserial.enableMsgLed();
-      this.pserial.enableMsgLedCol();
-      this.pserial.enableMsgLedRow();
-      this.pserial.enableMsgLedFrame();
-      this.pserial.enableMsgClear();
-      this.pserial.enableMsgAdcEnable();
-      this.pserial.enableMsgPwm();
+      if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0]))
+      {
+        this.pserial.enableMsgLed(0);
+        this.pserial.enableMsgLedCol(0);
+        this.pserial.enableMsgLedRow(0);
+        this.pserial.enableMsgLedFrame(0);
+        this.pserial.enableMsgClear(0);
+        this.pserial.enableMsgAdcEnable(0);
+        this.pserial.enableMsgPwm(0);
+      }
+      else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1]))
+      {
+        this.pserial.enableMsgLed(1);
+        this.pserial.enableMsgLedCol(1);
+        this.pserial.enableMsgLedRow(1);
+        this.pserial.enableMsgLedFrame(1);
+        this.pserial.enableMsgClear(1);
+        this.pserial.enableMsgAdcEnable(1);
+        this.pserial.enableMsgPwm(1);
+      }
     }
     else if(cmd.equals(" adc 0"))
     {
@@ -420,7 +456,7 @@ public class PicnomeSerial extends JFrame implements ActionListener{
           str =new String("adc_enable " + 0 + " " + 1 + (char)0x0D);
         else
           str =new String("adc_enable " + 0 + " " + 0 + (char)0x0D);
-        this.pserial.out.write(str.getBytes());
+        this.pserial.out[0].write(str.getBytes());
       }
       catch(IOException ioe){}
     }
@@ -433,7 +469,7 @@ public class PicnomeSerial extends JFrame implements ActionListener{
           str =new String("adc_enable " + 1 + " " + 1 + (char)0x0D);
         else
           str =new String("adc_enable " + 1 + " " + 0 + (char)0x0D);
-        this.pserial.out.write(str.getBytes());
+        this.pserial.out[0].write(str.getBytes());
       }
       catch(IOException ioe){}
     }
@@ -446,7 +482,7 @@ public class PicnomeSerial extends JFrame implements ActionListener{
           str =new String("adc_enable " + 2 + " " + 1 + (char)0x0D);
         else
           str =new String("adc_enable " + 2 + " " + 0 + (char)0x0D);
-        this.pserial.out.write(str.getBytes());
+        this.pserial.out[0].write(str.getBytes());
       }
       catch(IOException ioe){}
     }
@@ -459,7 +495,7 @@ public class PicnomeSerial extends JFrame implements ActionListener{
           str =new String("adc_enable " + 3 + " " + 1 + (char)0x0D);
         else
           str =new String("adc_enable " + 3 + " " + 0 + (char)0x0D);
-        this.pserial.out.write(str.getBytes());
+        this.pserial.out[0].write(str.getBytes());
       }
       catch(IOException ioe){}
     }
@@ -472,7 +508,7 @@ public class PicnomeSerial extends JFrame implements ActionListener{
           str =new String("adc_enable " + 4 + " " + 1 + (char)0x0D);
         else
           str =new String("adc_enable " + 4 + " " + 0 + (char)0x0D);
-        this.pserial.out.write(str.getBytes());
+        this.pserial.out[0].write(str.getBytes());
       }
       catch(IOException ioe){}
     }
@@ -485,7 +521,7 @@ public class PicnomeSerial extends JFrame implements ActionListener{
           str =new String("adc_enable " + 5 + " " + 1 + (char)0x0D);
         else
           str =new String("adc_enable " + 5 + " " + 0 + (char)0x0D);
-        this.pserial.out.write(str.getBytes());
+        this.pserial.out[0].write(str.getBytes());
       }
       catch(IOException ioe){}
     }
@@ -498,7 +534,7 @@ public class PicnomeSerial extends JFrame implements ActionListener{
           str =new String("adc_enable " + 6 + " " + 1 + (char)0x0D);
         else
           str =new String("adc_enable " + 6 + " " + 0 + (char)0x0D);
-        this.pserial.out.write(str.getBytes());
+        this.pserial.out[0].write(str.getBytes());
       }
       catch(IOException ioe){}
     }
@@ -513,13 +549,16 @@ public class PicnomeSerial extends JFrame implements ActionListener{
           this.pserial.update_pb.setValue(this.bar);
           //sy this.pserial.debug2_tf.setText(((Integer)this.count).toString());
           this.count++;
-          this.pserial.out.write(this.ch);
+          this.pserial.out[0].write(this.ch);
         }
         if(this.ch == -1)
         {
           this.pserial.update_pb.setValue(0);
-          this.pserial.closeSerialPort();
-          this.openclose_b.setText("Open");
+          if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0]))
+            this.pserial.closeSerialPort(0);
+          else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1]))
+            this.pserial.closeSerialPort(1);
+          this.pserial.openclose_b.setText("Open");
           this.hex_fr.close();
           this.timer.stop();
         }
