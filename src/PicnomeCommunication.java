@@ -126,10 +126,10 @@ class PicnomeCommunication
   void changeDeviceSettings(int index)
   {
     this.connect_state[1 - index] = this.openclose_b.getText();
-    this.cable_orientation[1 - index] = (String)this.cable_cb.getSelectedItem();
-    this.address_pattern_prefix[1 - index] = this.prefix_tf.getText();
-    this.starting_column[1 - index] = (Integer)this.startcolumn_s.getValue();
-    this.starting_row[1 - index] = (Integer)this.startrow_s.getValue();
+    //sy this.cable_orientation[1 - index] = (String)this.cable_cb.getSelectedItem();
+    //sy this.address_pattern_prefix[1 - index] = this.prefix_tf.getText();
+    //sy this.starting_column[1 - index] = (Integer)this.startcolumn_s.getValue();
+    //sy this.starting_row[1 - index] = (Integer)this.startrow_s.getValue();
 
     this.openclose_b.setText(this.connect_state[index]);
     this.cable_cb.setSelectedItem(this.cable_orientation[index]);
@@ -259,10 +259,18 @@ class PicnomeCommunication
     String address = message.getAddress();
     int location = address.lastIndexOf("/");
     String prefix = address.substring(0, location);
+
+    if((this.address_pattern_prefix[0] != null && prefix.equals(this.address_pattern_prefix[0])) ||
+       (this.address_pattern_prefix[1] != null && prefix.equals(this.address_pattern_prefix[1])))
+      b = true;
+    else
+      b = false;
+/*
     if(prefix.equals(prefix_tf.getText()))
       b = true;
     else
       b = false;
+*/
     return b;
   }
 
@@ -283,22 +291,22 @@ class PicnomeCommunication
         int sc = this.starting_column[index];
         int sr = this.starting_row[index];
 
-        if(((String)this.cable_cb.getSelectedItem()).equals("Left"))
+        if(this.cable_orientation[index].equals("Left"))
         {
           args[0] = Integer.valueOf(st.nextToken()) + sc; // X
           args[1] = Integer.valueOf(st.nextToken()) + sr; // Y
         }
-        else if(((String)this.cable_cb.getSelectedItem()).equals("Right"))
+        else if(this.cable_orientation[index].equals("Right"))
         {
           args[0] = 7 - Integer.valueOf(st.nextToken()) + sc; // X
           args[1] = 7 - Integer.valueOf(st.nextToken()) + sr; // Y
         }
-        else if(((String)this.cable_cb.getSelectedItem()).equals("Up"))
+        else if(this.cable_orientation[index].equals("Up"))
         {
           args[1] = 7 - Integer.valueOf(st.nextToken()) + sr; // Y
           args[0] = Integer.valueOf(st.nextToken()) + sc;     // X
         }
-        else if(((String)this.cable_cb.getSelectedItem()).equals("Down"))
+        else if(this.cable_orientation[index].equals("Down"))
         {
           args[1] = Integer.valueOf(st.nextToken()) + sr;     // Y
           args[0] = 7 - Integer.valueOf(st.nextToken()) + sc; // X
@@ -306,7 +314,8 @@ class PicnomeCommunication
         args[2] = Integer.valueOf(st.nextToken()); // State
 
 
-        msg = new OSCMessage(this.prefix_tf.getText() + "/press", args);
+        //sy msg = new OSCMessage(this.prefix_tf.getText() + "/press", args);
+        msg = new OSCMessage(this.address_pattern_prefix[index] + "/press", args);
         try
         {
           this.oscpout.send(msg);
@@ -333,7 +342,8 @@ class PicnomeCommunication
       args[0] = Integer.valueOf(st.nextToken()); // Pin
       args[1] = Integer.valueOf(st.nextToken()); // State
 
-      msg = new OSCMessage(this.prefix_tf.getText() + "/input", args);
+      //sy msg = new OSCMessage(this.prefix_tf.getText() + "/input", args);
+      msg = new OSCMessage(this.address_pattern_prefix[index] + "/input", args);
       try
       {
         this.oscpout.send(msg);
@@ -347,7 +357,8 @@ class PicnomeCommunication
       args[0] = Integer.valueOf(st.nextToken()); // Pin
       args[1] = Float.valueOf(st.nextToken());   // Value
 
-      msg = new OSCMessage(this.prefix_tf.getText() + "/adc", args);
+      //sy msg = new OSCMessage(this.prefix_tf.getText() + "/adc", args);
+      msg = new OSCMessage(this.address_pattern_prefix[index] + "/adc", args);
       try
       {
         this.oscpout.send(msg);
@@ -372,8 +383,6 @@ class PicnomeCommunication
 
   public void enableMsgLed()
   {
-    //sy final int index2 = index;
-    //sy final OutputStream os2 = os;
     OSCListener listener = new OSCListener()
       {
         public void acceptMessage(java.util.Date time, OSCMessage message)
@@ -391,24 +400,24 @@ class PicnomeCommunication
             sc[i] = starting_column[i];
             sr[i] = starting_row[i];
 
-            if(((String)cable_cb.getSelectedItem()).equals("Left"))
+            if(cable_orientation[i].equals("Left"))
             {
               sc[i] = (Integer)args[0] - sc[i];
               sr[i] = (Integer)args[1] - sr[i];
             }
-            else if(((String)cable_cb.getSelectedItem()).equals("Right"))
+            else if(cable_orientation[i].equals("Right"))
             {
               sc[i] = 7 - (Integer)args[0] + sc[i];
               sr[i] = 7 - (Integer)args[1] + sr[i];
             }
-            else if(((String)cable_cb.getSelectedItem()).equals("Up"))
+            else if(cable_orientation[i].equals("Up"))
             {
               int sc1 = 7 - (Integer)args[1] + sr[i];
               int sr1 = (Integer)args[0] - sc[i];
               sc[i] = sc1;
               sr[i] = sr1;
             }
-            else if(((String)cable_cb.getSelectedItem()).equals("Down"))
+            else if(cable_orientation[i].equals("Down"))
             {
               int sc1 = (Integer)args[1] - sr[i];
               int sr1 = 7 - (Integer)args[0] + sc[i];
@@ -480,22 +489,22 @@ class PicnomeCommunication
 
           for(int j = 0; j < 2; j++)
           {
-            if(((String)cable_cb.getSelectedItem()).equals("Left"))
+            if(cable_orientation[j].equals("Left"))
               sc[j] = (Integer)args[0] - starting_column[j];
-            else if(((String)cable_cb.getSelectedItem()).equals("Right"))
+            else if(cable_orientation[j].equals("Right"))
               sc[j] = 7 - (Integer)args[0] + starting_column[j];
-            else if(((String)cable_cb.getSelectedItem()).equals("Up"))
+            else if(cable_orientation[j].equals("Up"))
               sc[j] = (Integer)args[0] - starting_column[j];
-            else if(((String)cable_cb.getSelectedItem()).equals("Down"))
+            else if(cable_orientation[j].equals("Down"))
               sc [j]= 7 - (Integer)args[0] + starting_column[j];
 
             if(sc[j] < 0) return ;
 
             int shift = starting_row[j] % 16;
 
-            if(((String)cable_cb.getSelectedItem()).equals("Left"))
+            if(cable_orientation[j].equals("Left"))
               sr[j] = (short)(((Integer)args[1]).shortValue() >> shift);
-            else if(((String)cable_cb.getSelectedItem()).equals("Right"))
+            else if(cable_orientation[j].equals("Right"))
             {
               short sr0 = ((Integer)args[1]).shortValue();
               short sr1 = 0;
@@ -504,7 +513,7 @@ class PicnomeCommunication
                   sr1 |= (0x01 << (7 - i));
               sr[j] = (short)(sr1 << shift);
             }
-            else if(((String)cable_cb.getSelectedItem()).equals("Up"))
+            else if(cable_orientation[j].equals("Up"))
             {
               short sr0 = ((Integer)args[1]).shortValue();
               short sr1 = 0;
@@ -513,13 +522,13 @@ class PicnomeCommunication
                   sr1 |= (0x01 << (7 - i));
               sr[j] = (short)(sr1 << shift);
             }
-            else if(((String)cable_cb.getSelectedItem()).equals("Down"))
+            else if(cable_orientation[j].equals("Down"))
               sr[j] = (short)(((Integer)args[1]).shortValue() >> shift);
 
             try
             {
               String str;
-              if(((String)cable_cb.getSelectedItem()).equals("Left") || ((String)cable_cb.getSelectedItem()).equals("Right"))
+              if(cable_orientation[j].equals("Left") || cable_orientation[j].equals("Right"))
                 str =new String("led_col " + sc[j] + " " + sr[j] + (char)0x0D);
               else
                 str =new String("led_row " + sc[j] + " " + sr[j] + (char)0x0D);
@@ -550,22 +559,22 @@ class PicnomeCommunication
 
           for(int j = 0; j < 2; j++)
           {
-            if(((String)cable_cb.getSelectedItem()).equals("Left"))
+            if(cable_orientation[j].equals("Left"))
               sr[j] = (Integer)args[0] - starting_row[j];
-            else if(((String)cable_cb.getSelectedItem()).equals("Right"))
+            else if(cable_orientation[j].equals("Right"))
               sr[j] = 7 - (Integer)args[0] + starting_row[j];
-            else if(((String)cable_cb.getSelectedItem()).equals("Up"))
+            else if(cable_orientation[j].equals("Up"))
               sr[j] = 7 - (Integer)args[0] + starting_row[j];
-            else if(((String)cable_cb.getSelectedItem()).equals("Down"))
+            else if(cable_orientation[j].equals("Down"))
               sr[j] = (Integer)args[0] - starting_row[j];
             
             if(sr[j] < 0) return ;
             
             int shift = starting_column[j] % 16;
             
-            if(((String)cable_cb.getSelectedItem()).equals("Left"))
+            if(cable_orientation[j].equals("Left"))
               sc[j] = (short)(((Integer)args[1]).shortValue() >> shift);
-            else if(((String)cable_cb.getSelectedItem()).equals("Right"))
+            else if(cable_orientation[j].equals("Right"))
             {
               short sc0 = ((Integer)args[1]).shortValue();
               short sc1 = 0;
@@ -574,9 +583,9 @@ class PicnomeCommunication
                   sc1 |= (0x01 << (7 - i));
               sc[j] = (short)(sc1 << shift);
             }
-            else if(((String)cable_cb.getSelectedItem()).equals("Up"))
+            else if(cable_orientation[j].equals("Up"))
               sc[j] = (short)(((Integer)args[1]).shortValue() >> shift);
-            else if(((String)cable_cb.getSelectedItem()).equals("Down"))
+            else if(cable_orientation[j].equals("Down"))
             {
               short sc0 = ((Integer)args[1]).shortValue();
               short sc1 = 0;
@@ -589,7 +598,7 @@ class PicnomeCommunication
             try
             {
               String str;
-              if(((String)cable_cb.getSelectedItem()).equals("Left") || ((String)cable_cb.getSelectedItem()).equals("Right"))
+              if(cable_orientation[j].equals("Left") || cable_orientation[j].equals("Right"))
                 str =new String("led_row " + sr[j] + " " + sc[j] + (char)0x0D);
               else
                 str =new String("led_col " + sr[j] + " " + sc[j] + (char)0x0D);
@@ -624,20 +633,20 @@ class PicnomeCommunication
 
             for(int i = 0; i < 8; i++)
             {
-              if(((String)cable_cb.getSelectedItem()).equals("Left"))
+              if(cable_orientation[k].equals("Left"))
                 sr[k] = i - starting_row[k];
-              else if(((String)cable_cb.getSelectedItem()).equals("Right"))
+              else if(cable_orientation[k].equals("Right"))
                 sr[k] = 7 - i + starting_row[k];
-              else if(((String)cable_cb.getSelectedItem()).equals("Up"))
+              else if(cable_orientation[k].equals("Up"))
                 sr[k] = 7 - i + starting_row[k];
-              else if(((String)cable_cb.getSelectedItem()).equals("Down"))
+              else if(cable_orientation[k].equals("Down"))
                 sr[k] = i - starting_row[k];
 
               if(i < starting_row[k]) return;
 
-              if(((String)cable_cb.getSelectedItem()).equals("Left"))
+              if(cable_orientation[k].equals("Left"))
                 sc[k] = (short)(((Integer)args[i]).shortValue() >> shift);
-              else if(((String)cable_cb.getSelectedItem()).equals("Right"))
+              else if(cable_orientation[k].equals("Right"))
               {
                 short sc0 = ((Integer)args[i]).shortValue();
                 short sc1 = 0;
@@ -646,9 +655,9 @@ class PicnomeCommunication
                     sc1 |= (0x01 << (7 - j));
                 sc[k] = (short)(sc1 << shift);
               }
-              else if(((String)cable_cb.getSelectedItem()).equals("Up"))
+              else if(cable_orientation[k].equals("Up"))
                 sc[k] = (short)(((Integer)args[i]).shortValue() >> shift);
-              else if(((String)cable_cb.getSelectedItem()).equals("Down"))
+              else if(cable_orientation[k].equals("Down"))
               {
                 short sc0 = ((Integer)args[i]).shortValue();
                 short sc1 = 0;
@@ -661,7 +670,7 @@ class PicnomeCommunication
               try
               {
                 String str;
-                if(((String)cable_cb.getSelectedItem()).equals("Left") || ((String)cable_cb.getSelectedItem()).equals("Right"))
+                if(cable_orientation[k].equals("Left") || cable_orientation[k].equals("Right"))
                   str =new String("led_row " + sr[k] + " " + sc[k] + (char)0x0D);
                 else
                   str =new String("led_col " + sr[k] + " " + sc[k] + (char)0x0D);
@@ -979,7 +988,7 @@ class PicnomeCommunication
               break;
           }
 
-          debug_tf.setText(this.index + " / " + sb.toString());
+          //sy debug_tf.setText(this.index + " / " + sb.toString());
            
           if(sb.length() > 0)
             sendOSCMessageFromHw(this.index, sb.toString());

@@ -24,8 +24,9 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.event.*;
 
-public class PicnomeSerial extends JFrame implements ActionListener{
+public class PicnomeSerial extends JFrame implements ActionListener, ChangeListener{
   PicnomeCommunication pserial = new PicnomeCommunication();
 
   //sy JButton openclose_b;
@@ -148,6 +149,7 @@ public class PicnomeSerial extends JFrame implements ActionListener{
     ds_sl.putConstraint(SpringLayout.WEST, device_l, 22, SpringLayout.WEST, ds_p);
     ds_p.add(device_l);
     this.pserial.device_cb = new JComboBox(this.pserial.device_vec);
+    this.pserial.device_cb.setActionCommand("DeviceChanged");
     this.pserial.device_cb.addActionListener(this);
     ds_sl.putConstraint(SpringLayout.NORTH, this.pserial.device_cb, -4, SpringLayout.NORTH, device_l);
     ds_sl.putConstraint(SpringLayout.WEST, this.pserial.device_cb, 10, SpringLayout.EAST, device_l);
@@ -164,6 +166,8 @@ public class PicnomeSerial extends JFrame implements ActionListener{
     ds_p.add(cable_l);
     String[] cable_str = {"Left", "Right", "Up", "Down"};
     this.pserial.cable_cb = new JComboBox(cable_str);
+    this.pserial.cable_cb.setActionCommand("CableChanged");
+    this.pserial.cable_cb.addActionListener(this);
     ds_sl.putConstraint(SpringLayout.NORTH, this.pserial.cable_cb, -4, SpringLayout.NORTH, cable_l);
     ds_sl.putConstraint(SpringLayout.WEST, this.pserial.cable_cb, 10, SpringLayout.EAST, cable_l);
     ds_p.add(this.pserial.cable_cb);
@@ -215,6 +219,11 @@ public class PicnomeSerial extends JFrame implements ActionListener{
     dsps_p.add(startcolumn_l);
     SpinnerNumberModel startcolumn_m = new SpinnerNumberModel(0, 0, null, 1);
     this.pserial.startcolumn_s = new JSpinner(startcolumn_m);
+    JSpinner.NumberEditor startcolumn_edit = new JSpinner.NumberEditor(this.pserial.startcolumn_s);
+    this.pserial.startcolumn_s.setEditor(startcolumn_edit);
+    JFormattedTextField startcolumn_text = startcolumn_edit.getTextField();
+    startcolumn_text.setEditable(false);
+    this.pserial.startcolumn_s.addChangeListener(this);
     this.pserial.startcolumn_s.setPreferredSize(new Dimension(50, 22));
     dsps_sl.putConstraint(SpringLayout.NORTH, this.pserial.startcolumn_s, -4, SpringLayout.NORTH, startcolumn_l);
     dsps_sl.putConstraint(SpringLayout.WEST, this.pserial.startcolumn_s, 10, SpringLayout.EAST, startcolumn_l);
@@ -234,6 +243,11 @@ public class PicnomeSerial extends JFrame implements ActionListener{
     dsps_p.add(startrow_l);
     SpinnerNumberModel startrow_m = new SpinnerNumberModel(0, 0, null, 1);
     this.pserial.startrow_s = new JSpinner(startrow_m);
+    JSpinner.NumberEditor startrow_edit = new JSpinner.NumberEditor(this.pserial.startrow_s);
+    this.pserial.startrow_s.setEditor(startrow_edit);
+    JFormattedTextField startrow_text = startrow_edit.getTextField();
+    startrow_text.setEditable(false);
+    this.pserial.startrow_s.addChangeListener(this);
     this.pserial.startrow_s.setPreferredSize(new Dimension(50, 22));
     dsps_sl.putConstraint(SpringLayout.NORTH, this.pserial.startrow_s, -4, SpringLayout.NORTH, startrow_l);
     dsps_sl.putConstraint(SpringLayout.WEST, this.pserial.startrow_s, 10, SpringLayout.EAST, startrow_l);
@@ -349,14 +363,21 @@ public class PicnomeSerial extends JFrame implements ActionListener{
     else if(cmd.equals(this.pserial.prefix_tf.getText()))
       cmd = "Prefix";
 
-    //DEBUG this.pserial.debug_tf.setText(cmd);
+    this.pserial.debug_tf.setText(cmd);
 
-    if(cmd.equals("comboBoxChanged"))
+    if(cmd.equals("DeviceChanged"))
     {
       if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0]))
         this.pserial.changeDeviceSettings(0);
       else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1]))
         this.pserial.changeDeviceSettings(1);
+    }
+    else if(cmd.equals("CableChanged"))
+    {
+      if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0]))
+        this.pserial.cable_orientation[0] = (String)this.pserial.cable_cb.getSelectedItem();
+      else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1]))
+        this.pserial.cable_orientation[1] = (String)this.pserial.cable_cb.getSelectedItem();
     }
     else if(cmd.equals("Open"))
     {
@@ -426,6 +447,7 @@ public class PicnomeSerial extends JFrame implements ActionListener{
     }
     else if(cmd.equals("Prefix"))
     {
+/*
       if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0]))
       {
         this.pserial.enableMsgLed(0);
@@ -446,6 +468,19 @@ public class PicnomeSerial extends JFrame implements ActionListener{
         this.pserial.enableMsgAdcEnable(1);
         this.pserial.enableMsgPwm(1);
       }
+*/
+      if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0]))
+        this.pserial.address_pattern_prefix[0] = this.pserial.prefix_tf.getText();
+      else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1]))
+        this.pserial.address_pattern_prefix[1] = this.pserial.prefix_tf.getText();
+
+      this.pserial.enableMsgLed();
+      this.pserial.enableMsgLedCol();
+      this.pserial.enableMsgLedRow();
+      this.pserial.enableMsgLedFrame();
+      this.pserial.enableMsgClear();
+      this.pserial.enableMsgAdcEnable();
+      this.pserial.enableMsgPwm();
     }
     else if(cmd.equals(" adc 0"))
     {
@@ -564,6 +599,22 @@ public class PicnomeSerial extends JFrame implements ActionListener{
         }
       }
       catch(IOException ioe){}
+    }
+  }
+
+  public void stateChanged(ChangeEvent e)
+  {
+    if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0]))
+    {
+      this.pserial.starting_column[0] = (Integer)this.pserial.startcolumn_s.getValue();
+      this.pserial.starting_row[0] = (Integer)this.pserial.startrow_s.getValue();
+      this.pserial.debug_tf.setText("test" + this.pserial.starting_column[0] + " " + this.pserial.starting_row[0]);
+    }
+    else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1]))
+    {
+      this.pserial.starting_column[1] = (Integer)this.pserial.startcolumn_s.getValue();
+      this.pserial.starting_row[1] = (Integer)this.pserial.startrow_s.getValue();
+      this.pserial.debug_tf.setText("test" + this.pserial.starting_column[1] + " " + this.pserial.starting_row[1]);
     }
   }
 }
