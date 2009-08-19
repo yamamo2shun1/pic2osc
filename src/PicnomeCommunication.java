@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.1.0 2009/08/18
+ * PicnomeCommunication.java,v.1.1.1 2009/08/19
  */
 
 // RXTX
@@ -41,7 +41,6 @@ class PicnomeCommunication
   JComboBox protocol_cb, device_cb, cable_cb;
   JTextField hostaddress_tf, prefix_tf, hostport_tf, listenport_tf, hex_tf;
   JSpinner startcolumn_s, startrow_s;
-  //sy JCheckBox adc0_cb, adc1_cb, adc2_cb, adc3_cb, adc4_cb, adc5_cb, adc6_cb;
   JCheckBox[] adc_ck = new JCheckBox[7];
   JButton hex_b, update_b;
   JProgressBar update_pb;
@@ -805,13 +804,7 @@ public void enableMsgAdcEnable()
         {
           Object[] args = message.getArguments();
           prefix_tf.setText((String)args[0]);
-          PicnomeCommunication.this.enableMsgLed();
-          PicnomeCommunication.this.enableMsgLedCol();
-          PicnomeCommunication.this.enableMsgLedRow();
-          PicnomeCommunication.this.enableMsgLedFrame();
-          PicnomeCommunication.this.enableMsgClear();
-          PicnomeCommunication.this.enableMsgAdcEnable();
-          PicnomeCommunication.this.enableMsgPwm();
+          PicnomeCommunication.this.initOSCListener("prefix");
         }
       };
     this.oscpin.addListener("/sys/prefix", listener);
@@ -1002,7 +995,6 @@ public void initOSCListener(String str)
             if(buffer == 0x0A || buffer == 0x0D)
               break;
           }
-          //sy debug2_tf.setText(sb.toString());
 
           if(sb.length() > 0)
             sendOSCMessageFromHw(this.index, sb.toString());

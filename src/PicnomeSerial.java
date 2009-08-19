@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.1.0 2009/08/18
+ * PicnomeSerial.java,v.1.1.1 2009/08/19
  */
 
 import java.io.*;
@@ -390,12 +390,6 @@ else if(cmd.equals("Open"))
         b = this.pserial.openSerialPort(1);
         b = this.pserial.setSerialPort(1);
       }
-/*sy
-      if(b)
-        System.out.println("Open Serial Port.");
-      else
-        System.out.println("Not Open Serial Port.");
-*/
       this.pserial.openclose_b.setText("Close");
     }
     else if(cmd.equals("Close"))
@@ -406,12 +400,6 @@ else if(cmd.equals("Open"))
         b = this.pserial.closeSerialPort(0);
       else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1]))
         b = this.pserial.closeSerialPort(1);
-/*sy
-      if(b)
-        System.out.println("Close Serial Port.");
-      else
-        System.out.println("Not Close Serial Port.");
-*/
       this.pserial.openclose_b.setText("Open");
     }
     else if(cmd.equals("Select"))
@@ -435,9 +423,7 @@ else if(cmd.equals("Open"))
         this.bar = 0;
         while(this.hex_fr.read() != -1)
           this.size++;
-        //sy this.pserial.debug2_tf.setText(((Integer)size).toString());
         this.timer.start();
-        //sy fr.close();
         this.hex_fr = new FileReader(this.hex_f);
       }
       catch(IOException ioe){}
@@ -477,9 +463,7 @@ else if(cmd.equals("Open"))
         if((this.ch = this.hex_fr.read()) != -1)
         {
           this.bar = (int)(((double)this.count / (double)this.size) * 100);
-          //sy System.out.println(this.bar);
           this.pserial.update_pb.setValue(this.bar);
-          //sy this.pserial.debug2_tf.setText(((Integer)this.count).toString());
           this.count++;
           this.pserial.out[0].write(this.ch);
         }
