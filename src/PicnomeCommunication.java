@@ -1,7 +1,7 @@
 /*
  * Copylight (C) 2009, Shunichi Yamamoto, tkrworks.net
  *
- * This file is part of PicnomeSerial.
+ * This file is part of PICnomeSerial.
  *
  * PicnomeSerial is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.1.1 2009/08/19
+ * PicnomeCommunication.java,v.1.1.2 2009/09/02
  */
 
 // RXTX
@@ -37,7 +37,7 @@ import java.net.*;
 
 class PicnomeCommunication
 {
-  Vector<String> device_vec = new Vector<String>();
+  Vector<String> device_list = new Vector<String>();
   JButton openclose_b;
   JComboBox protocol_cb, device_cb, cable_cb;
   JTextField hostaddress_tf, prefix_tf, hostport_tf, listenport_tf, hex_tf;
@@ -96,6 +96,55 @@ class PicnomeCommunication
     }
   }
 
+/*sy 
+  String getUsbInfo(String info)
+  {
+    String id = "none";
+    String iousbdevice = new String();
+    try
+    {
+      ProcessBuilder pb = new ProcessBuilder("ioreg", "-w", "0", "-S", "-p", "IOUSB", "-n", "IOUSBDevice", "-r");
+      Process p = pb.start();
+      InputStream is = p.getInputStream();
+
+      int c;
+      while((c = is.read()) != -1)
+        iousbdevice += (new Character((char)c)).toString();
+      is.close();
+    }catch(IOException e){}
+
+    int pos_start;
+    int pos_end;
+    if(info.equals("VendorID"))
+    {
+      pos_start = iousbdevice.indexOf("idVendor");
+      pos_end = iousbdevice.length();
+      if(pos_start != -1)
+      {
+        iousbdevice = iousbdevice.substring(pos_start, pos_end);
+        id = iousbdevice.substring(iousbdevice.indexOf(" = ") + 3, iousbdevice.indexOf("\n"));
+      }
+    }
+    else if(info.equals("ProductID"))
+    {
+      pos_start = iousbdevice.indexOf("idProduct");
+      pos_end = iousbdevice.length();
+      if(pos_start != -1)
+      {
+        iousbdevice = iousbdevice.substring(pos_start, pos_end);
+        id = iousbdevice.substring(iousbdevice.indexOf(" = ") + 3, iousbdevice.indexOf("\n"));
+      }
+    }
+    else if(info.equals("Suffix"))
+    {
+      pos_start = iousbdevice.indexOf("IOUSBDevice");
+      if(pos_start != -1)
+        id = iousbdevice.substring(pos_start + 12, 19);
+    }
+    return id;
+  }
+*/
+
   void initDeviceList()
   {
     int dev_num = 0;
@@ -104,20 +153,19 @@ class PicnomeCommunication
     while(e.hasMoreElements())
     {
       device_name = ((CommPortIdentifier)e.nextElement()).getName();
-      if(System.getProperty("os.name").startsWith("Mac OS X"))
+
+      if(device_name.indexOf("/dev/cu.usbmodem") != -1)
       {
-        if(device_name.indexOf("/dev/cu.usbmodem") != -1)
+/*sy
+        if(this.getUsbInfo("Suffix") == device_name.substring(16, 19))
         {
           this.device[dev_num] = device_name;
           dev_num++;
-          this.device_vec.add(device_name);
         }
-      }
-      else if(System.getProperty("os.name").startsWith("Windows"))
-      {
+*/
         this.device[dev_num] = device_name;
         dev_num++;
-        this.device_vec.add(device_name);
+        this.device_list.add(device_name);
       }
     }
   }
@@ -274,6 +322,7 @@ class PicnomeCommunication
     Object[] args;
     OSCMessage msg;
     String token = st.nextToken();
+
     if(token.equals("press"))
     {
       if(((String)this.protocol_cb.getSelectedItem()).equals("Open Sound Control"))

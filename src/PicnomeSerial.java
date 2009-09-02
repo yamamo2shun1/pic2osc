@@ -1,7 +1,7 @@
 /*
  * Copylight (C) 2009, Shunichi Yamamoto, tkrworks.net
  *
- * This file is part of PicnomeSerial.
+ * This file is part of PICnomeSerial.
  *
  * PicnomeSerial is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.1.1 2009/08/19
+ * PicnomeSerial.java,v.1.1.2 2009/09/02
  */
 
 import java.io.*;
@@ -147,7 +147,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     ds_sl.putConstraint(SpringLayout.NORTH, device_l, 10, SpringLayout.NORTH, ds_p);
     ds_sl.putConstraint(SpringLayout.WEST, device_l, 22, SpringLayout.WEST, ds_p);
     ds_p.add(device_l);
-    this.pserial.device_cb = new JComboBox(this.pserial.device_vec);
+    this.pserial.device_cb = new JComboBox(this.pserial.device_list);
     this.pserial.device_cb.setActionCommand("DeviceChanged");
     this.pserial.device_cb.addActionListener(this);
     ds_sl.putConstraint(SpringLayout.NORTH, this.pserial.device_cb, -4, SpringLayout.NORTH, device_l);
@@ -470,7 +470,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
           this.count++;
           this.pserial.out[0].write(this.ch);
         }
-        if(this.ch == -1)
+        if(this.ch == -1 || this.ch == 59)
         {
           this.pserial.update_pb.setValue(0);
           if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0]))
