@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.1.1 2009/08/19
+ * PicnomeSerial.java,v.1.1.2 2009/09/02
  */
 
 import java.io.*;
@@ -467,7 +467,7 @@ else if(cmd.equals("Open"))
           this.count++;
           this.pserial.out[0].write(this.ch);
         }
-        if(this.ch == -1)
+        if(this.ch == -1 || this.ch == 59)
         {
           this.pserial.update_pb.setValue(0);
           if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0]))
