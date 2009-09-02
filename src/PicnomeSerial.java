@@ -426,7 +426,6 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
         while(this.hex_fr.read() != -1)
           this.size++;
         this.timer.start();
-        //sy fr.close();
         this.hex_fr = new FileReader(this.hex_f);
       }
       catch(IOException ioe){}

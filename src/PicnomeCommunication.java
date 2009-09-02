@@ -841,15 +841,6 @@ class PicnomeCommunication
           Object[] args = message.getArguments();
           prefix_tf.setText((String)args[0]);
           PicnomeCommunication.this.initOSCListener("prefix");
-/*
-          PicnomeCommunication.this.enableMsgLed();
-          PicnomeCommunication.this.enableMsgLedCol();
-          PicnomeCommunication.this.enableMsgLedRow();
-          PicnomeCommunication.this.enableMsgLedFrame();
-          PicnomeCommunication.this.enableMsgClear();
-          PicnomeCommunication.this.enableMsgAdcEnable();
-          PicnomeCommunication.this.enableMsgPwm();
-*/
         }
       };
     this.oscpin.addListener("/sys/prefix", listener);
