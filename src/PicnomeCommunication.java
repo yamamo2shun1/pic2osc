@@ -382,12 +382,20 @@ public class PicnomeCommunication//sy extends processing.core.PApplet
         int notex = Integer.valueOf(st.nextToken());
         int notey = Integer.valueOf(st.nextToken());
         int state = Integer.valueOf(st.nextToken());
-        int note = notex + (notey * 8);
+        int note_number = notex + (notey * 8);
 
+        System.out.println(notex + " " + notey + " " + state);
+
+        Note note;
         if(state == 1)
-          this.midiout.sendNote(new Note(note, 127, 0));
+        {
+          note = new Note(note_number, 127, 30000);
+        }
         else
-          this.midiout.sendNote(new Note(note, 0, 0));
+        {
+          note = new Note(note_number, 0, 1);
+        }
+        this.midiout.sendNote(note);
       }
     }
     else if(token.equals("input"))
