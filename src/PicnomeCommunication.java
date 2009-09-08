@@ -378,7 +378,7 @@ public class PicnomeCommunication//sy extends processing.core.PApplet
         }
         catch(IOException e){}
       }
-      else // for MIDI
+      else// for MIDI
       {
         int notex = Integer.valueOf(st.nextToken());
         int notey = Integer.valueOf(st.nextToken());
@@ -407,17 +407,28 @@ public class PicnomeCommunication//sy extends processing.core.PApplet
     }
     else if(token.equals("adc"))
     {
-      args = new Object[2];
-
-      args[0] = Integer.valueOf(st.nextToken()); // Pin
-      args[1] = Float.valueOf(st.nextToken());   // Value
-
-      msg = new OSCMessage(this.address_pattern_prefix[index] + "/adc", args);
-      try
+      if(((String)this.protocol_cb.getSelectedItem()).equals("Open Sound Control"))
       {
-        this.oscpout.send(msg);
+        args = new Object[2];
+
+        args[0] = Integer.valueOf(st.nextToken()); // Pin
+        args[1] = Float.valueOf(st.nextToken());   // Value
+
+        msg = new OSCMessage(this.address_pattern_prefix[index] + "/adc", args);
+        try
+        {
+          this.oscpout.send(msg);
+        }
+        catch(IOException e){}
       }
-      catch(IOException e){}
+      else//for MIDI
+      {
+        int ctrl_number = Integer.valueOf(st.nextToken()); // Pin
+        int ctrl_value = (int)(127.0 * Float.valueOf(st.nextToken()));   // Value
+        Controller cc = new Controller(ctrl_number, ctrl_value);
+
+        this.midiout.sendController(new Controller(ctrl_number, ctrl_value));
+      }
     }
     else if(token.equals("report"))
     {
