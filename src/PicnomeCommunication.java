@@ -62,7 +62,7 @@ public class PicnomeCommunication//sy extends processing.core.PApplet
   //for Mac OS X
   MidiIO midiio;
   MidiOut midiout;
-  int midi_in_port, midi_out_port;
+  int midi_in_port, midi_out_port, midi_pgm_number;
 
   String[] device = new String[2];
   String[] connect_state = new String[2];
@@ -393,17 +393,37 @@ public class PicnomeCommunication//sy extends processing.core.PApplet
     }
     else if(token.equals("input"))
     {
-      args = new Object[2];
-
-      args[0] = Integer.valueOf(st.nextToken()); // Pin
-      args[1] = Integer.valueOf(st.nextToken()); // State
-
-      msg = new OSCMessage(this.address_pattern_prefix[index] + "/input", args);
-      try
+      if(((String)this.protocol_cb.getSelectedItem()).equals("Open Sound Control"))
       {
-        this.oscpout.send(msg);
+        args = new Object[2];
+
+        args[0] = Integer.valueOf(st.nextToken()); // Pin
+        args[1] = Integer.valueOf(st.nextToken()); // State
+
+        msg = new OSCMessage(this.address_pattern_prefix[index] + "/input", args);
+        try
+        {
+          this.oscpout.send(msg);
+        }
+        catch(IOException e){}
       }
-      catch(IOException e){}
+      else//for MIDI
+      {
+        int pin = Integer.valueOf(st.nextToken()); // Pin
+        int state = Integer.valueOf(st.nextToken()); // State
+
+        if(pin == 0 && state == 1)
+          this.midi_pgm_number++;
+        else if(pin == 1 && state == 1)
+          this.midi_pgm_number--;
+
+        if(this.midi_pgm_number > 127)
+          this.midi_pgm_number = 127;
+        else if(this.midi_pgm_number < 0)
+          this.midi_pgm_number = 0;
+
+        this.midiout.sendProgramChange(new ProgramChange(this.midi_pgm_number));
+      }
     }
     else if(token.equals("adc"))
     {
