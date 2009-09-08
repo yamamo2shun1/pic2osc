@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.1.2 2009/09/02
+ * PicnomeCommunication.java,v.1.1.3 2009/09/08
  */
 
 // RXTX
@@ -45,9 +45,8 @@ public class PicnomeCommunication//sy extends processing.core.PApplet
   JButton hex_b, update_b;
   JProgressBar update_pb;
 
-
-  JTextField debug_tf;
 /* for DEBUG
+  JTextField debug_tf;
   JTextField debug2_tf;
 */
   CommPortIdentifier[] portId = new CommPortIdentifier[2];
@@ -530,7 +529,6 @@ public class PicnomeCommunication//sy extends processing.core.PApplet
   {
     int pitch = note.getPitch();
     int velocity = note.getVelocity();
-    debug_tf.setText(pitch + " " + velocity + " " + note.getLength());
 
     if(pitch > 64) return;
 
