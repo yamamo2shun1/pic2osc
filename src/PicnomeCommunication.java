@@ -173,7 +173,7 @@ class PicnomeCommunication
               this.myjin.open();
               this.myjt = this.myjin.getTransmitter();
             }
-            else if(info[i].getName().equals("Out To MIDI Yoke:  1"))
+            else if(info[i].getName().equals("Out To MIDI Yoke:  2"))
             {
               this.myjout = javax.sound.midi.MidiSystem.getMidiDevice(info[i]);
               this.myjout.open();
