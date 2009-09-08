@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.1.2 2009/09/02
+ * PicnomeCommunication.java,v.1.1.3 2009/09/03
  */
 
 // RXTX
@@ -62,6 +62,7 @@ class PicnomeCommunication
   MidiDevice myjin,myjout;
   Receiver myjr;
   Transmitter myjt;
+  int midi_pgm_number;
 
   String[] device = new String[2];
   String[] connect_state = new String[2];
@@ -337,31 +338,77 @@ class PicnomeCommunication
     }
     else if(token.equals("input"))
     {
-      args = new Object[2];
-
-      args[0] = Integer.valueOf(st.nextToken()); // Pin
-      args[1] = Integer.valueOf(st.nextToken()); // State
-
-      msg = new OSCMessage(this.address_pattern_prefix[index] + "/input", args);
-      try
+      if(((String)this.protocol_cb.getSelectedItem()).equals("Open Sound Control"))
       {
-        this.oscpout.send(msg);
+        args = new Object[2];
+ 
+        args[0] = Integer.valueOf(st.nextToken()); // Pin
+        args[1] = Integer.valueOf(st.nextToken()); // State
+ 
+        msg = new OSCMessage(this.address_pattern_prefix[index] + "/input", args);
+        try
+        {
+          this.oscpout.send(msg);
+        }
+        catch(IOException e){}
       }
-      catch(IOException e){}
+      else//for MIDI
+      {
+        int pin = Integer.valueOf(st.nextToken()); // Pin
+        int state = Integer.valueOf(st.nextToken()); // State
+ 
+        if(pin == 0 && state == 1)
+          this.midi_pgm_number++;
+        else if(pin == 1 && state == 1)
+          this.midi_pgm_number--;
+ 
+        if(this.midi_pgm_number > 127)
+          this.midi_pgm_number = 127;
+        else if(this.midi_pgm_number < 0)
+          this.midi_pgm_number = 0;
+ 
+        //sy this.midiout.sendProgramChange(new ProgramChange(this.midi_pgm_number));
+        try
+        {
+          ShortMessage sm = new ShortMessage();
+          sm.setMessage(ShortMessage.PROGRAM_CHANGE, this.midi_pgm_number, 1);
+          this.myjr.send(sm, 1);
+        }
+        catch(InvalidMidiDataException imde){}
+      }
+
     }
     else if(token.equals("adc"))
     {
-      args = new Object[2];
-
-      args[0] = Integer.valueOf(st.nextToken()); // Pin
-      args[1] = Float.valueOf(st.nextToken());   // Value
-
-      msg = new OSCMessage(this.address_pattern_prefix[index] + "/adc", args);
-      try
+      if(((String)this.protocol_cb.getSelectedItem()).equals("Open Sound Control"))
       {
-        this.oscpout.send(msg);
+        args = new Object[2];
+ 
+        args[0] = Integer.valueOf(st.nextToken()); // Pin
+        args[1] = Float.valueOf(st.nextToken());   // Value
+ 
+        msg = new OSCMessage(this.address_pattern_prefix[index] + "/adc", args);
+        try
+        {
+          this.oscpout.send(msg);
+        }
+        catch(IOException e){}
       }
-      catch(IOException e){}
+      else//for MIDI
+      {
+        int ctrl_number = Integer.valueOf(st.nextToken()); // Pin
+        int ctrl_value = (int)(127.0 * Float.valueOf(st.nextToken()));   // Value
+        //sy Controller cc = new Controller(ctrl_number, ctrl_value);
+ 
+        //sy this.midiout.sendController(new Controller(ctrl_number, ctrl_value));
+        try
+        {
+          ShortMessage sm = new ShortMessage();
+          sm.setMessage(ShortMessage.CONTROL_CHANGE, ctrl_number, ctrl_value);
+          this.myjr.send(sm, 1);
+        }
+        catch(InvalidMidiDataException imde){}
+      }
     }
     else if(token.equals("report"))
     {

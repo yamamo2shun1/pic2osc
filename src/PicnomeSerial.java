@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.1.2 2009/09/02
+ * PicnomeSerial.java,v.1.1.3 2009/09/03
  */
 
 import java.io.*;
