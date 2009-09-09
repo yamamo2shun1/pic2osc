@@ -64,6 +64,7 @@ public class PicnomeCommunication
   int midi_in_port, midi_out_port, midi_pgm_number;
 
   String[] device = new String[2];
+  String[] device2 = new String[2];
   String[] connect_state = new String[2];
   String[] cable_orientation = new String[2];
   String[] address_pattern_prefix = new String[2];
@@ -175,6 +176,7 @@ public class PicnomeCommunication
           if(device_name.indexOf(suffix0.get(i)) != -1)
           {
             this.device[dev_num] = "tkrworks-PICnome-" + suffix0.get(i);
+            this.device2[dev_num] = device_name;
             dev_num++;
             this.device_list.add("tkrworks-PICnome-" + suffix0.get(i));
           }
@@ -184,6 +186,7 @@ public class PicnomeCommunication
           if(device_name.indexOf(suffix1.get(i)) != -1)
           {
             this.device[dev_num] = "tkrworks-PICnome-" + suffix1.get(i);
+            this.device2[dev_num] = device_name;
             dev_num++;
             this.device_list.add("tkrworks-PICnome-" + suffix1.get(i));
           }
@@ -212,7 +215,8 @@ public class PicnomeCommunication
   {
     try
     {
-      this.portId[index] = CommPortIdentifier.getPortIdentifier((String)this.device_cb.getSelectedItem());
+      //sy this.portId[index] = CommPortIdentifier.getPortIdentifier((String)this.device_cb.getSelectedItem());
+      this.portId[index] = CommPortIdentifier.getPortIdentifier(this.device2[index]);
       this.port[index] = (SerialPort)portId[index].open("PICnomeSerial", 2000);
     }
     catch (NoSuchPortException e)
@@ -239,7 +243,6 @@ public class PicnomeCommunication
         this.initOSCListener("all");
       }
       else//for MIDI
-        //sy init();
         this.initMIDIPort();
     }
     catch(IOException e){}
@@ -1095,10 +1098,15 @@ public class PicnomeCommunication
               break;
           }
 
-          //DEBUG debug_tf.setText(this.index + " / " + sb.toString());
+          String str = sb.toString();
+          int pos_p = str.indexOf("press");
+          if(str.indexOf("led") != -1 && pos_p != -1)
+            str = str.substring(pos_p, pos_p + 11);
+
+          //DEBUG debug_tf.setText(this.index + " / " + str);
            
           if(sb.length() > 0)
-            sendOSCMessageFromHw(this.index, sb.toString());
+            sendOSCMessageFromHw(this.index, str);
         }
         catch(IOException e){}
       }
