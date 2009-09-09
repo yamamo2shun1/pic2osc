@@ -174,7 +174,9 @@ class PicnomeCommunication
   {
     try
     {
-      this.portId[index] = CommPortIdentifier.getPortIdentifier((String)this.device_cb.getSelectedItem());
+      String selected_name = (String)this.device_cb.getSelectedItem();
+      this.portId[index] = CommPortIdentifier.getPortIdentifier(
+        selected_name.substring(selected_name.indexOf("tkrworks-PICnome-") + (new String("tkrworks-PICnome-")).length(), selected_name.length()));
       this.port[index] = (SerialPort)portId[index].open("PICnomeSerial", 2000);
     }
     catch (NoSuchPortException e)
