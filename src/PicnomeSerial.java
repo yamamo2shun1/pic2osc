@@ -147,7 +147,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     ds_sl.putConstraint(SpringLayout.NORTH, device_l, 10, SpringLayout.NORTH, ds_p);
     ds_sl.putConstraint(SpringLayout.WEST, device_l, 22, SpringLayout.WEST, ds_p);
     ds_p.add(device_l);
-    this.pserial.device_cb = new JComboBox(this.pserial.device_vec);
+    this.pserial.device_cb = new JComboBox(this.pserial.device_list);
     this.pserial.device_cb.setActionCommand("DeviceChanged");
     this.pserial.device_cb.addActionListener(this);
     ds_sl.putConstraint(SpringLayout.NORTH, this.pserial.device_cb, -4, SpringLayout.NORTH, device_l);

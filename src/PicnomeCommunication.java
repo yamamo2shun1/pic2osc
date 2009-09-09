@@ -36,7 +36,7 @@ import java.net.*;
 
 class PicnomeCommunication
 {
-  Vector<String> device_vec = new Vector<String>();
+  Vector<String> device_list = new Vector<String>();
   JButton openclose_b;
   JComboBox protocol_cb, device_cb, cable_cb;
   JTextField hostaddress_tf, prefix_tf, hostport_tf, listenport_tf, hex_tf;
@@ -97,19 +97,59 @@ class PicnomeCommunication
     }
   }
 
+  ArrayList<String> getUsbInfo(String name)
+  {
+    String id = "none";
+    String iousbdevices = new String();
+
+    try
+    {
+      ProcessBuilder pb = new ProcessBuilder("powercfg", "/devicequery", "all_devices");
+      Process p = pb.start();
+      InputStream is = p.getInputStream();
+
+      int c;
+      while((c = is.read()) != -1)
+        iousbdevices += (new Character((char)c)).toString();
+      is.close();
+    }catch(IOException e){}
+
+    ArrayList<String> comport = new ArrayList<String>();
+
+    while(iousbdevices.indexOf(name) != -1)
+    {
+      int pos_start = iousbdevices.indexOf(name);
+      iousbdevices = iousbdevices.substring(pos_start, iousbdevices.length());
+      int pos_end = iousbdevices.indexOf(")");
+      String iousbdevice = iousbdevices.substring(0, pos_end + 1);
+
+      pos_start = iousbdevice.indexOf("(");
+      pos_end = iousbdevice.indexOf(")");
+      id = iousbdevice.substring(pos_start + 1, pos_end);
+      comport.add(id);
+      iousbdevices = iousbdevices.substring(iousbdevices.indexOf(")") + 2, iousbdevices.length());
+    }
+    return comport;
+  }
+
   void initDeviceList()
   {
     int dev_num = 0;
     String device_name;
+    ArrayList<String> comport = this.getUsbInfo("tkrworks PICnome");
     Enumeration e = CommPortIdentifier.getPortIdentifiers();
     while(e.hasMoreElements())
     {
       device_name = ((CommPortIdentifier)e.nextElement()).getName();
-      if(System.getProperty("os.name").startsWith("Windows"))
+
+      for(int i = 0; i < comport.size(); i++)
       {
-        this.device[dev_num] = device_name;
-        dev_num++;
-        this.device_vec.add(device_name);
+        if(device_name.indexOf(comport.get(i)) != -1)
+        {
+          this.device[dev_num] = "tkrworks-PICnome-" + comport.get(i);
+          dev_num++;
+          this.device_list.add("tkrworks-PICnome-" + comport.get(i));
+        }
       }
     }
   }
