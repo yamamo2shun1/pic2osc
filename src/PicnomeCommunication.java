@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.1.3 2009/09/08
+ * PicnomeCommunication.java,v.1.1.4 2009/09/09
  */
 
 // RXTX
@@ -34,7 +34,7 @@ import java.util.*;
 import java.io.*;
 import java.net.*;
 
-public class PicnomeCommunication//sy extends processing.core.PApplet
+public class PicnomeCommunication
 {
   Vector<String> device_list = new Vector<String>();
   JButton openclose_b;
@@ -96,59 +96,73 @@ public class PicnomeCommunication//sy extends processing.core.PApplet
     }
   }
 
-/*sy 
-  String getUsbInfo(String info)
+  ArrayList<String> getUsbInfo(String name)
   {
     String id = "none";
-    String iousbdevice = new String();
+    String iousbdevices = new String();
+
     try
     {
-      ProcessBuilder pb = new ProcessBuilder("ioreg", "-w", "0", "-S", "-p", "IOUSB", "-n", "IOUSBDevice", "-r");
+      ProcessBuilder pb = new ProcessBuilder("ioreg", "-w", "0", "-S", "-p", "IOUSB", "-n", name, "-r");
       Process p = pb.start();
       InputStream is = p.getInputStream();
 
       int c;
       while((c = is.read()) != -1)
-        iousbdevice += (new Character((char)c)).toString();
+        iousbdevices += (new Character((char)c)).toString();
       is.close();
     }catch(IOException e){}
 
-    int pos_start;
-    int pos_end;
-    if(info.equals("VendorID"))
+    ArrayList<String> sfx = new ArrayList<String>();
+    ArrayList<String> vid = new ArrayList<String>();
+    ArrayList<String> pid = new ArrayList<String>();
+    while(iousbdevices.indexOf(name) != -1)
     {
-      pos_start = iousbdevice.indexOf("idVendor");
-      pos_end = iousbdevice.length();
-      if(pos_start != -1)
+      int pos_start = iousbdevices.indexOf(name);
+      int pos_end = iousbdevices.indexOf(" }");
+      String iousbdevice = iousbdevices.substring(pos_start, pos_end);
+
+      if(iousbdevice.indexOf(name + "@") != -1)
       {
-        iousbdevice = iousbdevice.substring(pos_start, pos_end);
-        id = iousbdevice.substring(iousbdevice.indexOf(" = ") + 3, iousbdevice.indexOf("\n"));
+        pos_start = iousbdevice.indexOf(name + "@") + name.length() + 1;
+        pos_end = pos_start +4;
+        if(pos_start != -1)
+          id = iousbdevice.substring(pos_start, pos_end);
+        sfx.add(id);
       }
-    }
-    else if(info.equals("ProductID"))
-    {
-      pos_start = iousbdevice.indexOf("idProduct");
-      pos_end = iousbdevice.length();
-      if(pos_start != -1)
+
+      if((pos_start = iousbdevice.indexOf("idVendor")) != -1)
       {
+        pos_end = iousbdevice.length();
+      
         iousbdevice = iousbdevice.substring(pos_start, pos_end);
-        id = iousbdevice.substring(iousbdevice.indexOf(" = ") + 3, iousbdevice.indexOf("\n"));
+        pos_end = iousbdevice.indexOf("\n");
+        id = iousbdevice.substring(iousbdevice.indexOf(" = ") + 3, pos_end);
+        vid.add(id);
       }
+
+      iousbdevice = iousbdevices.substring(iousbdevices.indexOf(name), iousbdevices.indexOf(" }"));
+      if((pos_start = iousbdevice.indexOf("idProduct")) != -1)
+      {
+        pos_end = iousbdevice.length();
+      
+        iousbdevice = iousbdevice.substring(pos_start, pos_end);
+        pos_end = iousbdevice.indexOf("\n");
+        id = iousbdevice.substring(iousbdevice.indexOf(" = ") + 3, pos_end);
+        pid.add(id);
+      }
+      iousbdevices = iousbdevices.substring(iousbdevices.indexOf(" }") + 2, iousbdevices.length());
     }
-    else if(info.equals("Suffix"))
-    {
-      pos_start = iousbdevice.indexOf("IOUSBDevice");
-      if(pos_start != -1)
-        id = iousbdevice.substring(pos_start + 12, 19);
-    }
-    return id;
+
+    return sfx;
   }
-*/
 
   void initDeviceList()
   {
     int dev_num = 0;
     String device_name;
+    ArrayList<String> suffix0 = this.getUsbInfo("IOUSBDevice");
+    ArrayList<String> suffix1 = this.getUsbInfo("PICnome");
     Enumeration e = CommPortIdentifier.getPortIdentifiers();
     while(e.hasMoreElements())
     {
@@ -156,16 +170,24 @@ public class PicnomeCommunication//sy extends processing.core.PApplet
 
       if(device_name.indexOf("/dev/cu.usbmodem") != -1)
       {
-/*sy
-        if(this.getUsbInfo("Suffix") == device_name.substring(16, 19))
+        for(int i = 0; i < suffix0.size(); i++)
         {
-          this.device[dev_num] = device_name;
-          dev_num++;
+          if(device_name.indexOf(suffix0.get(i)) != -1)
+          {
+            this.device[dev_num] = "tkrworks-PICnome-" + suffix0.get(i);
+            dev_num++;
+            this.device_list.add("tkrworks-PICnome-" + suffix0.get(i));
+          }
         }
-*/
-        this.device[dev_num] = device_name;
-        dev_num++;
-        this.device_list.add(device_name);
+        for(int i = 0; i < suffix1.size(); i++)
+        {
+          if(device_name.indexOf(suffix1.get(i)) != -1)
+          {
+            this.device[dev_num] = "tkrworks-PICnome-" + suffix1.get(i);
+            dev_num++;
+            this.device_list.add("tkrworks-PICnome-" + suffix1.get(i));
+          }
+        }
       }
     }
   }
