@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.1.4 2009/09/09
+ * PicnomeCommunication.java,v.1.1.5 2009/09/10
  */
 
 // RXTX
@@ -37,8 +37,10 @@ import java.net.*;
 public class PicnomeCommunication
 {
   Vector<String> device_list = new Vector<String>();
+  Vector<String> midiinput_list = new Vector<String>();
+  Vector<String> midioutput_list = new Vector<String>();
   JButton openclose_b;
-  JComboBox protocol_cb, device_cb, cable_cb;
+  JComboBox protocol_cb, device_cb, cable_cb, midiinput_cb, midioutput_cb;
   JTextField hostaddress_tf, prefix_tf, hostport_tf, listenport_tf, hex_tf;
   JSpinner startcolumn_s, startrow_s;
   JCheckBox[] adc_ck = new JCheckBox[7];
@@ -95,6 +97,7 @@ public class PicnomeCommunication
       this.adc_enable[0][i] = false;
       this.adc_enable[1][i] = false;
     }
+    this.initMIDIPort();
   }
 
   ArrayList<String> getUsbInfo(String name)
@@ -126,7 +129,7 @@ public class PicnomeCommunication
       if(iousbdevice.indexOf(name + "@") != -1)
       {
         pos_start = iousbdevice.indexOf(name + "@") + name.length() + 1;
-        pos_end = pos_start +4;
+        pos_end = iousbdevice.indexOf("00");
         if(pos_start != -1)
           id = iousbdevice.substring(pos_start, pos_end);
         sfx.add(id);
@@ -153,8 +156,14 @@ public class PicnomeCommunication
         pid.add(id);
       }
       iousbdevices = iousbdevices.substring(iousbdevices.indexOf(" }") + 2, iousbdevices.length());
-    }
 
+      if((vid.get(vid.size() - 1).equals("1240") && pid.get(pid.size() - 1).equals("65477")) != true)
+      {
+        sfx.remove(sfx.size() - 1);
+        vid.remove(vid.size() - 1);
+        pid.remove(pid.size() - 1);
+      }
+    }
     return sfx;
   }
 
@@ -243,7 +252,7 @@ public class PicnomeCommunication
         this.initOSCListener("all");
       }
       else//for MIDI
-        this.initMIDIPort();
+        this.openMIDIPort();
     }
     catch(IOException e){}
     return true;
@@ -316,30 +325,23 @@ public class PicnomeCommunication
   //sy MIDI Setup
   public void initMIDIPort()
   {
-    midiio = MidiIO.getInstance();
-    midiio.printDevices();
+    this.midiio = MidiIO.getInstance();
+    this.midiio.printDevices();
     int in_num = midiio.numberOfInputDevices();
     for(int i = 0; i < in_num; i++)
-    {
-      String in_str = midiio.getInputDeviceName(i);
-      if(in_str.indexOf("IAC Bus 1") != -1)
-      {
-        this.midi_in_port = i;
-        midiio.plug(this, "enableMIDILed", i, 0);
-        System.out.println("port : " + i + " " + in_str);
-      }
-    }
+      this.midiinput_list.add(midiio.getInputDeviceName(i));
     int out_num = midiio.numberOfOutputDevices();
     for(int i = 0; i < out_num; i++)
-    {
-      String out_str = midiio.getOutputDeviceName(i);
-      if(out_str.indexOf("IAC Bus 2") != -1)
-      {
-        this.midi_out_port = i;
-        this.midiout = this.midiio.getMidiOut(0, i);
-        System.out.println("port : " + i + " " + out_str);
-      }
-    }
+      this.midioutput_list.add(midiio.getOutputDeviceName(i));
+  }
+
+  public void openMIDIPort()
+  {
+    this.midi_in_port = this.midiinput_cb.getSelectedIndex();
+    this.midiio.plug(this, "enableMIDILed", this.midi_in_port, 0);
+
+    this.midi_out_port = this.midioutput_cb.getSelectedIndex();
+    this.midiout = this.midiio.getMidiOut(0, this.midi_out_port);
   }
 
   boolean checkAddressPatternPrefix(OSCMessage message, int index)
