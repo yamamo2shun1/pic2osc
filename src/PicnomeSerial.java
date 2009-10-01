@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.1.5 2009/09/10
+ * PicnomeSerial.java,v.1.2.0 2009/09/30
  */
 
 import java.io.*;
@@ -28,6 +28,7 @@ import javax.swing.event.*;
 
 public class PicnomeSerial extends JFrame implements ActionListener, ChangeListener{
   PicnomeCommunication pserial = new PicnomeCommunication();
+  MidiDetailFrame mdf = new MidiDetailFrame();
 
   JPanel psd_p;
   CardLayout psd_cl;
@@ -52,6 +53,9 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
         }
       }
       );
+
+    psgui.mdf.init();
+    psgui.mdf.setBounds(470, 40, 990, 600);
 
     psgui.setVisible(true);
   }
@@ -155,6 +159,12 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     midi_sl.putConstraint(SpringLayout.NORTH, this.pserial.midioutput_cb, -4, SpringLayout.NORTH, midioutput_l);
     midi_sl.putConstraint(SpringLayout.WEST, this.pserial.midioutput_cb, 10, SpringLayout.EAST, midioutput_l);
     midi_p.add(this.pserial.midioutput_cb);
+
+    this.pserial.mididetail_b = new JButton("Detail...");
+    this.pserial.mididetail_b.addActionListener(this);
+    midi_sl.putConstraint(SpringLayout.NORTH, this.pserial.mididetail_b, 60, SpringLayout.NORTH, midi_p);
+    midi_sl.putConstraint(SpringLayout.WEST, this.pserial.mididetail_b, 300, SpringLayout.WEST, midi_p);
+    midi_p.add(this.pserial.mididetail_b);
 
     //Device Settings
     JPanel ds_p = new JPanel();
@@ -406,6 +416,8 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
         b = this.pserial.closeSerialPort(1);
       this.pserial.openclose_b.setText("Open");
     }
+    else if(cmd.equals("Detail..."))
+      this.mdf.setVisible(true);
     else if(cmd.equals("Select"))
     {
       JFileChooser fc = new JFileChooser();
@@ -501,4 +513,282 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     }
   }
 
+  public class MidiDetailFrame extends JFrame implements ActionListener
+  {
+    File save_f, load_f;
+    JButton save, load;
+    MidiPadConfPanel[][] mpcp = new MidiPadConfPanel[8][8];
+ 
+    MidiDetailFrame(){
+      super("MIDI Detail Setting...");
+    }
+    public void init()
+    {
+      SpringLayout sl = new SpringLayout();
+      Container c = getContentPane();
+      c.setLayout(sl);
+ 
+      PicnomeSerial.this.pserial.prev_index = 0;
+      PicnomeSerial.this.pserial.para_change_flag = false;
+      String[] type_name = {"Channel (1 - 16)", "Velocity 1 (0 - 127)", "Velocity 2 (0 - 127)",
+                            "Duration 1 (0 - 60000) [msec]", "Duration 2 (0 - 60000) [msec]"};
+      PicnomeSerial.this.pserial.midiparameter_cb = new JComboBox(type_name);
+      PicnomeSerial.this.pserial.midiparameter_cb.setActionCommand("TypeChanged");
+      PicnomeSerial.this.pserial.midiparameter_cb.addActionListener(this);
+      sl.putConstraint(SpringLayout.WEST, PicnomeSerial.this.pserial.midiparameter_cb, 10, SpringLayout.WEST, c);
+      sl.putConstraint(SpringLayout.NORTH, PicnomeSerial.this.pserial.midiparameter_cb, 20, SpringLayout.NORTH, c);
+      c.add(PicnomeSerial.this.pserial.midiparameter_cb);
+ 
+      this.save = new JButton("Save As...");
+      this.save.addActionListener(this);
+      sl.putConstraint(SpringLayout.WEST, this.save, 10, SpringLayout.EAST, PicnomeSerial.this.pserial.midiparameter_cb);
+      sl.putConstraint(SpringLayout.NORTH, this.save, 0, SpringLayout.NORTH, PicnomeSerial.this.pserial.midiparameter_cb);
+      c.add(this.save);
+ 
+      this.load = new JButton("Load...");
+      this.load.addActionListener(this);
+      sl.putConstraint(SpringLayout.WEST, this.load, 10, SpringLayout.EAST, this.save);
+      sl.putConstraint(SpringLayout.NORTH, this.load, 0, SpringLayout.NORTH, this.save);
+      c.add(this.load);
+ 
+      for(int j = 0; j < this.mpcp[0].length; j++)
+      {
+        for(int i = 0; i < this.mpcp.length; i++)
+        {
+          this.mpcp[i][j] = new MidiPadConfPanel(i, j);
+          sl.putConstraint(SpringLayout.WEST, this.mpcp[i][j], (120 * i) + 10, SpringLayout.WEST, c);
+          sl.putConstraint(SpringLayout.NORTH, this.mpcp[i][j], (60 * j) + 60, SpringLayout.NORTH, c);
+          c.add(this.mpcp[i][j]);
+          for(int k = 0; k < 5; k++)
+            switch(k)
+            {
+            case 0:
+              PicnomeSerial.this.pserial.midi_parameter[i][j][k] = 1;
+              break;
+            case 1:
+              PicnomeSerial.this.pserial.midi_parameter[i][j][k] = 127;
+              break;
+            case 2:
+              PicnomeSerial.this.pserial.midi_parameter[i][j][k] = 0;
+              break;
+            case 3:
+              PicnomeSerial.this.pserial.midi_parameter[i][j][k] = 30000;
+              break;
+            case 4:
+              PicnomeSerial.this.pserial.midi_parameter[i][j][k] = 1;
+              break;
+            }
+        }
+      }
+    }
+ 
+    public void actionPerformed(ActionEvent e)
+    {
+      String cmd = e.getActionCommand();
+ 
+      if(cmd.equals("TypeChanged"))
+      {
+        PicnomeSerial.this.pserial.para_change_flag = true;
+        String index_name = (String)PicnomeSerial.this.pserial.midiparameter_cb.getSelectedItem();
+        int index = PicnomeSerial.this.pserial.midiparameter_cb.getSelectedIndex();
+ 
+        if(index != PicnomeSerial.this.pserial.prev_index)
+        {
+          for(int j = 0; j < this.mpcp[0].length; j++)
+          {
+            for(int i = 0; i < this.mpcp.length; i++)
+            {
+              PicnomeSerial.this.pserial.midi_parameter[i][j][PicnomeSerial.this.pserial.prev_index]
+                = (Integer)this.mpcp[i][j].value.getValue();
+            }
+          }
+        }
+ 
+        for(int j = 0; j < this.mpcp[0].length; j++)
+        {
+          for(int i = 0; i < this.mpcp.length; i++)
+          {
+            switch(index)
+            {
+            case 0:
+              this.mpcp[i][j].setSliderRange(1, 16);
+              break;
+            case 1:
+              this.mpcp[i][j].setSliderRange(0, 127);
+              break;
+            case 2:
+              this.mpcp[i][j].setSliderRange(0, 127);
+              break;
+            case 3:
+              this.mpcp[i][j].setSliderRange(0, 60000);
+              break;
+            case 4:
+              this.mpcp[i][j].setSliderRange(0, 60000);
+              break;
+            }
+            this.mpcp[i][j].value.setValue(PicnomeSerial.this.pserial.midi_parameter[i][j][index]);
+          }
+        }
+        PicnomeSerial.this.pserial.prev_index = index;
+        PicnomeSerial.this.pserial.para_change_flag = false;
+      }
+      else if(cmd.equals("Save As..."))
+      {
+        JFileChooser fc = new JFileChooser();
+        int selected = fc.showSaveDialog(this);
+        if (selected == JFileChooser.APPROVE_OPTION)
+        {
+          this.save_f = fc.getSelectedFile();
+        }
+        try
+        {
+          FileWriter fw = new FileWriter(this.save_f);
+          BufferedWriter bw = new BufferedWriter(fw);
+          for(int k = 0; k < 5; k++)
+          {
+            switch(k)
+            {
+            case 0:
+              bw.write("//MIDI channel" + System.getProperty("line.separator"));
+              break;
+            case 1:
+              bw.write("//MIDI velocity 1" + System.getProperty("line.separator"));
+              break;
+            case 2:
+              bw.write("//MIDI velocity 2" + System.getProperty("line.separator"));
+              break;
+            case 3:
+              bw.write("//MIDI duration 1" + System.getProperty("line.separator"));
+              break;
+            case 4:
+              bw.write("//MIDI duration 2" + System.getProperty("line.separator"));
+              break;
+            }
+            for(int j = 0; j < this.mpcp[0].length; j++)
+            {
+              String line = "";
+              for(int i = 0; i < this.mpcp.length - 1; i++)
+              {
+                line += (Integer.toString(PicnomeSerial.this.pserial.midi_parameter[i][j][k]) + " ");
+              }
+              line += (Integer.toString(PicnomeSerial.this.pserial.midi_parameter[this.mpcp.length - 1][j][k]));
+              line += System.getProperty("line.separator");
+              bw.write(line);
+            }
+            if(k != 3)
+              bw.write(System.getProperty("line.separator"));
+          }
+          bw.flush();
+          bw.close();
+        }
+        catch(IOException ioe){}
+      }
+      else if(cmd.equals("Load..."))
+      {
+        JFileChooser fc = new JFileChooser();
+        int selected = fc.showOpenDialog(this);
+        if (selected == JFileChooser.APPROVE_OPTION)
+        {
+          this.load_f = fc.getSelectedFile();
+        }
+        try
+        {
+          FileReader fr = new FileReader(this.load_f);
+          BufferedReader br = new BufferedReader(fr);
+          String line = "";
+          int x = 0, y = 0, index = -1;
+          while((line = br.readLine()) != null)
+          {
+            if(line.indexOf("//") != -1 || line.indexOf(System.getProperty("line.separator")) == 0)
+            {
+              y = 0;
+              index++;
+            }
+            else
+            {
+              java.util.StringTokenizer st = new java.util.StringTokenizer(line);
+              x = 0;
+              while(st.hasMoreTokens())
+              {
+                PicnomeSerial.this.pserial.midi_parameter[x][y][index] = Integer.valueOf(st.nextToken());
+                x++;
+              }
+              y++;
+            }
+          }
+          int k = PicnomeSerial.this.pserial.midiparameter_cb.getSelectedIndex();
+          for(int j = 0; j < this.mpcp[0].length; j++)
+          {
+            for(int i = 0; i < this.mpcp.length; i++)
+            {
+              this.mpcp[i][j].value.setValue(PicnomeSerial.this.pserial.midi_parameter[i][j][k]);
+            }
+          }
+        }
+        catch(IOException ioe){}
+      }
+    }
+  }
+ 
+  public class MidiPadConfPanel extends JPanel implements ChangeListener
+  {
+    SpinnerNumberModel snm;
+    JSpinner value;
+    JSlider slider;
+    int lattice_x, lattice_y;
+ 
+    MidiPadConfPanel(int x, int y){
+      this.lattice_x = x;
+      this.lattice_y = y;
+      SpringLayout mpcp_sl = new SpringLayout();
+      this.setLayout(mpcp_sl);
+      this.setPreferredSize(new Dimension(120, 50));
+ 
+      this.snm = new SpinnerNumberModel(1, 1, 16, 1);
+      this.value = new JSpinner(this.snm);
+      JSpinner.NumberEditor ne = new JSpinner.NumberEditor(this.value);
+      this.value.setEditor(ne);
+      JFormattedTextField ftf = ne.getTextField();
+      ftf.setEditable(false);
+      this.value.addChangeListener(this);
+      this.value.setPreferredSize(new Dimension(100, 22));
+      mpcp_sl.putConstraint(SpringLayout.WEST, this.value, 0, SpringLayout.WEST, this); 
+      mpcp_sl.putConstraint(SpringLayout.NORTH, this.value, 0, SpringLayout.NORTH, this);
+      this.add(this.value);
+ 
+      this.slider = new JSlider();
+      this.slider.setValue(1);
+      this.slider.setMinimum(1);
+      this.slider.setMaximum(16); 
+      this.slider.addChangeListener(this);
+      this.slider.setPreferredSize(new Dimension(100, 25));
+      mpcp_sl.putConstraint(SpringLayout.WEST, this.slider, 0, SpringLayout.WEST, this);
+      mpcp_sl.putConstraint(SpringLayout.NORTH, this.slider, 30, SpringLayout.NORTH, this);
+      this.add(this.slider);
+    }
+ 
+    void setSliderRange(int min, int max)
+    {
+      this.snm.setMinimum(min);
+      this.snm.setMaximum(max);
+      this.slider.setMinimum(min);
+      this.slider.setMaximum(max);
+    }
+ 
+    public void stateChanged(ChangeEvent e)
+    {
+      if(e.getSource() == this.value)
+        this.slider.setValue((Integer)this.value.getValue());
+      else if(e.getSource() == this.slider)
+        this.value.setValue(this.slider.getValue());
+      if(PicnomeSerial.this.pserial.para_change_flag == false)
+      {
+        int index = PicnomeSerial.this.pserial.midiparameter_cb.getSelectedIndex(); 
+        PicnomeSerial.this.pserial.midi_parameter[lattice_x][lattice_y][index] = (Integer)this.value.getValue();
+        if(index == 0)
+          PicnomeSerial.this.pserial.midiout[lattice_x + (lattice_y * 8)] = PicnomeSerial.this.pserial.midiio.getMidiOut(
+            PicnomeSerial.this.pserial.midi_parameter[lattice_x][lattice_y][index] - 1, PicnomeSerial.this.pserial.midi_out_port);
+      }
+    }
+  }
 }
