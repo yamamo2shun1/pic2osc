@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.1.5 2009/09/10
+ * PicnomeCommunication.java,v.1.2.0 2009/09/30
  */
 
 // RXTX
@@ -39,8 +39,8 @@ public class PicnomeCommunication
   Vector<String> device_list = new Vector<String>();
   Vector<String> midiinput_list = new Vector<String>();
   Vector<String> midioutput_list = new Vector<String>();
-  JButton openclose_b;
-  JComboBox protocol_cb, device_cb, cable_cb, midiinput_cb, midioutput_cb;
+  JButton openclose_b, mididetail_b;
+  JComboBox protocol_cb, device_cb, cable_cb, midiinput_cb, midioutput_cb, midiparameter_cb;
   JTextField hostaddress_tf, prefix_tf, hostport_tf, listenport_tf, hex_tf;
   JSpinner startcolumn_s, startrow_s;
   JCheckBox[] adc_ck = new JCheckBox[7];
@@ -62,8 +62,10 @@ public class PicnomeCommunication
 
   //for Mac OS X
   MidiIO midiio;
-  MidiOut midiout;
-  int midi_in_port, midi_out_port, midi_pgm_number;
+  //sy MidiOut midiout;
+  MidiOut[] midiout = new MidiOut[64];
+  int midi_in_port, midi_out_port, midi_pgm_number, prev_index;
+  boolean para_change_flag;
 
   String[] device = new String[2];
   String[] device2 = new String[2];
@@ -73,6 +75,7 @@ public class PicnomeCommunication
   int[] starting_column = new int[2];
   int[] starting_row = new int[2];
   boolean[][] adc_enable = new boolean[2][7];
+  int[][][] midi_parameter = new int[8][8][5];
 
   PicnomeCommunication()
   {
@@ -341,7 +344,9 @@ public class PicnomeCommunication
     this.midiio.plug(this, "enableMIDILed", this.midi_in_port, 0);
 
     this.midi_out_port = this.midioutput_cb.getSelectedIndex();
-    this.midiout = this.midiio.getMidiOut(0, this.midi_out_port);
+    //sy this.midiout = this.midiio.getMidiOut(0, this.midi_out_port);
+    for(int i = 0; i < 64; i++)
+      this.midiout[i] = this.midiio.getMidiOut(0, this.midi_out_port);
   }
 
   boolean checkAddressPatternPrefix(OSCMessage message, int index)
@@ -411,18 +416,13 @@ public class PicnomeCommunication
         int state = Integer.valueOf(st.nextToken());
         int note_number = notex + (notey * 8);
 
-        System.out.println(notex + " " + notey + " " + state);
-
         Note note;
         if(state == 1)
-        {
-          note = new Note(note_number, 127, 30000);
-        }
+          note = new Note(note_number, this.midi_parameter[notex][notey][1], this.midi_parameter[notex][notey][3]);
         else
-        {
-          note = new Note(note_number, 0, 1);
-        }
-        this.midiout.sendNote(note);
+          note = new Note(note_number, this.midi_parameter[notex][notey][2], this.midi_parameter[notex][notey][4]);
+        this.midiout[note_number].sendNote(note);
+        //sy this.debug_tf.setText(Integer.toString(note_number));
       }
     }
     else if(token.equals("input"))
@@ -456,7 +456,8 @@ public class PicnomeCommunication
         else if(this.midi_pgm_number < 0)
           this.midi_pgm_number = 0;
 
-        this.midiout.sendProgramChange(new ProgramChange(this.midi_pgm_number));
+        //sy this.midiout.sendProgramChange(new ProgramChange(this.midi_pgm_number));
+        this.midiout[0].sendProgramChange(new ProgramChange(this.midi_pgm_number));
       }
     }
     else if(token.equals("adc"))
@@ -481,7 +482,8 @@ public class PicnomeCommunication
         int ctrl_value = (int)(127.0 * Float.valueOf(st.nextToken()));   // Value
         Controller cc = new Controller(ctrl_number, ctrl_value);
 
-        this.midiout.sendController(new Controller(ctrl_number, ctrl_value));
+        //sy this.midiout.sendController(new Controller(ctrl_number, ctrl_value));
+        this.midiout[0].sendController(new Controller(ctrl_number, ctrl_value));
       }
     }
     else if(token.equals("report"))
@@ -1101,12 +1103,12 @@ public class PicnomeCommunication
           }
 
           String str = sb.toString();
+          //sy debug_tf.setText(this.index + " / " + str);
+/*
           int pos_p = str.indexOf("press");
           if(str.indexOf("led") != -1 && pos_p != -1)
             str = str.substring(pos_p, pos_p + 11);
-
-          //DEBUG debug_tf.setText(this.index + " / " + str);
-           
+*/
           if(sb.length() > 0)
             sendOSCMessageFromHw(this.index, str);
         }
