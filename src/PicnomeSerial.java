@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.2.0 2009/09/30
+ * PicnomeSerial.java,v.1.3.0 2009/10/06
  */
 
 import java.io.*;
@@ -53,7 +53,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       );
 
     psgui.mdf.init();
-    psgui.mdf.setBounds(450, 0, 900, 570);
+    psgui.mdf.setBounds(450, 0, 890, 620);
 
     psgui.setVisible(true);
   }
@@ -401,11 +401,15 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       {
         b = this.pserial.openSerialPort(0);
         b = this.pserial.setSerialPort(0);
+        if(this.pserial.co_max_num[0] == 7)
+          this.mdf.setHalfVisible();
       }
       else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1]))
       {
         b = this.pserial.openSerialPort(1);
         b = this.pserial.setSerialPort(1);
+        if(this.pserial.co_max_num[1] == 7)
+          this.mdf.setHalfVisible();
       }
       this.pserial.openclose_b.setText("Close");
     }
@@ -519,8 +523,9 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
   public class MidiDetailFrame extends JFrame implements ActionListener
   {
     File save_f, load_f;
+    JPanel mididetail_p;
     JButton save, load;
-    MidiPadConfPanel[][] mpcp = new MidiPadConfPanel[8][8];
+    MidiPadConfPanel[][] mpcp = new MidiPadConfPanel[16][8];
 
     MidiDetailFrame(){
       super("MIDI Detail Setting...");
@@ -528,8 +533,10 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     public void init()
     {
       SpringLayout sl = new SpringLayout();
-      Container c = getContentPane();
-      c.setLayout(sl);
+      this.mididetail_p = new JPanel();
+      this.mididetail_p.setPreferredSize(new Dimension(1800, 570));
+      this.mididetail_p.setLayout(sl);
+      //sy c.setLayout(sl);
 
       PicnomeSerial.this.pserial.prev_index = 0;
       PicnomeSerial.this.pserial.para_change_flag = false;
@@ -538,30 +545,31 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       PicnomeSerial.this.pserial.midiparameter_cb = new JComboBox(type_name);
       PicnomeSerial.this.pserial.midiparameter_cb.setActionCommand("TypeChanged");
       PicnomeSerial.this.pserial.midiparameter_cb.addActionListener(this);
-      sl.putConstraint(SpringLayout.WEST, PicnomeSerial.this.pserial.midiparameter_cb, 10, SpringLayout.WEST, c);
-      sl.putConstraint(SpringLayout.NORTH, PicnomeSerial.this.pserial.midiparameter_cb, 20, SpringLayout.NORTH, c);
-      c.add(PicnomeSerial.this.pserial.midiparameter_cb);
+      sl.putConstraint(SpringLayout.WEST, PicnomeSerial.this.pserial.midiparameter_cb, 10, SpringLayout.WEST, this.mididetail_p);
+      sl.putConstraint(SpringLayout.NORTH, PicnomeSerial.this.pserial.midiparameter_cb, 20, SpringLayout.NORTH, this.mididetail_p);
+      this.mididetail_p.add(PicnomeSerial.this.pserial.midiparameter_cb);
 
       this.save = new JButton("Save As...");
       this.save.addActionListener(this);
       sl.putConstraint(SpringLayout.WEST, this.save, 10, SpringLayout.EAST, PicnomeSerial.this.pserial.midiparameter_cb);
       sl.putConstraint(SpringLayout.NORTH, this.save, 0, SpringLayout.NORTH, PicnomeSerial.this.pserial.midiparameter_cb);
-      c.add(this.save);
+      this.mididetail_p.add(this.save);
 
       this.load = new JButton("Load...");
       this.load.addActionListener(this);
       sl.putConstraint(SpringLayout.WEST, this.load, 10, SpringLayout.EAST, this.save);
       sl.putConstraint(SpringLayout.NORTH, this.load, 0, SpringLayout.NORTH, this.save);
-      c.add(this.load);
+      this.mididetail_p.add(this.load);
 
       for(int j = 0; j < this.mpcp[0].length; j++)
       {
         for(int i = 0; i < this.mpcp.length; i++)
         {
           this.mpcp[i][j] = new MidiPadConfPanel(i, j);
-          sl.putConstraint(SpringLayout.WEST, this.mpcp[i][j], (110 * i) + 10, SpringLayout.WEST, c);
-          sl.putConstraint(SpringLayout.NORTH, this.mpcp[i][j], (60 * j) + 60, SpringLayout.NORTH, c);
-          c.add(this.mpcp[i][j]);
+          sl.putConstraint(SpringLayout.WEST, this.mpcp[i][j], (110 * i) + 10, SpringLayout.WEST, this.mididetail_p);
+          sl.putConstraint(SpringLayout.NORTH, this.mpcp[i][j], (60 * j) + 60, SpringLayout.NORTH, this.mididetail_p);
+          this.mididetail_p.add(this.mpcp[i][j]);
+
           for(int k = 0; k < 5; k++)
             switch(k)
             {
@@ -583,6 +591,17 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
             }
         }
       }
+      Container c = getContentPane();
+      JScrollPane sp = new JScrollPane(this.mididetail_p);
+      c.add(sp);
+    }
+
+    public void setHalfVisible()
+    {
+      for(int j = 0; j < this.mpcp[0].length; j++)
+        for(int i = 0; i < this.mpcp.length; i++)
+          if(i > 7)
+            this.mpcp[i][j].setVisible(false);
     }
 
     public void actionPerformed(ActionEvent e)
@@ -745,7 +764,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       this.lattice_y = y;
       SpringLayout mpcp_sl = new SpringLayout();
       this.setLayout(mpcp_sl);
-      this.setPreferredSize(new Dimension(120, 50));
+      this.setPreferredSize(new Dimension(110, 50));
 
       this.snm = new SpinnerNumberModel(1, 1, 16, 1);
       this.value = new JSpinner(this.snm);

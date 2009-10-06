@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.2.0 2009/09/30
+ * PicnomeCommunication.java,v.1.3.0 2009/10/06
  */
 
 // RXTX
@@ -46,7 +46,6 @@ public class PicnomeCommunication
   JCheckBox[] adc_ck = new JCheckBox[7];
   JButton hex_b, update_b;
   JProgressBar update_pb;
-
 /* for DEBUG
   JTextField debug_tf;
   JTextField debug2_tf;
@@ -62,8 +61,7 @@ public class PicnomeCommunication
 
   //for Mac OS X
   MidiIO midiio;
-  //sy MidiOut midiout;
-  MidiOut[] midiout = new MidiOut[64];
+  MidiOut[] midiout = new MidiOut[128];
   int midi_in_port, midi_out_port, midi_pgm_number, prev_index;
   boolean para_change_flag;
 
@@ -74,8 +72,9 @@ public class PicnomeCommunication
   String[] address_pattern_prefix = new String[2];
   int[] starting_column = new int[2];
   int[] starting_row = new int[2];
+  int[] co_max_num = new int[2];
   boolean[][] adc_enable = new boolean[2][7];
-  int[][][] midi_parameter = new int[8][8][5];
+  int[][][] midi_parameter = new int[16][8][5];;
 
   PicnomeCommunication()
   {
@@ -95,6 +94,8 @@ public class PicnomeCommunication
     this.starting_column[1] = 0;
     this.starting_row[0] = 0;
     this.starting_row[1] = 0;
+    this.co_max_num[0] = 7;
+    this.co_max_num[1] = 7;
     for(int i = 0; i < 7; i++)
     {
       this.adc_enable[0][i] = false;
@@ -176,6 +177,7 @@ public class PicnomeCommunication
     String device_name;
     ArrayList<String> suffix0 = this.getUsbInfo("IOUSBDevice");
     ArrayList<String> suffix1 = this.getUsbInfo("PICnome");
+    ArrayList<String> suffix2 = this.getUsbInfo("PICnome128");
     Enumeration e = CommPortIdentifier.getPortIdentifiers();
     while(e.hasMoreElements())
     {
@@ -193,7 +195,17 @@ public class PicnomeCommunication
             this.device_list.add("tkrworks-PICnome-" + suffix0.get(i));
           }
         }
-        for(int i = 0; i < suffix1.size(); i++)
+        for(int i = 0; i < suffix2.size(); i++)//for one twenty eight
+        {
+          if(device_name.indexOf(suffix2.get(i)) != -1)
+          {
+            this.device[dev_num] = "tkrworks-PICnome128-" + suffix2.get(i);
+            this.device2[dev_num] = device_name;
+            dev_num++;
+            this.device_list.add("tkrworks-PICnome128-" + suffix2.get(i));
+          }
+        }
+        for(int i = 0; i < suffix1.size(); i++)//for sixty four
         {
           if(device_name.indexOf(suffix1.get(i)) != -1)
           {
@@ -227,7 +239,10 @@ public class PicnomeCommunication
   {
     try
     {
-      //sy this.portId[index] = CommPortIdentifier.getPortIdentifier((String)this.device_cb.getSelectedItem());
+      if(this.device[index].indexOf("PICnome128") != -1)
+        this.co_max_num[index] = 15;
+      else
+        this.co_max_num[index] = 7;
       this.portId[index] = CommPortIdentifier.getPortIdentifier(this.device2[index]);
       this.port[index] = (SerialPort)portId[index].open("PICnomeSerial", 2000);
     }
@@ -344,8 +359,7 @@ public class PicnomeCommunication
     this.midiio.plug(this, "enableMIDILed", this.midi_in_port, 0);
 
     this.midi_out_port = this.midioutput_cb.getSelectedIndex();
-    //sy this.midiout = this.midiio.getMidiOut(0, this.midi_out_port);
-    for(int i = 0; i < 64; i++)
+    for(int i = 0; i < 128; i++)
       this.midiout[i] = this.midiio.getMidiOut(0, this.midi_out_port);
   }
 
@@ -387,12 +401,12 @@ public class PicnomeCommunication
         }
         else if(this.cable_orientation[index].equals("Right"))
         {
-          args[0] = 7 - Integer.valueOf(st.nextToken()) + sc; // X
+          args[0] = this.co_max_num[index] - Integer.valueOf(st.nextToken()) + sc; // X
           args[1] = 7 - Integer.valueOf(st.nextToken()) + sr; // Y
         }
         else if(this.cable_orientation[index].equals("Up"))
         {
-          args[1] = 7 - Integer.valueOf(st.nextToken()) + sr; // Y
+          args[1] = this.co_max_num[index] - Integer.valueOf(st.nextToken()) + sr; // Y
           args[0] = Integer.valueOf(st.nextToken()) + sc;     // X
         }
         else if(this.cable_orientation[index].equals("Down"))
@@ -414,7 +428,7 @@ public class PicnomeCommunication
         int notex = Integer.valueOf(st.nextToken());
         int notey = Integer.valueOf(st.nextToken());
         int state = Integer.valueOf(st.nextToken());
-        int note_number = notex + (notey * 8);
+        int note_number = notex + (notey * (this.co_max_num[index] + 1));
 
         Note note;
         if(state == 1)
@@ -528,12 +542,12 @@ public class PicnomeCommunication
             }
             else if(cable_orientation[i].equals("Right"))
             {
-              sc[i] = 7 - (Integer)args[0] + sc[i];
+              sc[i] = co_max_num[i] - (Integer)args[0] + sc[i];
               sr[i] = 7 - (Integer)args[1] + sr[i];
             }
             else if(cable_orientation[i].equals("Up"))
             {
-              int sc1 = 7 - (Integer)args[1] + sr[i];
+              int sc1 = co_max_num[i] - (Integer)args[1] + sr[i];
               int sr1 = (Integer)args[0] - sc[i];
               sc[i] = sc1;
               sr[i] = sr1;
@@ -567,21 +581,37 @@ public class PicnomeCommunication
     int pitch = note.getPitch();
     int velocity = note.getVelocity();
 
-    if(pitch > 64) return;
+    int[] sc = new int[2];
+    int[] sr = new int[2];
 
-    int sc = (pitch % 8);
-    int sr = (pitch / 8);
-
-    try
+    for(int i = 0; i < 2; i++)
     {
-      String str;
-      if(velocity == 0)
-        str =new String("led " + sc + " " + sr + " " + 0 + (char)0x0D);
-      else
-        str =new String("led " + sc + " " + sr + " " + 1 + (char)0x0D);
-      this.out[0].write(str.getBytes());
+      if(this.co_max_num[i] == 7)
+      {
+        if(pitch > 63) return;
+
+        sc[i] = (pitch % 8);
+        sr[i] = (pitch / 8);
+      }
+      else if(this.co_max_num[i] == 15)
+      {
+        if(pitch > 127) return;
+
+        sc[i] = (pitch % 16);
+        sr[i] = (pitch / 16);
+      }
+
+      try
+      {
+        String str;
+        if(velocity == 0)
+          str =new String("led " + sc[i] + " " + sr[i] + " " + 0 + (char)0x0D);
+        else
+          str =new String("led " + sc[i] + " " + sr[i] + " " + 1 + (char)0x0D);
+        this.out[i].write(str.getBytes());
+      }
+      catch(IOException e){}
     }
-    catch(IOException e){}
   }
 
   public void enableMsgLedCol()
@@ -603,7 +633,7 @@ public class PicnomeCommunication
             if(cable_orientation[j].equals("Left"))
               sc[j] = (Integer)args[0] - starting_column[j];
             else if(cable_orientation[j].equals("Right"))
-              sc[j] = 7 - (Integer)args[0] + starting_column[j];
+              sc[j] = co_max_num[j] - (Integer)args[0] + starting_column[j];
             else if(cable_orientation[j].equals("Up"))
               sc[j] = (Integer)args[0] - starting_column[j];
             else if(cable_orientation[j].equals("Down"))
@@ -628,9 +658,9 @@ public class PicnomeCommunication
             {
               short sr0 = ((Integer)args[1]).shortValue();
               short sr1 = 0;
-              for(int i = 0; i < 8; i++)
+              for(int i = 0; i < 16; i++)
                 if((sr0 & (0x01 << i)) == (0x01 << i))
-                  sr1 |= (0x01 << (7 - i));
+                  sr1 |= (0x01 << (co_max_num[j] - i));
               sr[j] = (short)(sr1 << shift);
             }
             else if(cable_orientation[j].equals("Down"))
@@ -675,7 +705,7 @@ public class PicnomeCommunication
             else if(cable_orientation[j].equals("Right"))
               sr[j] = 7 - (Integer)args[0] + starting_row[j];
             else if(cable_orientation[j].equals("Up"))
-              sr[j] = 7 - (Integer)args[0] + starting_row[j];
+              sr[j] = co_max_num[j] - (Integer)args[0] + starting_row[j];
             else if(cable_orientation[j].equals("Down"))
               sr[j] = (Integer)args[0] - starting_row[j];
             
@@ -689,9 +719,9 @@ public class PicnomeCommunication
             {
               short sc0 = ((Integer)args[1]).shortValue();
               short sc1 = 0;
-              for(int i = 0; i < 8; i++)
+              for(int i = 0; i < 16; i++)
                 if((sc0 & (0x01 << i)) == (0x01 << i))
-                  sc1 |= (0x01 << (7 - i));
+                  sc1 |= (0x01 << (co_max_num[j] - i));
               sc[j] = (short)(sc1 << shift);
             }
             else if(cable_orientation[j].equals("Up"))
@@ -749,7 +779,7 @@ public class PicnomeCommunication
               else if(cable_orientation[k].equals("Right"))
                 sr[k] = 7 - i + starting_row[k];
               else if(cable_orientation[k].equals("Up"))
-                sr[k] = 7 - i + starting_row[k];
+                sr[k] = co_max_num[k] - i + starting_row[k];
               else if(cable_orientation[k].equals("Down"))
                 sr[k] = i - starting_row[k];
 
@@ -761,9 +791,9 @@ public class PicnomeCommunication
               {
                 short sc0 = ((Integer)args[i]).shortValue();
                 short sc1 = 0;
-                for(int j = 0; j < 8; j++)
+                for(int j = 0; j < 16; j++)
                   if((sc0 & (0x01 << j)) == (0x01 << j))
-                    sc1 |= (0x01 << (7 - j));
+                    sc1 |= (0x01 << (co_max_num[k] - j));
                 sc[k] = (short)(sc1 << shift);
               }
               else if(cable_orientation[k].equals("Up"))
@@ -813,10 +843,20 @@ public class PicnomeCommunication
             for(int i = 0; i < 8; i++)
             {
               short state;
-              if(((Integer)args[0]).intValue() == 0)
-                state = (short)0x00;
+              if(co_max_num[j] == 7)
+              {
+                if(((Integer)args[0]).intValue() == 0)
+                  state = (short)0x00;
+                else
+                  state = (short)0xFF;
+              }
               else
-                state = (short)0xFF;
+              {
+                if(((Integer)args[0]).intValue() == 0)
+                  state = (short)0x0000;
+                else
+                  state = (short)0xFFFF;
+              }
 
               try
               {
