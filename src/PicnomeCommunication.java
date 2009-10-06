@@ -641,7 +641,7 @@ public class PicnomeCommunication
 
             if(sc[j] < 0) continue ;
 
-            int shift = starting_row[j] % 16;
+            int shift = starting_row[j] % (co_max_num[j] + 1);
 
             if(cable_orientation[j].equals("Left"))
               sr[j] = (short)(((Integer)args[1]).shortValue() >> shift);
@@ -658,7 +658,7 @@ public class PicnomeCommunication
             {
               short sr0 = ((Integer)args[1]).shortValue();
               short sr1 = 0;
-              for(int i = 0; i < 16; i++)
+              for(int i = 0; i < co_max_num[j] + 1; i++)
                 if((sr0 & (0x01 << i)) == (0x01 << i))
                   sr1 |= (0x01 << (co_max_num[j] - i));
               sr[j] = (short)(sr1 << shift);
@@ -711,7 +711,7 @@ public class PicnomeCommunication
             
             if(sr[j] < 0) continue;
             
-            int shift = starting_column[j] % 16;
+            int shift = starting_column[j] % (co_max_num[j] + 1);
             
             if(cable_orientation[j].equals("Left"))
               sc[j] = (short)(((Integer)args[1]).shortValue() >> shift);
@@ -719,7 +719,7 @@ public class PicnomeCommunication
             {
               short sc0 = ((Integer)args[1]).shortValue();
               short sc1 = 0;
-              for(int i = 0; i < 16; i++)
+              for(int i = 0; i < co_max_num[j] + 1; i++)
                 if((sc0 & (0x01 << i)) == (0x01 << i))
                   sc1 |= (0x01 << (co_max_num[j] - i));
               sc[j] = (short)(sc1 << shift);
@@ -770,7 +770,7 @@ public class PicnomeCommunication
             if(!checkAddressPatternPrefix(message, k))
               continue;
 
-            int shift = starting_column[k] % 16;
+            int shift = starting_column[k] % (co_max_num[k] + 1);
 
             for(int i = 0; i < 8; i++)
             {
@@ -791,7 +791,7 @@ public class PicnomeCommunication
               {
                 short sc0 = ((Integer)args[i]).shortValue();
                 short sc1 = 0;
-                for(int j = 0; j < 16; j++)
+                for(int j = 0; j < co_max_num[k] + 1; j++)
                   if((sc0 & (0x01 << j)) == (0x01 << j))
                     sc1 |= (0x01 << (co_max_num[k] - j));
                 sc[k] = (short)(sc1 << shift);
