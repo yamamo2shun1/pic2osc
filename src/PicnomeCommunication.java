@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.3.0a 2009/10/06
+ * PicnomeCommunication.java,v.1.3.1 2009/10/30
  */
 
 // RXTX
@@ -133,7 +133,10 @@ public class PicnomeCommunication
       pos_start = iousbdevice.indexOf("(");
       pos_end = iousbdevice.indexOf(")");
       id = iousbdevice.substring(pos_start + 1, pos_end);
-      comport.add(id);
+
+      if((iousbdevice.indexOf("PICnome128") == -1 && name.indexOf("PICnome128") == -1) || (iousbdevice.indexOf("PICnome128") != -1 && name.indexOf("PICnome128") != -1))
+        comport.add(id);
+
       iousbdevices = iousbdevices.substring(iousbdevices.indexOf(")") + 2, iousbdevices.length());
     }
     return comport;
@@ -727,7 +730,7 @@ public class PicnomeCommunication
  
             int shift = starting_column[k] % 16;
  
-            for(int i = 0; i < 8; i++)
+            for(int i = 0; i < 16; i++)
             {
               if(cable_orientation[k].equals("Left"))
                 sr[k] = i - starting_row[k];
@@ -738,7 +741,7 @@ public class PicnomeCommunication
               else if(cable_orientation[k].equals("Down"))
                 sr[k] = i - starting_row[k];
  
-              if(i < starting_row[k]) continue;
+              if(i < starting_row[k] || (i - starting_row[k]) > 7) continue;
  
               if(cable_orientation[k].equals("Left"))
                 sc[k] = (short)(((Integer)args[i]).shortValue() >> shift);
