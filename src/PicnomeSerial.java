@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.3.1 2009/10/30
+ * PicnomeSerial.java,v.1.3.2 2009/11/09
  */
 
 import java.io.*;
@@ -26,7 +26,8 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
 
-public class PicnomeSerial extends JFrame implements ActionListener, ChangeListener{
+public class PicnomeSerial extends JFrame implements ActionListener, ChangeListener
+{
   PicnomeCommunication pserial = new PicnomeCommunication();
   MidiDetailFrame mdf = new MidiDetailFrame();
 
@@ -37,7 +38,8 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
   Timer timer;
   int ch, size, count, bar;
 
-  public static void main(String[] args){
+  public static void main(String[] args)
+  {
     PicnomeSerial psgui = new PicnomeSerial();
     psgui.init();
     if(System.getProperty("os.name").startsWith("Mac OS X"))
@@ -60,7 +62,8 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     psgui.setVisible(true);
   }
 
-  public void init(){
+  public void init()
+  {
     SpringLayout sl = new SpringLayout();
     Container c = getContentPane();
     c.setLayout(sl);
