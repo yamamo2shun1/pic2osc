@@ -915,7 +915,7 @@ public class PicnomeCommunication
             PicnomeCommunication.this.changeDeviceSettings(device_no);
         }
       };
-    this.oscpin.addListener("/sys/prefix", listener);
+    this.oscpin.addListener("/sys/device", listener);
   }
 
   public void enableMsgPrefix()
