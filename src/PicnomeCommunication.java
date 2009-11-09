@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.3.1 2009/10/30
+ * PicnomeCommunication.java,v.1.3.2 2009/11/09
  */
 
 // RXTX
@@ -946,6 +946,24 @@ public class PicnomeCommunication
   }
 */
 
+  public void enableMsgDevice()
+  {
+    OSCListener listener = new OSCListener()
+      {
+        public void acceptMessage(java.util.Date time, OSCMessage message)
+        {
+          Object[] args = message.getArguments();
+          int device_no = ((Integer)args[0]).intValue();
+          if(device_no == 0 || device_no == 1)
+          {
+            PicnomeCommunication.this.device_cb.setSelectedIndex(device_no);
+            PicnomeCommunication.this.changeDeviceSettings(device_no);
+          }
+        }
+      };
+    this.oscpin.addListener("/sys/device", listener);
+  }
+
   public void enableMsgPrefix()
   {
     OSCListener listener = new OSCListener()
@@ -1103,6 +1121,7 @@ public class PicnomeCommunication
     }
     if(str.equals("all"))
     {
+      this.enableMsgDevice();
       this.enableMsgPrefix();
       this.enableMsgIntensity();
       this.enableMsgTest();
