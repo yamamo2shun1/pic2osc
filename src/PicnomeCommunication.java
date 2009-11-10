@@ -912,7 +912,10 @@ public class PicnomeCommunication
           Object[] args = message.getArguments();
           int device_no = ((Integer)args[0]).intValue();
           if(device_no == 0 || device_no == 1)
+          {
+            PicnomeCommunication.this.device_cb.setSelectedIndex(device_no);
             PicnomeCommunication.this.changeDeviceSettings(device_no);
+          }
         }
       };
     this.oscpin.addListener("/sys/device", listener);
@@ -1074,6 +1077,7 @@ public class PicnomeCommunication
     }
     if(str.equals("all"))
     {
+      this.enableMsgDevice();
       this.enableMsgPrefix();
       this.enableMsgIntensity();
       this.enableMsgTest();
