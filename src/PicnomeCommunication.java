@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.3.2 2009/11/09
+ * PicnomeCommunication.java,v.1.3.3 2009/11/30
  */
 
 // RXTX
@@ -475,7 +475,7 @@ public class PicnomeCommunication
     }
   }
 
-  public void enableMsgLed()
+  public synchronized void enableMsgLed()
   {
     OSCListener listener = new OSCListener()
       {
@@ -526,9 +526,13 @@ public class PicnomeCommunication
               String str =new String("led " + sc[i] + " " + sr[i] + " " + (Integer)args[2] + (char)0x0D);
               //debug debug_tf.setText(str);
               if(portId[i] != null && portId[i].isCurrentlyOwned())
+              {
                 out[i].write(str.getBytes());
+                wait(0, 100);
+              }
             }
             catch(IOException e){}
+            catch(InterruptedException e){}
           }//end for
         }
       };
