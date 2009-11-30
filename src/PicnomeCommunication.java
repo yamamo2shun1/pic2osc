@@ -47,9 +47,8 @@ public class PicnomeCommunication
   JButton hex_b, update_b;
   JProgressBar update_pb;
 
-
-  JTextField debug_tf;
 /* for DEBUG
+  JTextField debug_tf;
   JTextField debug2_tf;
 */
 
