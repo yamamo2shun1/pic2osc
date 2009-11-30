@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.3.2 2009/11/09
+ * PicnomeCommunication.java,v.1.3.3 2009/11/30
  */
 
 // RXTX
@@ -46,10 +46,14 @@ public class PicnomeCommunication
   JCheckBox[] adc_ck = new JCheckBox[7];
   JButton hex_b, update_b;
   JProgressBar update_pb;
-/* for DEBUG
+
+
   JTextField debug_tf;
+/* for DEBUG
   JTextField debug2_tf;
 */
+
+  int max_picnome_num = 2;
   CommPortIdentifier[] portId = new CommPortIdentifier[2];
   SerialPort[] port = new SerialPort[2];
   InputStream[] in = new InputStream[2];
@@ -416,6 +420,7 @@ public class PicnomeCommunication
         }
         args[2] = Integer.valueOf(st.nextToken()); // State
 
+        //debug this.debug_tf.setText(args[0] + " " + args[1] + " " + args[2]);
         msg = new OSCMessage(this.address_pattern_prefix[index] + "/press", args);
         try
         {
@@ -449,6 +454,7 @@ public class PicnomeCommunication
         args[1] = Integer.valueOf(st.nextToken()); // State
 
         msg = new OSCMessage(this.address_pattern_prefix[index] + "/input", args);
+
         try
         {
           this.oscpout.send(msg);
@@ -484,6 +490,7 @@ public class PicnomeCommunication
         args[1] = Float.valueOf(st.nextToken());   // Value
 
         msg = new OSCMessage(this.address_pattern_prefix[index] + "/adc", args);
+
         try
         {
           this.oscpout.send(msg);
@@ -520,8 +527,9 @@ public class PicnomeCommunication
   {
     OSCListener listener = new OSCListener()
       {
-        public void acceptMessage(java.util.Date time, OSCMessage message)
+        public synchronized void acceptMessage(java.util.Date time, OSCMessage message)
         {
+          String address = message.getAddress();
           Object[] args = message.getArguments();
 
           int[] sc = new int[2];
@@ -567,9 +575,13 @@ public class PicnomeCommunication
               String str =new String("led " + sc[i] + " " + sr[i] + " " + (Integer)args[2] + (char)0x0D);
               //debug debug_tf.setText(str);
               if(portId[i] != null && portId[i].isCurrentlyOwned())
+              {
                 out[i].write(str.getBytes());
+                wait(0, 100);
+              }
             }
             catch(IOException e){}
+            catch(InterruptedException e){}
           }//end for
         }
       };
@@ -879,11 +891,6 @@ public class PicnomeCommunication
       {
         public void acceptMessage(java.util.Date time, OSCMessage message)
         {
-/*
-          if(!checkAddressPatternPrefix(message))
-            return ;
-*/
-
           Object[] args = message.getArguments();
 
           try
@@ -1160,14 +1167,8 @@ public class PicnomeCommunication
             if(buffer == 0x0A || buffer == 0x0D)
               break;
           }
-
           String str = sb.toString();
-          //sy debug_tf.setText(this.index + " / " + str);
-/*
-          int pos_p = str.indexOf("press");
-          if(str.indexOf("led") != -1 && pos_p != -1)
-            str = str.substring(pos_p, pos_p + 11);
-*/
+          //debug debug_tf.setText(this.index + " / " + str);
           if(sb.length() > 0)
             sendOSCMessageFromHw(this.index, str);
         }
@@ -1182,7 +1183,9 @@ public class PicnomeCommunication
     {
       this.port[index].addEventListener(new SerialPortListener(index, this.inr[index]));
       this.port[index].notifyOnDataAvailable(true);
+      this.port[index].enableReceiveTimeout(1000);
     }
     catch (TooManyListenersException e){}
+    catch (UnsupportedCommOperationException e){}
   }
 }

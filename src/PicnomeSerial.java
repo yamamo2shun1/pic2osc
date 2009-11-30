@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.3.2 2009/11/09
+ * PicnomeSerial.java,v.1.3.3 2009/11/30
  */
 
 import java.io.*;
@@ -205,12 +205,12 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     ds_sl.putConstraint(SpringLayout.WEST, this.pserial.cable_cb, 10, SpringLayout.EAST, cable_l);
     ds_p.add(this.pserial.cable_cb);
 
-/* for DEBUG
+
     this.pserial.debug_tf = new JTextField("", 8);
     ds_sl.putConstraint(SpringLayout.NORTH, this.pserial.debug_tf, 35, SpringLayout.NORTH, ds_p);
     ds_sl.putConstraint(SpringLayout.WEST, this.pserial.debug_tf, 250, SpringLayout.WEST, ds_p);
     ds_p.add(this.pserial.debug_tf);
-
+/* for DEBUG
     this.pserial.debug2_tf = new JTextField("", 8);
     ds_sl.putConstraint(SpringLayout.NORTH, this.pserial.debug2_tf, 35, SpringLayout.NORTH, ds_p);
     ds_sl.putConstraint(SpringLayout.WEST, this.pserial.debug2_tf, 270, SpringLayout.WEST, ds_p);
