@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.3.3 2009/11/30
+ * PicnomeCommunication.java,v.1.3.4 2009/12/01
  */
 
 // RXTX
@@ -46,7 +46,6 @@ public class PicnomeCommunication
   JCheckBox[] adc_ck = new JCheckBox[7];
   JButton hex_b, update_b;
   JProgressBar update_pb;
-
 /* for DEBUG
   JTextField debug_tf;
   JTextField debug2_tf;
@@ -89,8 +88,8 @@ public class PicnomeCommunication
 
     this.connect_state[0] = "Open";
     this.connect_state[1] = "Open";
-    this.cable_orientation[0] = "Left";
-    this.cable_orientation[1] = "Left";
+    this.cable_orientation[0] = "left";
+    this.cable_orientation[1] = "left";
     this.address_pattern_prefix[0] = "/test";
     this.address_pattern_prefix[1] = "/test";
     this.starting_column[0] = 0;
@@ -397,22 +396,22 @@ public class PicnomeCommunication
         int sc = this.starting_column[index];
         int sr = this.starting_row[index];
 
-        if(this.cable_orientation[index].equals("Left"))
+        if(this.cable_orientation[index].equals("left"))
         {
           args[0] = Integer.valueOf(st.nextToken()) + sc; // X
           args[1] = Integer.valueOf(st.nextToken()) + sr; // Y
         }
-        else if(this.cable_orientation[index].equals("Right"))
+        else if(this.cable_orientation[index].equals("right"))
         {
           args[0] = this.co_max_num[index] - Integer.valueOf(st.nextToken()) + sc; // X
           args[1] = 7 - Integer.valueOf(st.nextToken()) + sr; // Y
         }
-        else if(this.cable_orientation[index].equals("Up"))
+        else if(this.cable_orientation[index].equals("up"))
         {
           args[1] = this.co_max_num[index] - Integer.valueOf(st.nextToken()) + sr; // Y
           args[0] = Integer.valueOf(st.nextToken()) + sc;     // X
         }
-        else if(this.cable_orientation[index].equals("Down"))
+        else if(this.cable_orientation[index].equals("down"))
         {
           args[1] = Integer.valueOf(st.nextToken()) + sr;     // Y
           args[0] = 7 - Integer.valueOf(st.nextToken()) + sc; // X
@@ -440,7 +439,7 @@ public class PicnomeCommunication
         else
           note = new Note(note_number, this.midi_parameter[notex][notey][2], this.midi_parameter[notex][notey][4]);
         this.midiout[note_number].sendNote(note);
-        //sy this.debug_tf.setText(Integer.toString(note_number));
+        //debug this.debug_tf.setText(Integer.toString(note_number));
       }
     }
     else if(token.equals("input"))
@@ -542,24 +541,24 @@ public class PicnomeCommunication
             sc[i] = starting_column[i];
             sr[i] = starting_row[i];
 
-            if(cable_orientation[i].equals("Left"))
+            if(cable_orientation[i].equals("left"))
             {
               sc[i] = (Integer)args[0] - sc[i];
               sr[i] = (Integer)args[1] - sr[i];
             }
-            else if(cable_orientation[i].equals("Right"))
+            else if(cable_orientation[i].equals("right"))
             {
               sc[i] = co_max_num[i] - (Integer)args[0] + sc[i];
               sr[i] = 7 - (Integer)args[1] + sr[i];
             }
-            else if(cable_orientation[i].equals("Up"))
+            else if(cable_orientation[i].equals("up"))
             {
               int sc1 = co_max_num[i] - (Integer)args[1] + sr[i];
               int sr1 = (Integer)args[0] - sc[i];
               sc[i] = sc1;
               sr[i] = sr1;
             }
-            else if(cable_orientation[i].equals("Down"))
+            else if(cable_orientation[i].equals("down"))
             {
               int sc1 = (Integer)args[1] - sr[i];
               int sr1 = 7 - (Integer)args[0] + sc[i];
@@ -641,22 +640,22 @@ public class PicnomeCommunication
             if(!checkAddressPatternPrefix(message, j))
               continue;
 
-            if(cable_orientation[j].equals("Left"))
+            if(cable_orientation[j].equals("left"))
               sc[j] = (Integer)args[0] - starting_column[j];
-            else if(cable_orientation[j].equals("Right"))
+            else if(cable_orientation[j].equals("right"))
               sc[j] = co_max_num[j] - (Integer)args[0] + starting_column[j];
-            else if(cable_orientation[j].equals("Up"))
+            else if(cable_orientation[j].equals("up"))
               sc[j] = (Integer)args[0] - starting_column[j];
-            else if(cable_orientation[j].equals("Down"))
+            else if(cable_orientation[j].equals("down"))
               sc [j]= 7 - (Integer)args[0] + starting_column[j];
 
             if(sc[j] < 0) continue ;
 
             int shift = starting_row[j] % (co_max_num[j] + 1);
 
-            if(cable_orientation[j].equals("Left"))
+            if(cable_orientation[j].equals("left"))
               sr[j] = (short)(((Integer)args[1]).shortValue() >> shift);
-            else if(cable_orientation[j].equals("Right"))
+            else if(cable_orientation[j].equals("right"))
             {
               short sr0 = ((Integer)args[1]).shortValue();
               short sr1 = 0;
@@ -665,7 +664,7 @@ public class PicnomeCommunication
                   sr1 |= (0x01 << (7 - i));
               sr[j] = (short)(sr1 << shift);
             }
-            else if(cable_orientation[j].equals("Up"))
+            else if(cable_orientation[j].equals("up"))
             {
               short sr0 = ((Integer)args[1]).shortValue();
               short sr1 = 0;
@@ -674,13 +673,13 @@ public class PicnomeCommunication
                   sr1 |= (0x01 << (co_max_num[j] - i));
               sr[j] = (short)(sr1 << shift);
             }
-            else if(cable_orientation[j].equals("Down"))
+            else if(cable_orientation[j].equals("down"))
               sr[j] = (short)(((Integer)args[1]).shortValue() >> shift);
 
             try
             {
               String str;
-              if(cable_orientation[j].equals("Left") || cable_orientation[j].equals("Right"))
+              if(cable_orientation[j].equals("left") || cable_orientation[j].equals("right"))
                 str =new String("led_col " + sc[j] + " " + sr[j] + (char)0x0D);
               else
                 str =new String("led_row " + sc[j] + " " + sr[j] + (char)0x0D);
@@ -711,22 +710,22 @@ public class PicnomeCommunication
             if(!checkAddressPatternPrefix(message, j))
               continue;
 
-            if(cable_orientation[j].equals("Left"))
+            if(cable_orientation[j].equals("left"))
               sr[j] = (Integer)args[0] - starting_row[j];
-            else if(cable_orientation[j].equals("Right"))
+            else if(cable_orientation[j].equals("right"))
               sr[j] = 7 - (Integer)args[0] + starting_row[j];
-            else if(cable_orientation[j].equals("Up"))
+            else if(cable_orientation[j].equals("up"))
               sr[j] = co_max_num[j] - (Integer)args[0] + starting_row[j];
-            else if(cable_orientation[j].equals("Down"))
+            else if(cable_orientation[j].equals("down"))
               sr[j] = (Integer)args[0] - starting_row[j];
             
             if(sr[j] < 0) continue;
             
             int shift = starting_column[j] % (co_max_num[j] + 1);
             
-            if(cable_orientation[j].equals("Left"))
+            if(cable_orientation[j].equals("left"))
               sc[j] = (short)(((Integer)args[1]).shortValue() >> shift);
-            else if(cable_orientation[j].equals("Right"))
+            else if(cable_orientation[j].equals("right"))
             {
               short sc0 = ((Integer)args[1]).shortValue();
               short sc1 = 0;
@@ -735,9 +734,9 @@ public class PicnomeCommunication
                   sc1 |= (0x01 << (co_max_num[j] - i));
               sc[j] = (short)(sc1 << shift);
             }
-            else if(cable_orientation[j].equals("Up"))
+            else if(cable_orientation[j].equals("up"))
               sc[j] = (short)(((Integer)args[1]).shortValue() >> shift);
-            else if(cable_orientation[j].equals("Down"))
+            else if(cable_orientation[j].equals("down"))
             {
               short sc0 = ((Integer)args[1]).shortValue();
               short sc1 = 0;
@@ -750,7 +749,7 @@ public class PicnomeCommunication
             try
             {
               String str;
-              if(cable_orientation[j].equals("Left") || cable_orientation[j].equals("Right"))
+              if(cable_orientation[j].equals("left") || cable_orientation[j].equals("right"))
                 str =new String("led_row " + sr[j] + " " + sc[j] + (char)0x0D);
               else
                 str =new String("led_col " + sr[j] + " " + sc[j] + (char)0x0D);
@@ -785,20 +784,20 @@ public class PicnomeCommunication
 
             for(int i = 0; i < 16; i++)
             {
-              if(cable_orientation[k].equals("Left"))
+              if(cable_orientation[k].equals("left"))
                 sr[k] = i - starting_row[k];
-              else if(cable_orientation[k].equals("Right"))
+              else if(cable_orientation[k].equals("right"))
                 sr[k] = 7 - i + starting_row[k];
-              else if(cable_orientation[k].equals("Up"))
+              else if(cable_orientation[k].equals("up"))
                 sr[k] = co_max_num[k] - i + starting_row[k];
-              else if(cable_orientation[k].equals("Down"))
+              else if(cable_orientation[k].equals("down"))
                 sr[k] = i - starting_row[k];
 
               if(i < starting_row[k] || (i - starting_row[k]) > 7) continue;
 
-              if(cable_orientation[k].equals("Left"))
+              if(cable_orientation[k].equals("left"))
                 sc[k] = (short)(((Integer)args[i]).shortValue() >> shift);
-              else if(cable_orientation[k].equals("Right"))
+              else if(cable_orientation[k].equals("right"))
               {
                 short sc0 = ((Integer)args[i]).shortValue();
                 short sc1 = 0;
@@ -807,9 +806,9 @@ public class PicnomeCommunication
                     sc1 |= (0x01 << (co_max_num[k] - j));
                 sc[k] = (short)(sc1 << shift);
               }
-              else if(cable_orientation[k].equals("Up"))
+              else if(cable_orientation[k].equals("up"))
                 sc[k] = (short)(((Integer)args[i]).shortValue() >> shift);
-              else if(cable_orientation[k].equals("Down"))
+              else if(cable_orientation[k].equals("down"))
               {
                 short sc0 = ((Integer)args[i]).shortValue();
                 short sc1 = 0;
@@ -822,7 +821,7 @@ public class PicnomeCommunication
               try
               {
                 String str;
-                if(cable_orientation[k].equals("Left") || cable_orientation[k].equals("Right"))
+                if(cable_orientation[k].equals("left") || cable_orientation[k].equals("right"))
                   str =new String("led_row " + sr[k] + " " + sc[k] + (char)0x0D);
                 else
                   str =new String("led_col " + sr[k] + " " + sc[k] + (char)0x0D);
@@ -854,16 +853,16 @@ public class PicnomeCommunication
             for(int i = 0; i < 8; i++)
             {
               short state;
-              if(co_max_num[j] == 7)
+              if(co_max_num[j] == 7)//sixty four
               {
-                if(((Integer)args[0]).intValue() == 0)
+                if(args.length == 0 || ((Integer)args[0]).intValue() == 0)
                   state = (short)0x00;
                 else
                   state = (short)0xFF;
               }
-              else
+              else//one twenty eight
               {
-                if(((Integer)args[0]).intValue() == 0)
+                if(args.length == 0 || ((Integer)args[0]).intValue() == 0)
                   state = (short)0x0000;
                 else
                   state = (short)0xFFFF;
@@ -977,8 +976,27 @@ public class PicnomeCommunication
         public void acceptMessage(java.util.Date time, OSCMessage message)
         {
           Object[] args = message.getArguments();
-          prefix_tf.setText((String)args[0]);
-          PicnomeCommunication.this.initOSCListener("prefix");
+          if(args.length == 0)
+          {
+            for(int i = 0; i < device_list.size(); i++)
+            {
+              OSCMessage msg;
+              Object[] args0 = new Object[2];
+              args0[0] = String.valueOf(i);
+              args0[1] = address_pattern_prefix[i];
+              msg = new OSCMessage("/sys/prefix", args0);
+              try
+              {
+                oscpout.send(msg);
+              }
+              catch(IOException e){}
+            }
+          }
+          else
+          {
+            prefix_tf.setText((String)args[0]);
+            PicnomeCommunication.this.initOSCListener("prefix");
+          }
         }
       };
     this.oscpin.addListener("/sys/prefix", listener);
@@ -1063,15 +1081,70 @@ public class PicnomeCommunication
         public void acceptMessage(java.util.Date time, OSCMessage message)
         {
           Object[] args = message.getArguments();
+          Object[] args0;
+          String str;
+          OSCMessage msg;
+
+          //debug debug_tf.setText(String.valueOf(args.length));
 
           try
           {
-            String str =new String("report " + (Integer)args[0] + (char)0x0D);
-            //debug debug_tf.setText(str);
-            if(portId[0] != null && portId[0].isCurrentlyOwned())
-              out[0].write(str.getBytes());
-            if(portId[1] != null && portId[1].isCurrentlyOwned())
-              out[1].write(str.getBytes());
+            if(args.length == 0)
+            {
+              args0 = new Object[1];
+              args0[0] = String.valueOf(device_list.size());
+              msg = new OSCMessage("/sys/devices", args0);
+              oscpout.send(msg);
+
+              for(int i = 0; i < device_list.size(); i++)
+              {
+                args0 = new Object[2];
+                args0[0] = String.valueOf(i);
+                if(device[i].indexOf("128") != -1)
+                  args0[1] = "128";
+                else
+                  args0[1] = "64";
+                msg = new OSCMessage("/sys/type", args0);
+                oscpout.send(msg);
+              }
+
+              for(int i = 0; i < device_list.size(); i++)
+              {
+                args0 = new Object[2];
+                args0[0] = String.valueOf(i);
+                args0[1] = address_pattern_prefix[i];
+                msg = new OSCMessage("/sys/prefix", args0);
+                oscpout.send(msg);
+              }
+
+              for(int i = 0; i < device_list.size(); i++)
+              {
+                args0 = new Object[2];
+                args0[0] = String.valueOf(i);
+                args0[1] = cable_orientation[i];
+                msg = new OSCMessage("/sys/cable", args0);
+                oscpout.send(msg);
+              }
+
+              for(int i = 0; i < device_list.size(); i++)
+              {
+                args0 = new Object[3];
+                args0[0] = String.valueOf(i);
+                args0[1] = starting_column[i];
+                args0[2] = starting_row[i];
+                msg = new OSCMessage("/sys/offset", args0);
+                oscpout.send(msg);
+              }
+            }
+            else
+            {
+              str = new String("report " + (Integer)args[0] + (char)0x0D);
+              //debug debug_tf.setText(str);
+              if(portId[0] != null && portId[0].isCurrentlyOwned())
+                out[0].write(str.getBytes());
+              if(portId[1] != null && portId[1].isCurrentlyOwned())
+                out[1].write(str.getBytes());
+            }
           }
           catch(IOException e){}
         }
@@ -1079,6 +1152,39 @@ public class PicnomeCommunication
     this.oscpin.addListener("/sys/report", listener);
   }
 
+  public void enableMsgType()
+  {
+    OSCListener listener = new OSCListener()
+      {
+        public void acceptMessage(java.util.Date time, OSCMessage message)
+        {
+          Object[] args = message.getArguments();
+          Object[] args0;
+          String str;
+          OSCMessage msg;
+
+          try
+          {
+            if(args.length == 0)
+            {
+              for(int i = 0; i < device_list.size(); i++)
+              {
+                args0 = new Object[2];
+                args0[0] = String.valueOf(i);
+                if(device[i].indexOf("128") != -1)
+                  args0[1] = "128";
+                else
+                  args0[1] = "64";
+                msg = new OSCMessage("/sys/type", args0);
+                oscpout.send(msg);
+              }
+            }
+          }
+          catch(IOException e){}
+        }
+      };
+    this.oscpin.addListener("/sys/type", listener);
+  }
 
   public void enableMsgOffset()
   {
@@ -1101,7 +1207,24 @@ public class PicnomeCommunication
         public void acceptMessage(java.util.Date time, OSCMessage message)
         {
           Object[] args = message.getArguments();
-          cable_cb.setSelectedItem(((String)args[0]));
+          if(args.length == 0)
+          {
+            for(int i = 0; i < device_list.size(); i++)
+            {
+              OSCMessage msg;
+              Object[] args0 = new Object[2];
+              args0[0] = String.valueOf(i);
+              args0[1] = cable_orientation[i];
+              msg = new OSCMessage("/sys/cable", args0);
+              try
+              {
+                oscpout.send(msg);
+              }
+              catch(IOException e){}
+            }
+          }
+          else
+            cable_cb.setSelectedItem(((String)args[0]));
         }
       };
     this.oscpin.addListener("/sys/cable", listener);
@@ -1133,6 +1256,7 @@ public class PicnomeCommunication
       this.enableMsgTest();
       this.enableMsgShutdown();
       this.enableMsgReport();
+      this.enableMsgType();
       this.enableMsgOffset();
       this.enableMsgCable();
 
