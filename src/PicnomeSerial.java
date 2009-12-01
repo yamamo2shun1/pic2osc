@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.3.3 2009/11/30
+ * PicnomeSerial.java,v.1.3.4 2009/12/01
  */
 
 import java.io.*;
@@ -201,7 +201,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     ds_sl.putConstraint(SpringLayout.NORTH, cable_l, 40, SpringLayout.NORTH, ds_p);
     ds_sl.putConstraint(SpringLayout.WEST, cable_l, 22, SpringLayout.WEST, ds_p);
     ds_p.add(cable_l);
-    String[] cable_str = {"Left", "Right", "Up", "Down"};
+    String[] cable_str = {"left", "right", "up", "down"};
     this.pserial.cable_cb = new JComboBox(cable_str);
     this.pserial.cable_cb.setActionCommand("CableChanged");
     this.pserial.cable_cb.addActionListener(this);
