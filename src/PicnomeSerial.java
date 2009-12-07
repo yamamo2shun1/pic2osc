@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.3.4 2009/12/01
+ * PicnomeSerial.java,v.1.3.5 2009/12/08
  */
 
 import java.io.*;
@@ -807,9 +807,11 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       {
         int index = PicnomeSerial.this.pserial.midiparameter_cb.getSelectedIndex(); 
         PicnomeSerial.this.pserial.midi_parameter[lattice_x][lattice_y][index] = (Integer)this.value.getValue();
+/*midi
         if(index == 0)
           PicnomeSerial.this.pserial.midiout[lattice_x + (lattice_y * 8)] = PicnomeSerial.this.pserial.midiio.getMidiOut(
             PicnomeSerial.this.pserial.midi_parameter[lattice_x][lattice_y][index] - 1, PicnomeSerial.this.pserial.midi_out_port);
+midi*/
       }
     }
   }
