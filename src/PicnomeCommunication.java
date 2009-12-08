@@ -475,7 +475,7 @@ public class PicnomeCommunication
     }
   }
 
-  public synchronized void enableMsgLed()
+  public void enableMsgLed()
   {
     OSCListener listener = new OSCListener()
       {
