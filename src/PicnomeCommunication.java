@@ -479,7 +479,7 @@ public class PicnomeCommunication
   {
     OSCListener listener = new OSCListener()
       {
-        public void acceptMessage(java.util.Date time, OSCMessage message)
+        public synchronized void acceptMessage(java.util.Date time, OSCMessage message)
         {
           Object[] args = message.getArguments();
  
