@@ -27,7 +27,8 @@ import com.illposed.osc.*;
 import com.illposed.osc.utility.*;
 
 // JavaMIDI
-import promidi.*;
+//sy import promidi.*;
+import javax.sound.midi.*;
 
 import javax.swing.*;
 import java.util.*;
@@ -39,6 +40,8 @@ public class PicnomeCommunication
   Vector<String> device_list = new Vector<String>();
   Vector<String> midiinput_list = new Vector<String>();
   Vector<String> midioutput_list = new Vector<String>();
+  ArrayList<MidiDevice.Info> midiinputdevices = new ArrayList<MidiDevice.Info>();
+  ArrayList<MidiDevice.Info> midioutputdevices = new ArrayList<MidiDevice.Info>();
   JButton openclose_b, mididetail_b;
   JComboBox protocol_cb, device_cb, cable_cb, midiinput_cb, midioutput_cb, midiparameter_cb;
   JTextField hostaddress_tf, prefix_tf, hostport_tf, listenport_tf, hex_tf;
@@ -46,8 +49,9 @@ public class PicnomeCommunication
   JCheckBox[] adc_ck = new JCheckBox[7];
   JButton hex_b, update_b;
   JProgressBar update_pb;
-/* for DEBUG
+
   JTextField debug_tf;
+/* for DEBUG
   JTextField debug2_tf;
 */
 
@@ -62,8 +66,11 @@ public class PicnomeCommunication
   OSCPortOut oscpout;
 
   //for Mac OS X
-  MidiIO midiio;
-  MidiOut[] midiout = new MidiOut[128];
+  //sy MidiIO midiio;
+  //sy MidiOut[] midiout = new MidiOut[128];
+  MidiDevice midiin, midiout;
+  Receiver midi_r;
+  Transmitter midi_t;
   int midi_in_port, midi_out_port, midi_pgm_number, prev_index;
   boolean para_change_flag;
 
@@ -266,6 +273,7 @@ public class PicnomeCommunication
       this.out[index] = this.port[index].getOutputStream();
       this.initSerialListener(index);
 
+
       if(((String)this.protocol_cb.getSelectedItem()).equals("Open Sound Control"))
       {
         this.initOSCPort();
@@ -273,6 +281,11 @@ public class PicnomeCommunication
       }
       else//for MIDI
         this.openMIDIPort();
+
+      //sy this.initOSCPort();
+      //sy this.initOSCListener("all");
+      //sy this.openMIDIPort();
+
     }
     catch(IOException e){}
     return true;
@@ -345,6 +358,45 @@ public class PicnomeCommunication
   //sy MIDI Setup
   public void initMIDIPort()
   {
+    MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
+    MidiDevice device;
+    for(MidiDevice.Info info : infos)
+    {
+      try
+      {
+        device = MidiSystem.getMidiDevice(info);
+      }
+      catch(MidiUnavailableException e)
+      {
+        e.printStackTrace();
+        continue;
+      }
+      if(device.getMaxTransmitters() == 0)
+        continue;
+      this.midiinput_list.add(info.getName());
+      this.midiinputdevices.add(info);
+    }
+
+    for(MidiDevice.Info info : infos)
+    {
+      try
+      {
+        device = MidiSystem.getMidiDevice(info);
+      }
+      catch(MidiUnavailableException e)
+      {
+        e.printStackTrace();
+        continue;
+      }
+      if(device.getMaxReceivers() == 0)
+        continue;
+      this.midioutput_list.add(info.getName());
+      this.midioutputdevices.add(info);
+    }
+  }
+/*
+  public void initMIDIPort()
+  {
     this.midiio = MidiIO.getInstance();
     this.midiio.printDevices();
     int in_num = midiio.numberOfInputDevices();
@@ -354,16 +406,34 @@ public class PicnomeCommunication
     for(int i = 0; i < out_num; i++)
       this.midioutput_list.add(midiio.getOutputDeviceName(i));
   }
+*/
 
   public void openMIDIPort()
   {
+    try
+    {
+      this.midiin = MidiSystem.getMidiDevice(this.midiinputdevices.get(this.midiinput_cb.getSelectedIndex()));
+      this.midiin.open();
+      this.midi_t = this.midiin.getTransmitter();
+      this.enableMidiLed();
+
+      this.midiout = MidiSystem.getMidiDevice(this.midioutputdevices.get(this.midioutput_cb.getSelectedIndex()));
+      this.midiout.open();
+      this.midi_r = this.midiout.getReceiver();
+    }
+    catch(MidiUnavailableException mue){}
+  }
+/*
+  public void openMIDIPort()
+  {
     this.midi_in_port = this.midiinput_cb.getSelectedIndex();
-    this.midiio.plug(this, "enableMIDILed", this.midi_in_port, 0);
+    this.midiin.plug(this, "enableMIDILed", this.midi_in_port, 0);
 
     this.midi_out_port = this.midioutput_cb.getSelectedIndex();
     for(int i = 0; i < 128; i++)
       this.midiout[i] = this.midiio.getMidiOut(0, this.midi_out_port);
   }
+*/
 
   boolean checkAddressPatternPrefix(OSCMessage message, int index)
   {
@@ -432,14 +502,30 @@ public class PicnomeCommunication
         int notey = Integer.valueOf(st.nextToken());
         int state = Integer.valueOf(st.nextToken());
         int note_number = notex + (notey * (this.co_max_num[index] + 1));
+        //sy this.debug_tf.setText(Integer.toString(note_number));
 
+        try
+        {
+          ShortMessage sm = new ShortMessage();
+          if(state == 1)
+            sm.setMessage(ShortMessage.NOTE_ON, (byte)note_number, 127);
+          else
+            sm.setMessage(ShortMessage.NOTE_OFF, (byte)note_number, 0);
+          this.midi_r.send(sm, 1);
+        }
+        catch(InvalidMidiDataException imde){}
+/*
         Note note;
         if(state == 1)
+        {
           note = new Note(note_number, this.midi_parameter[notex][notey][1], this.midi_parameter[notex][notey][3]);
+        }
         else
+        {
           note = new Note(note_number, this.midi_parameter[notex][notey][2], this.midi_parameter[notex][notey][4]);
+        }
         this.midiout[note_number].sendNote(note);
-        //debug this.debug_tf.setText(Integer.toString(note_number));
+*/
       }
     }
     else if(token.equals("input"))
@@ -459,6 +545,7 @@ public class PicnomeCommunication
         }
         catch(IOException e){}
       }
+/*
       else//for MIDI
       {
         int pin = Integer.valueOf(st.nextToken()); // Pin
@@ -477,6 +564,7 @@ public class PicnomeCommunication
         //sy this.midiout.sendProgramChange(new ProgramChange(this.midi_pgm_number));
         this.midiout[0].sendProgramChange(new ProgramChange(this.midi_pgm_number));
       }
+*/
     }
     else if(token.equals("adc"))
     {
@@ -495,6 +583,7 @@ public class PicnomeCommunication
         }
         catch(IOException e){}
       }
+/*
       else//for MIDI
       {
         int ctrl_number = Integer.valueOf(st.nextToken()); // Pin
@@ -504,6 +593,7 @@ public class PicnomeCommunication
         //sy this.midiout.sendController(new Controller(ctrl_number, ctrl_value));
         this.midiout[0].sendController(new Controller(ctrl_number, ctrl_value));
       }
+*/
     }
     else if(token.equals("report"))
     {
@@ -575,7 +665,7 @@ public class PicnomeCommunication
               if(portId[i] != null && portId[i].isCurrentlyOwned())
               {
                 out[i].write(str.getBytes());
-                wait(0, 100);
+                wait(0, 20);
               }
             }
             catch(IOException e){}
@@ -586,43 +676,86 @@ public class PicnomeCommunication
     this.oscpin.addListener(this.prefix_tf.getText() + "/led", listener);
   }
 
-  public void enableMIDILed(Note note)
+  public void enableMidiLed()
   {
-    int pitch = note.getPitch();
-    int velocity = note.getVelocity();
+    Receiver rcv = new Receiver()
+      {
+        public void close(){}
+ 
+        public void send(MidiMessage message, long timeStamp)
+        {
+          byte[] data = message.getMessage();
+ 
+          if((256 + data[0]) == 144 || (256 + data[0]) == 128)// NOTE_ON -> 144, NOTE_OFF -> 128
+          {
+            int sc = (Integer)startcolumn_s.getValue();
+            int sr = (Integer)startrow_s.getValue();
+            sc = (data[1] % 8) - sc;
+            sr = (data[1] / 8) - sr;
+            if(sc < 0) sc = 0;
+            if(sr < 0) sr = 0;
+ 
+            try
+            {
+              String str;
+              if(data[2] == 0)
+                str =new String("led " + sc + " " + sr + " " + 0 + (char)0x0D);
+              else
+                str =new String("led " + sc + " " + sr + " " + 1 + (char)0x0D);
 
-    int[] sc = new int[2];
-    int[] sr = new int[2];
-
-    for(int i = 0; i < 2; i++)
+              debug_tf.setText(str);
+              out[0].write(str.getBytes());
+            }
+            catch(IOException e){}
+          }
+        }
+      };
+    this.midi_t.setReceiver(rcv);
+  }
+/*
+  //sy void enableMIDILed(Note note)
+  public void noteOnReceived(Note note)
+  {
+    this.debug_tf.setText("test");
+    if(((String)this.protocol_cb.getSelectedItem()).equals("MIDI"))
     {
-      if(this.co_max_num[i] == 7)
-      {
-        if(pitch > 63) return;
+      int pitch = note.getPitch();
+      int velocity = note.getVelocity();
 
-        sc[i] = (pitch % 8);
-        sr[i] = (pitch / 8);
-      }
-      else if(this.co_max_num[i] == 15)
-      {
-        if(pitch > 127) return;
+      int[] sc = new int[2];
+      int[] sr = new int[2];
 
-        sc[i] = (pitch % 16);
-        sr[i] = (pitch / 16);
-      }
-
-      try
+      for(int i = 0; i < 2; i++)
       {
-        String str;
-        if(velocity == 0)
-          str =new String("led " + sc[i] + " " + sr[i] + " " + 0 + (char)0x0D);
-        else
-          str =new String("led " + sc[i] + " " + sr[i] + " " + 1 + (char)0x0D);
-        this.out[i].write(str.getBytes());
+        if(this.co_max_num[i] == 7)
+        {
+          if(pitch > 63) return;
+
+          sc[i] = (pitch % 8);
+          sr[i] = (pitch / 8);
+        }
+        else if(this.co_max_num[i] == 15)
+        {
+          if(pitch > 127) return;
+
+          sc[i] = (pitch % 16);
+          sr[i] = (pitch / 16);
+        }
+
+        try
+        {
+          String str;
+          if(velocity == 0)
+            str =new String("led " + sc[i] + " " + sr[i] + " " + 0 + (char)0x0D);
+          else
+            str =new String("led " + sc[i] + " " + sr[i] + " " + 1 + (char)0x0D);
+          this.out[i].write(str.getBytes());
+        }
+        catch(IOException e){}
       }
-      catch(IOException e){}
     }
   }
+*/
 
   public void enableMsgLedCol()
   {

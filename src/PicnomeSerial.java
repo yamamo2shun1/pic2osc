@@ -146,6 +146,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     midi_sl.putConstraint(SpringLayout.WEST, midiinput_l, 38, SpringLayout.WEST, midi_p);
     midi_p.add(midiinput_l);
     this.pserial.midiinput_cb = new JComboBox(this.pserial.midiinput_list);
+    this.pserial.midiinput_cb.setPreferredSize(new Dimension(250, 30));
     midi_sl.putConstraint(SpringLayout.NORTH, this.pserial.midiinput_cb, -4, SpringLayout.NORTH, midiinput_l);
     midi_sl.putConstraint(SpringLayout.WEST, this.pserial.midiinput_cb, 10, SpringLayout.EAST, midiinput_l);
     midi_p.add(this.pserial.midiinput_cb);
@@ -155,6 +156,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     midi_sl.putConstraint(SpringLayout.WEST, midioutput_l, 27, SpringLayout.WEST, midi_p);
     midi_p.add(midioutput_l);
     this.pserial.midioutput_cb = new JComboBox(this.pserial.midioutput_list);
+    this.pserial.midioutput_cb.setPreferredSize(new Dimension(250, 30));
     midi_sl.putConstraint(SpringLayout.NORTH, this.pserial.midioutput_cb, -4, SpringLayout.NORTH, midioutput_l);
     midi_sl.putConstraint(SpringLayout.WEST, this.pserial.midioutput_cb, 10, SpringLayout.EAST, midioutput_l);
     midi_p.add(this.pserial.midioutput_cb);
@@ -205,12 +207,12 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     ds_sl.putConstraint(SpringLayout.WEST, this.pserial.cable_cb, 10, SpringLayout.EAST, cable_l);
     ds_p.add(this.pserial.cable_cb);
 
-/* for DEBUG
+
     this.pserial.debug_tf = new JTextField("", 8);
     ds_sl.putConstraint(SpringLayout.NORTH, this.pserial.debug_tf, 35, SpringLayout.NORTH, ds_p);
     ds_sl.putConstraint(SpringLayout.WEST, this.pserial.debug_tf, 250, SpringLayout.WEST, ds_p);
     ds_p.add(this.pserial.debug_tf);
-
+/* for DEBUG
     this.pserial.debug2_tf = new JTextField("", 8);
     ds_sl.putConstraint(SpringLayout.NORTH, this.pserial.debug2_tf, 35, SpringLayout.NORTH, ds_p);
     ds_sl.putConstraint(SpringLayout.WEST, this.pserial.debug2_tf, 270, SpringLayout.WEST, ds_p);
@@ -574,7 +576,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
             switch(k)
             {
             case 0:
-              PicnomeSerial.this.pserial.midi_parameter[i][j][k] = 1;
+              PicnomeSerial.this.pserial.midi_parameter[i][j][k] = 0;
               break;
             case 1:
               PicnomeSerial.this.pserial.midi_parameter[i][j][k] = 127;
@@ -586,7 +588,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
               PicnomeSerial.this.pserial.midi_parameter[i][j][k] = 30000;
               break;
             case 4:
-              PicnomeSerial.this.pserial.midi_parameter[i][j][k] = 1;
+              PicnomeSerial.this.pserial.midi_parameter[i][j][k] = 0;
               break;
             }
         }
