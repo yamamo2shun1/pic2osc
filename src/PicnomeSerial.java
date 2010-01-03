@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.3.5 2009/12/08
+ * PicnomeSerial.java,v.1.3.6 2010/01/03
  */
 
 import java.io.*;
@@ -539,8 +539,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
  
       PicnomeSerial.this.pserial.prev_index = 0;
       PicnomeSerial.this.pserial.para_change_flag = false;
-      String[] type_name = {"Channel (1 - 16)", "Velocity 1 (0 - 127)", "Velocity 2 (0 - 127)",
-                            "Duration 1 (0 - 60000) [msec]", "Duration 2 (0 - 60000) [msec]"};
+      String[] type_name = {"Channel (1 - 16)", "Velocity 1 (0 - 127)", "Velocity 2 (0 - 127)"};
       PicnomeSerial.this.pserial.midiparameter_cb = new JComboBox(type_name);
       PicnomeSerial.this.pserial.midiparameter_cb.setActionCommand("TypeChanged");
       PicnomeSerial.this.pserial.midiparameter_cb.addActionListener(this);
@@ -571,19 +570,19 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
           for(int k = 0; k < 5; k++)
             switch(k)
             {
-            case 0:
+            case 0://MIDI ch
               PicnomeSerial.this.pserial.midi_parameter[i][j][k] = 1;
               break;
-            case 1:
+            case 1://MIDI note_on val
               PicnomeSerial.this.pserial.midi_parameter[i][j][k] = 127;
               break;
-            case 2:
+            case 2://MIDI note_off val
               PicnomeSerial.this.pserial.midi_parameter[i][j][k] = 0;
               break;
-            case 3:
+            case 3://MIDI duration (note_on)
               PicnomeSerial.this.pserial.midi_parameter[i][j][k] = 30000;
               break;
-            case 4:
+            case 4://MIDI duration (note_off)
               PicnomeSerial.this.pserial.midi_parameter[i][j][k] = 1;
               break;
             }
@@ -805,9 +804,6 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       {
         int index = PicnomeSerial.this.pserial.midiparameter_cb.getSelectedIndex(); 
         PicnomeSerial.this.pserial.midi_parameter[lattice_x][lattice_y][index] = (Integer)this.value.getValue();
-        if(index == 0)
-          PicnomeSerial.this.pserial.midiout[lattice_x + (lattice_y * 8)] = PicnomeSerial.this.pserial.midiio.getMidiOut(
-            PicnomeSerial.this.pserial.midi_parameter[lattice_x][lattice_y][index] - 1, PicnomeSerial.this.pserial.midi_out_port);
       }
     }
   }
