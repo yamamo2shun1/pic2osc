@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.3.5 2009/12/08
+ * PicnomeCommunication.java,v.1.3.7 2010/01/19
  */
 
 // RXTX
@@ -45,13 +45,13 @@ public class PicnomeCommunication
   JButton openclose_b, mididetail_b;
   JComboBox protocol_cb, device_cb, cable_cb, midiinput_cb, midioutput_cb, midiparameter_cb;
   JTextField hostaddress_tf, prefix_tf, hostport_tf, listenport_tf, hex_tf;
-  JSpinner startcolumn_s, startrow_s;
+  JSpinner intensity_s, startcolumn_s, startrow_s;
   JCheckBox[] adc_ck = new JCheckBox[7];
-  JButton hex_b, update_b;
+  JButton led_clear_b,led_test_b, hex_b, update_b;
   JProgressBar update_pb;
 
-  JTextField debug_tf;
 /* for DEBUG
+  JTextField debug_tf;
   JTextField debug2_tf;
 */
 
@@ -79,6 +79,7 @@ public class PicnomeCommunication
   String[] connect_state = new String[2];
   String[] cable_orientation = new String[2];
   String[] address_pattern_prefix = new String[2];
+  int[] intensity = new int[2];
   int[] starting_column = new int[2];
   int[] starting_row = new int[2];
   int[] co_max_num = new int[2];
@@ -99,6 +100,8 @@ public class PicnomeCommunication
     this.cable_orientation[1] = "left";
     this.address_pattern_prefix[0] = "/test";
     this.address_pattern_prefix[1] = "/test";
+    this.intensity[0] = 15;
+    this.intensity[1] = 15;
     this.starting_column[0] = 0;
     this.starting_column[1] = 0;
     this.starting_row[0] = 0;
@@ -235,6 +238,7 @@ public class PicnomeCommunication
     this.openclose_b.setText(this.connect_state[index]);
     this.cable_cb.setSelectedItem(this.cable_orientation[index]);
     this.prefix_tf.setText(this.address_pattern_prefix[index]);
+    this.intensity_s.setValue(this.intensity[index]);
     this.startcolumn_s.setValue(this.starting_column[index]);
     this.startrow_s.setValue(this.starting_row[index]);
 
@@ -703,7 +707,7 @@ public class PicnomeCommunication
               else
                 str =new String("led " + sc + " " + sr + " " + 1 + (char)0x0D);
 
-              debug_tf.setText(str);
+              //debug debug_tf.setText(str);
               out[0].write(str.getBytes());
             }
             catch(IOException e){}
