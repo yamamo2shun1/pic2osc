@@ -237,10 +237,10 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     this.pserial.led_clear_b = new JButton("LED Clear");
     this.pserial.led_clear_b.addActionListener(this);
     ds_sl.putConstraint(SpringLayout.NORTH, this.pserial.led_clear_b, -2, SpringLayout.NORTH, this.pserial.intensity_s);
-    ds_sl.putConstraint(SpringLayout.WEST, this.pserial.led_clear_b, 45, SpringLayout.EAST, this.pserial.intensity_s);
+    ds_sl.putConstraint(SpringLayout.WEST, this.pserial.led_clear_b, 30, SpringLayout.EAST, this.pserial.intensity_s);
     ds_p.add(this.pserial.led_clear_b);
 
-    this.pserial.led_test_b = new JButton("LED Test");
+    this.pserial.led_test_b = new JButton("LED Test On");
     this.pserial.led_test_b.addActionListener(this);
     ds_sl.putConstraint(SpringLayout.NORTH, this.pserial.led_test_b, 0, SpringLayout.NORTH, this.pserial.led_clear_b);
     ds_sl.putConstraint(SpringLayout.WEST, this.pserial.led_test_b, 10, SpringLayout.EAST, this.pserial.led_clear_b);
@@ -448,7 +448,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
         catch(IOException ioe){}
       }
     }
-    else if(cmd.equals("LED Test"))
+    else if(cmd.equals("LED Test On"))
     {
       int idx = this.pserial.device_cb.getSelectedIndex();
       try
@@ -457,6 +457,20 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
         //debug debug_tf.setText(str);
         if(this.pserial.portId[idx] != null && this.pserial.portId[idx].isCurrentlyOwned())
           this.pserial.out[idx].write(str.getBytes());
+      this.pserial.led_test_b.setText("LED Test Off");
+      }
+      catch(IOException ioe){}
+    }
+    else if(cmd.equals("LED Test Off"))
+    {
+      int idx = this.pserial.device_cb.getSelectedIndex();
+      try
+      {
+        String str =new String("test 0" + (char)0x0D);
+        //debug debug_tf.setText(str);
+        if(this.pserial.portId[idx] != null && this.pserial.portId[idx].isCurrentlyOwned())
+          this.pserial.out[idx].write(str.getBytes());
+      this.pserial.led_test_b.setText("LED Test On");
       }
       catch(IOException ioe){}
     }

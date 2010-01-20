@@ -27,7 +27,6 @@ import com.illposed.osc.*;
 import com.illposed.osc.utility.*;
 
 // JavaMIDI
-//sy import promidi.*;
 import javax.sound.midi.*;
 
 import javax.swing.*;
