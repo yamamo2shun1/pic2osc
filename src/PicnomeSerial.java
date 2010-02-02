@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.3.7 2010/01/19
+ * PicnomeSerial.java,v.1.3.8 2010/02/02
  */
 
 import java.io.*;
@@ -26,8 +26,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
 
-public class PicnomeSerial extends JFrame implements ActionListener, ChangeListener
-{
+public class PicnomeSerial extends JFrame implements ActionListener, ChangeListener {
   PicnomeCommunication pserial = new PicnomeCommunication();
   MidiDetailFrame mdf = new MidiDetailFrame();
 
@@ -38,15 +37,13 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
   Timer timer;
   int ch, size, count, bar;
 
-  public static void main(String[] args)
-  {
+  public static void main(String[] args) {
     PicnomeSerial psgui = new PicnomeSerial();
     psgui.init();
     psgui.setSize(450, 695);
     psgui.addWindowListener(
-      new WindowAdapter(){
-        public void windowClosing(WindowEvent e)
-        {
+      new WindowAdapter() {
+        public void windowClosing(WindowEvent e) {
           System.exit(0);
         }
       }
@@ -58,8 +55,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     psgui.setVisible(true);
   }
 
-  public void init()
-  {
+  public void init() {
     SpringLayout sl = new SpringLayout();
     Container c = getContentPane();
     c.setLayout(sl);
@@ -289,7 +285,14 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     this.pserial.startcolumn_s.setEditor(startcolumn_edit);
     JFormattedTextField startcolumn_text = startcolumn_edit.getTextField();
     startcolumn_text.setEditable(false);
-    this.pserial.startcolumn_s.addChangeListener(this);
+    this.pserial.startcolumn_s.addChangeListener(new ChangeListener() {
+        public void stateChanged(ChangeEvent e) {
+          if(((String)PicnomeSerial.this.pserial.device_cb.getSelectedItem()).equals(PicnomeSerial.this.pserial.device[0]))
+            PicnomeSerial.this.pserial.starting_column[0] = (Integer)PicnomeSerial.this.pserial.startcolumn_s.getValue();
+          else if(((String)PicnomeSerial.this.pserial.device_cb.getSelectedItem()).equals(PicnomeSerial.this.pserial.device[1]))
+            PicnomeSerial.this.pserial.starting_column[1] = (Integer)PicnomeSerial.this.pserial.startcolumn_s.getValue();
+        }
+      });
     this.pserial.startcolumn_s.setPreferredSize(new Dimension(50, 22));
     dsps_sl.putConstraint(SpringLayout.NORTH, this.pserial.startcolumn_s, -4, SpringLayout.NORTH, startcolumn_l);
     dsps_sl.putConstraint(SpringLayout.WEST, this.pserial.startcolumn_s, 10, SpringLayout.EAST, startcolumn_l);
@@ -305,7 +308,14 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     this.pserial.startrow_s.setEditor(startrow_edit);
     JFormattedTextField startrow_text = startrow_edit.getTextField();
     startrow_text.setEditable(false);
-    this.pserial.startrow_s.addChangeListener(this);
+    this.pserial.startrow_s.addChangeListener(new ChangeListener() {
+        public void stateChanged(ChangeEvent e) {
+          if(((String)PicnomeSerial.this.pserial.device_cb.getSelectedItem()).equals(PicnomeSerial.this.pserial.device[0]))
+            PicnomeSerial.this.pserial.starting_row[0] = (Integer)PicnomeSerial.this.pserial.startrow_s.getValue();
+          else if(((String)PicnomeSerial.this.pserial.device_cb.getSelectedItem()).equals(PicnomeSerial.this.pserial.device[1]))
+            PicnomeSerial.this.pserial.starting_row[1] = (Integer)PicnomeSerial.this.pserial.startrow_s.getValue();
+        }
+      });
     this.pserial.startrow_s.setPreferredSize(new Dimension(50, 22));
     dsps_sl.putConstraint(SpringLayout.NORTH, this.pserial.startrow_s, -4, SpringLayout.NORTH, startrow_l);
     dsps_sl.putConstraint(SpringLayout.WEST, this.pserial.startrow_s, 10, SpringLayout.EAST, startrow_l);
@@ -397,13 +407,11 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     this.timer = new Timer(1, this);
   }
 
-  PicnomeSerial()
-  {
+  PicnomeSerial() {
     super("PICnomeSerial");
   }
 
-  public void actionPerformed(ActionEvent e)
-  {
+  public void actionPerformed(ActionEvent e) {
     String cmd = e.getActionCommand();
 
     if(cmd == null)
@@ -413,34 +421,28 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
 
     //DEBUG this.pserial.debug_tf.setText(cmd);
 
-    if(cmd.equals("DeviceChanged"))
-    {
+    if(cmd.equals("DeviceChanged")) {
       if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0]))
         this.pserial.changeDeviceSettings(0);
       else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1]))
         this.pserial.changeDeviceSettings(1);
     }
-    else if(cmd.equals("ProtocolChanged"))
-    {
+    else if(cmd.equals("ProtocolChanged")) {
       if(((String)this.pserial.protocol_cb.getSelectedItem()).equals("Open Sound Control"))
         this.psd_cl.first(this.psd_p);
       else if(((String)this.pserial.protocol_cb.getSelectedItem()).equals("MIDI"))
         this.psd_cl.last(this.psd_p);
     }
-    else if(cmd.equals("CableChanged"))
-    {
+    else if(cmd.equals("CableChanged")) {
       if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0]))
         this.pserial.cable_orientation[0] = (String)this.pserial.cable_cb.getSelectedItem();
       else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1]))
         this.pserial.cable_orientation[1] = (String)this.pserial.cable_cb.getSelectedItem();
     }
-    else if(cmd.equals("LED Clear"))
-    {
+    else if(cmd.equals("LED Clear")) {
       int idx = this.pserial.device_cb.getSelectedIndex();
-      for(int i = 0; i < 8; i++)
-      {
-        try
-        {
+      for(int i = 0; i < 8; i++) {
+        try {
           String str =new String("led_row " + i + " " + 0 + (char)0x0D);
           if(this.pserial.portId[idx] != null && this.pserial.portId[idx].isCurrentlyOwned())
             this.pserial.out[idx].write(str.getBytes());
@@ -448,45 +450,38 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
         catch(IOException ioe){}
       }
     }
-    else if(cmd.equals("LED Test On"))
-    {
+    else if(cmd.equals("LED Test On")) {
       int idx = this.pserial.device_cb.getSelectedIndex();
-      try
-      {
+      try {
         String str =new String("test 1" + (char)0x0D);
         //debug debug_tf.setText(str);
         if(this.pserial.portId[idx] != null && this.pserial.portId[idx].isCurrentlyOwned())
           this.pserial.out[idx].write(str.getBytes());
-      this.pserial.led_test_b.setText("LED Test Off");
+        this.pserial.led_test_b.setText("LED Test Off");
       }
       catch(IOException ioe){}
     }
-    else if(cmd.equals("LED Test Off"))
-    {
+    else if(cmd.equals("LED Test Off")) {
       int idx = this.pserial.device_cb.getSelectedIndex();
-      try
-      {
+      try {
         String str =new String("test 0" + (char)0x0D);
         //debug debug_tf.setText(str);
         if(this.pserial.portId[idx] != null && this.pserial.portId[idx].isCurrentlyOwned())
           this.pserial.out[idx].write(str.getBytes());
-      this.pserial.led_test_b.setText("LED Test On");
+        this.pserial.led_test_b.setText("LED Test On");
       }
       catch(IOException ioe){}
     }
-    else if(cmd.equals("Open"))
-    {
+    else if(cmd.equals("Open")) {
       boolean b;
 
-      if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0]))
-      {
+      if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0])) {
         b = this.pserial.openSerialPort(0);
         b = this.pserial.setSerialPort(0);
         if(this.pserial.co_max_num[0] == 7)
           this.mdf.setHalfVisible();
       }
-      else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1]))
-      {
+      else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1])) {
         b = this.pserial.openSerialPort(1);
         b = this.pserial.setSerialPort(1);
         if(this.pserial.co_max_num[1] == 7)
@@ -494,8 +489,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       }
       this.pserial.openclose_b.setText("Close");
     }
-    else if(cmd.equals("Close"))
-    {
+    else if(cmd.equals("Close")) {
       boolean b;
 
       if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0]))
@@ -506,19 +500,16 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     }
     else if(cmd.equals("Detail..."))
       this.mdf.setVisible(true);
-    else if(cmd.equals("Select"))
-    {
+    else if(cmd.equals("Select")) {
       JFileChooser fc = new JFileChooser();
       int selected = fc.showOpenDialog(this);
-      if (selected == JFileChooser.APPROVE_OPTION)
-      {
+      if (selected == JFileChooser.APPROVE_OPTION) {
         this.hex_f = fc.getSelectedFile();
         this.pserial.hex_tf.setText(this.hex_f.getName());
         this.pserial.update_b.setEnabled(true);
       }
     }
-    else if(cmd.equals("Update"))
-    {
+    else if(cmd.equals("Update")) {
       try
       {
         this.hex_fr = new FileReader(this.hex_f);
@@ -535,10 +526,8 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     else if(cmd.equals("Prefix"))
       this.pserial.initOSCListener("prefix");
     else if(cmd.equals(" adc 0") || cmd.equals(" adc 1") || cmd.equals(" adc 2") || cmd.equals(" adc 3") ||
-            cmd.equals(" adc 4") || cmd.equals(" adc 5") || cmd.equals(" adc 6"))
-    {
-      try
-      {
+            cmd.equals(" adc 4") || cmd.equals(" adc 5") || cmd.equals(" adc 6")) {
+      try {
         int adc_id = Integer.parseInt(cmd.substring(5, 6));
         boolean b = this.pserial.adc_ck[adc_id].isSelected();
         String str;
@@ -547,32 +536,26 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
         else
           str =new String("adc_enable " + adc_id + " " + 0 + (char)0x0D);
 
-        if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0]))
-        {
+        if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0])) {
           this.pserial.adc_enable[0][adc_id] = b;
           this.pserial.out[0].write(str.getBytes());
         }
-        else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1]))
-        {
+        else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1])) {
           this.pserial.adc_enable[1][adc_id] = b;
           this.pserial.out[1].write(str.getBytes());
         }
       }
       catch(IOException ioe){}
     }
-    else if(cmd.equals("timer"))
-    {
-      try
-      {
-        if((this.ch = this.hex_fr.read()) != -1)
-        {
+    else if(cmd.equals("timer")) {
+      try {
+        if((this.ch = this.hex_fr.read()) != -1) {
           this.bar = (int)(((double)this.count / (double)this.size) * 100);
           this.pserial.update_pb.setValue(this.bar);
           this.count++;
           this.pserial.out[0].write(this.ch);
         }
-        if(this.ch == -1 || this.ch == 59)
-        {
+        if(this.ch == -1 || this.ch == 59) {
           this.pserial.update_pb.setValue(0);
           if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0]))
             this.pserial.closeSerialPort(0);
@@ -587,54 +570,45 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     }
   }
 
-  public void stateChanged(ChangeEvent e)
-  {
-    if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0]))
-    {
-      if((Integer)this.pserial.intensity_s.getValue() != this.pserial.intensity[0])
-      {
+  public void stateChanged(ChangeEvent e) {
+    if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0])) {
+      if((Integer)this.pserial.intensity_s.getValue() != this.pserial.intensity[0]) {
         this.pserial.intensity[0] = (Integer)this.pserial.intensity_s.getValue();
-        try
-        {
+        try {
           String str =new String("intensity " + this.pserial.intensity[0] + (char)0x0D);
           if(this.pserial.portId[0] != null && this.pserial.portId[0].isCurrentlyOwned())
             this.pserial.out[0].write(str.getBytes());
         }
         catch(IOException ioe){}
       }
-      this.pserial.starting_column[0] = (Integer)this.pserial.startcolumn_s.getValue();
-      this.pserial.starting_row[0] = (Integer)this.pserial.startrow_s.getValue();
+      //sy this.pserial.starting_column[0] = (Integer)this.pserial.startcolumn_s.getValue();
+      //sy this.pserial.starting_row[0] = (Integer)this.pserial.startrow_s.getValue();
     }
-    else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1]))
-    {
-      if((Integer)this.pserial.intensity_s.getValue() != this.pserial.intensity[1])
-      {
+    else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1])) {
+      if((Integer)this.pserial.intensity_s.getValue() != this.pserial.intensity[1]) {
         this.pserial.intensity[1] = (Integer)this.pserial.intensity_s.getValue();
-        try
-        {
+        try {
           String str =new String("intensity " + this.pserial.intensity[1] + (char)0x0D);
           if(this.pserial.portId[1] != null && this.pserial.portId[1].isCurrentlyOwned())
             this.pserial.out[1].write(str.getBytes());
         }
         catch(IOException ioe){}
       }
-      this.pserial.starting_column[1] = (Integer)this.pserial.startcolumn_s.getValue();
-      this.pserial.starting_row[1] = (Integer)this.pserial.startrow_s.getValue();
+      //sy this.pserial.starting_column[1] = (Integer)this.pserial.startcolumn_s.getValue();
+      //sy this.pserial.starting_row[1] = (Integer)this.pserial.startrow_s.getValue();
     }
   }
 
-  public class MidiDetailFrame extends JFrame implements ActionListener
-  {
+  public class MidiDetailFrame extends JFrame implements ActionListener {
     File save_f, load_f;
     JPanel mididetail_p;
     JButton save, load;
     MidiPadConfPanel[][] mpcp = new MidiPadConfPanel[16][8];
 
-    MidiDetailFrame(){
+    MidiDetailFrame() {
       super("MIDI Detail Setting...");
     }
-    public void init()
-    {
+    public void init() {
       SpringLayout sl = new SpringLayout();
       this.mididetail_p = new JPanel();
       this.mididetail_p.setPreferredSize(new Dimension(1800, 570));
@@ -664,18 +638,15 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       sl.putConstraint(SpringLayout.NORTH, this.load, 0, SpringLayout.NORTH, this.save);
       this.mididetail_p.add(this.load);
 
-      for(int j = 0; j < this.mpcp[0].length; j++)
-      {
-        for(int i = 0; i < this.mpcp.length; i++)
-        {
+      for(int j = 0; j < this.mpcp[0].length; j++) {
+        for(int i = 0; i < this.mpcp.length; i++) {
           this.mpcp[i][j] = new MidiPadConfPanel(i, j);
           sl.putConstraint(SpringLayout.WEST, this.mpcp[i][j], (110 * i) + 10, SpringLayout.WEST, this.mididetail_p);
           sl.putConstraint(SpringLayout.NORTH, this.mpcp[i][j], (60 * j) + 60, SpringLayout.NORTH, this.mididetail_p);
           this.mididetail_p.add(this.mpcp[i][j]);
 
           for(int k = 0; k < 5; k++)
-            switch(k)
-            {
+            switch(k) {
             case 0:
               PicnomeSerial.this.pserial.midi_parameter[i][j][k] = 0;
               break;
@@ -699,42 +670,29 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       c.add(sp);
     }
 
-    public void setHalfVisible()
-    {
+    public void setHalfVisible() {
       for(int j = 0; j < this.mpcp[0].length; j++)
         for(int i = 0; i < this.mpcp.length; i++)
           if(i > 7)
             this.mpcp[i][j].setVisible(false);
     }
 
-    public void actionPerformed(ActionEvent e)
-    {
+    public void actionPerformed(ActionEvent e) {
       String cmd = e.getActionCommand();
 
-      if(cmd.equals("TypeChanged"))
-      {
+      if(cmd.equals("TypeChanged")) {
         PicnomeSerial.this.pserial.para_change_flag = true;
         String index_name = (String)PicnomeSerial.this.pserial.midiparameter_cb.getSelectedItem();
         int index = PicnomeSerial.this.pserial.midiparameter_cb.getSelectedIndex();
 
         if(index != PicnomeSerial.this.pserial.prev_index)
-        {
           for(int j = 0; j < this.mpcp[0].length; j++)
-          {
             for(int i = 0; i < this.mpcp.length; i++)
-            {
-              PicnomeSerial.this.pserial.midi_parameter[i][j][PicnomeSerial.this.pserial.prev_index]
-                = (Integer)this.mpcp[i][j].value.getValue();
-            }
-          }
-        }
+              PicnomeSerial.this.pserial.midi_parameter[i][j][PicnomeSerial.this.pserial.prev_index] = (Integer)this.mpcp[i][j].value.getValue();
 
-        for(int j = 0; j < this.mpcp[0].length; j++)
-        {
-          for(int i = 0; i < this.mpcp.length; i++)
-          {
-            switch(index)
-            {
+        for(int j = 0; j < this.mpcp[0].length; j++) {
+          for(int i = 0; i < this.mpcp.length; i++) {
+            switch(index) {
             case 0:
               this.mpcp[i][j].setSliderRange(1, 16);
               break;
@@ -757,22 +715,17 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
         PicnomeSerial.this.pserial.prev_index = index;
         PicnomeSerial.this.pserial.para_change_flag = false;
       }
-      else if(cmd.equals("Save As..."))
-      {
+      else if(cmd.equals("Save As...")) {
         JFileChooser fc = new JFileChooser();
         int selected = fc.showSaveDialog(this);
-        if (selected == JFileChooser.APPROVE_OPTION)
-        {
+        if (selected == JFileChooser.APPROVE_OPTION) {
           this.save_f = fc.getSelectedFile();
         }
-        try
-        {
+        try {
           FileWriter fw = new FileWriter(this.save_f);
           BufferedWriter bw = new BufferedWriter(fw);
-          for(int k = 0; k < 5; k++)
-          {
-            switch(k)
-            {
+          for(int k = 0; k < 5; k++) {
+            switch(k) {
             case 0:
               bw.write("//MIDI channel" + System.getProperty("line.separator"));
               break;
@@ -789,11 +742,9 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
               bw.write("//MIDI duration 2" + System.getProperty("line.separator"));
               break;
             }
-            for(int j = 0; j < this.mpcp[0].length; j++)
-            {
+            for(int j = 0; j < this.mpcp[0].length; j++) {
               String line = "";
-              for(int i = 0; i < this.mpcp.length - 1; i++)
-              {
+              for(int i = 0; i < this.mpcp.length - 1; i++) {
                 line += (Integer.toString(PicnomeSerial.this.pserial.midi_parameter[i][j][k]) + " ");
               }
               line += (Integer.toString(PicnomeSerial.this.pserial.midi_parameter[this.mpcp.length - 1][j][k]));
@@ -808,33 +759,26 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
         }
         catch(IOException ioe){}
       }
-      else if(cmd.equals("Load..."))
-      {
+      else if(cmd.equals("Load...")) {
         JFileChooser fc = new JFileChooser();
         int selected = fc.showOpenDialog(this);
-        if (selected == JFileChooser.APPROVE_OPTION)
-        {
+        if (selected == JFileChooser.APPROVE_OPTION) {
           this.load_f = fc.getSelectedFile();
         }
-        try
-        {
+        try {
           FileReader fr = new FileReader(this.load_f);
           BufferedReader br = new BufferedReader(fr);
           String line = "";
           int x = 0, y = 0, index = -1;
-          while((line = br.readLine()) != null)
-          {
-            if(line.indexOf("//") != -1 || line.indexOf(System.getProperty("line.separator")) == 0)
-            {
+          while((line = br.readLine()) != null) {
+            if(line.indexOf("//") != -1 || line.indexOf(System.getProperty("line.separator")) == 0) {
               y = 0;
               index++;
             }
-            else
-            {
+            else {
               java.util.StringTokenizer st = new java.util.StringTokenizer(line);
               x = 0;
-              while(st.hasMoreTokens())
-              {
+              while(st.hasMoreTokens()) {
                 PicnomeSerial.this.pserial.midi_parameter[x][y][index] = Integer.valueOf(st.nextToken());
                 x++;
               }
@@ -842,10 +786,8 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
             }
           }
           int k = PicnomeSerial.this.pserial.midiparameter_cb.getSelectedIndex();
-          for(int j = 0; j < this.mpcp[0].length; j++)
-          {
-            for(int i = 0; i < this.mpcp.length; i++)
-            {
+          for(int j = 0; j < this.mpcp[0].length; j++) {
+            for(int i = 0; i < this.mpcp.length; i++) {
               this.mpcp[i][j].value.setValue(PicnomeSerial.this.pserial.midi_parameter[i][j][k]);
             }
           }
@@ -862,7 +804,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     JSlider slider;
     int lattice_x, lattice_y;
 
-    MidiPadConfPanel(int x, int y){
+    MidiPadConfPanel(int x, int y) {
       this.lattice_x = x;
       this.lattice_y = y;
       SpringLayout mpcp_sl = new SpringLayout();
@@ -892,22 +834,19 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       this.add(this.slider);
     }
 
-    void setSliderRange(int min, int max)
-    {
+    void setSliderRange(int min, int max) {
       this.snm.setMinimum(min);
       this.snm.setMaximum(max);
       this.slider.setMinimum(min);
       this.slider.setMaximum(max);
     }
 
-    public void stateChanged(ChangeEvent e)
-    {
+    public void stateChanged(ChangeEvent e) {
       if(e.getSource() == this.value)
         this.slider.setValue((Integer)this.value.getValue());
       else if(e.getSource() == this.slider)
         this.value.setValue(this.slider.getValue());
-      if(PicnomeSerial.this.pserial.para_change_flag == false)
-      {
+      if(PicnomeSerial.this.pserial.para_change_flag == false) {
         int index = PicnomeSerial.this.pserial.midiparameter_cb.getSelectedIndex(); 
         PicnomeSerial.this.pserial.midi_parameter[lattice_x][lattice_y][index] = (Integer)this.value.getValue();
 /*midi
