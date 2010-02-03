@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.3.8 2010/02/02
+ * PicnomeCommunication.java,v.1.3.9 2010/02/03
  */
 
 // RXTX
@@ -996,7 +996,6 @@ public class PicnomeCommunication {
     OSCListener listener = new OSCListener() {
         public void acceptMessage(java.util.Date time, OSCMessage message) {
           Object[] args = message.getArguments();
-
           PicnomeCommunication.this.address_pattern_prefix[(Integer)args[2]] = (String)args[0];
           PicnomeCommunication.this.host_port[(Integer)args[2]] = (Integer)args[1];
           if(PicnomeCommunication.this.device_cb.getSelectedIndex() == (Integer)args[2]) {
@@ -1004,10 +1003,10 @@ public class PicnomeCommunication {
             PicnomeCommunication.this.hostport_tf.setText(((Integer)args[1]).toString());
           }
 
-          else if(args.length == 4) {
-            PicnomeCommunication.this.host_address[(Integer)args[2]] = (String)args[3];
+          if(args.length == 4) {
+            PicnomeCommunication.this.host_address[(Integer)args[2]] = Integer.toString((Integer)args[3]);
             if(PicnomeCommunication.this.device_cb.getSelectedIndex() == (Integer)args[2])
-              PicnomeCommunication.this.hostaddress_tf.setText((String)args[3]);
+              PicnomeCommunication.this.hostaddress_tf.setText(Integer.toString((Integer)args[3]));
           }
           PicnomeCommunication.this.initOSCPort();
           PicnomeCommunication.this.initOSCListener("all");
@@ -1254,9 +1253,24 @@ public class PicnomeCommunication {
             }
           }
           else if(args.length == 2) {
-            PicnomeCommunication.this.cable_orientation[(Integer)args[0]] = (String)args[1];
+            String costr = "";
+            switch((Integer)args[1]) {
+            case 0:
+              costr = "left";
+              break;
+            case 1:
+              costr = "up";
+              break;
+            case 2:
+              costr = "right";
+              break;
+            case 3:
+              costr = "down";
+              break;
+            }
+            PicnomeCommunication.this.cable_orientation[(Integer)args[0]] = costr;
             if(PicnomeCommunication.this.device_cb.getSelectedIndex() == (Integer)args[0])
-              PicnomeCommunication.this.cable_cb.setSelectedItem((String)args[1]);
+              PicnomeCommunication.this.cable_cb.setSelectedItem(costr);
             PicnomeCommunication.this.initOSCListener("prefix");
           }
           else
