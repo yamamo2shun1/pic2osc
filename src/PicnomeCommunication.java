@@ -615,7 +615,7 @@ public class PicnomeCommunication {
               //debug debug_tf.setText(str);
               if(portId[i] != null && portId[i].isCurrentlyOwned()) {
                 out[i].write(str.getBytes());
-                wait(0, 20);
+                wait(0, 50);
               }
             }
             catch(IOException e) {}
@@ -704,7 +704,7 @@ public class PicnomeCommunication {
 
   public void enableMsgLedCol() {
     OSCListener listener = new OSCListener() {
-        public void acceptMessage(java.util.Date time, OSCMessage message) {
+        public synchronized void acceptMessage(java.util.Date time, OSCMessage message) {
           Object[] args = message.getArguments();
 
           int args0 = (int)Float.parseFloat(args[0].toString());
@@ -766,10 +766,13 @@ public class PicnomeCommunication {
               else
                 str =new String("led_row " + sc[j] + " " + sr[j] + (char)0x0D);
               //debug debug_tf.setText(str);
-              if(portId[j] != null && portId[j].isCurrentlyOwned())
+              if(portId[j] != null && portId[j].isCurrentlyOwned()) {
                 out[j].write(str.getBytes());
+                wait(0, 50);
+              }
             }
             catch(IOException e){}
+            catch(InterruptedException e) {}
           }//end for
         }
       };
@@ -778,7 +781,7 @@ public class PicnomeCommunication {
 
   public void enableMsgLedRow() {
     OSCListener listener = new OSCListener() {
-        public void acceptMessage(java.util.Date time, OSCMessage message) {
+        public synchronized void acceptMessage(java.util.Date time, OSCMessage message) {
           Object[] args = message.getArguments();
 
           int args0 = (int)Float.parseFloat(args[0].toString());
@@ -841,10 +844,13 @@ public class PicnomeCommunication {
                 str =new String("led_col " + sr[j] + " " + sc[j] + (char)0x0D);
 
               //debug debug_tf.setText(str);
-              if(portId[j] != null && portId[j].isCurrentlyOwned())
+              if(portId[j] != null && portId[j].isCurrentlyOwned()) {
                 out[j].write(str.getBytes());
+                wait(0, 50);
+              }
             }
             catch(IOException e){}
+            catch(InterruptedException e) {}
           }//end for
         }
       };
@@ -853,7 +859,7 @@ public class PicnomeCommunication {
 
   public void enableMsgLedFrame() {
     OSCListener listener = new OSCListener() {
-        public void acceptMessage(java.util.Date time, OSCMessage message) {
+        public synchronized void acceptMessage(java.util.Date time, OSCMessage message) {
           Object[] args0 = message.getArguments();
           int[] sc = new int[2];
           int[] sr = new int[2];
@@ -913,10 +919,13 @@ public class PicnomeCommunication {
                   str =new String("led_col " + sr[k] + " " + sc[k] + (char)0x0D);
                 
                 //debug debug_tf.setText(str);
-                if(portId[k] != null && portId[k].isCurrentlyOwned())
+                if(portId[k] != null && portId[k].isCurrentlyOwned()) {
                   out[k].write(str.getBytes());
+                  wait(0, 50);
+                }
               }
               catch(IOException e) {}
+              catch(InterruptedException e) {}
             }//end for i
           }//end for j
         }
