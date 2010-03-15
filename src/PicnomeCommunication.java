@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.3.10 2010/02/07
+ * PicnomeCommunication.java,v.1.3.12test 2010/03/02
  */
 
 // RXTX
@@ -479,66 +479,74 @@ public class PicnomeCommunication {
 public void enableMsgLed() {
     OSCListener listener = new OSCListener() {
         public synchronized void acceptMessage(java.util.Date time, OSCMessage message) {
-          String address = message.getAddress();
-          Object[] args = message.getArguments();
+          try {
+            String address = message.getAddress();
+            Object[] args = message.getArguments();
  
-          int args0 = (int)Float.parseFloat(args[0].toString());
-          int args1 = (int)Float.parseFloat(args[1].toString());
-          int args2 = (int)Float.parseFloat(args[2].toString());
+            int args0 = (int)Float.parseFloat(args[0].toString());
+            int args1 = (int)Float.parseFloat(args[1].toString());
+            int args2 = (int)Float.parseFloat(args[2].toString());
  
-          int[] sc = new int[2];
-          int[] sr = new int[2];
+            int[] sc = new int[2];
+            int[] sr = new int[2];
  
-          for(int i = 0; i < 2; i++) {
-            if(!checkAddressPatternPrefix(message, i))
-              continue;
+            for(int i = 0; i < 2; i++) {
+              if(!checkAddressPatternPrefix(message, i))
+                continue;
  
-            sc[i] = starting_column[i];
-            sr[i] = starting_row[i];
+              sc[i] = starting_column[i];
+              sr[i] = starting_row[i];
  
-            if(cable_orientation[i].equals("left")) {
-              //sy sc[i] = (Integer)args[0] - sc[i];
-              //sy sr[i] = (Integer)args[1] - sr[i];
-              sc[i] = args0 - sc[i];
-              sr[i] = args1 - sr[i];
-            }
-            else if(cable_orientation[i].equals("right")) {
-              //sy sc[i] = co_max_num[i] - (Integer)args[0] + sc[i];
-              //sy sr[i] = 7 - (Integer)args[1] + sr[i];
-              sc[i] = co_max_num[i] - args0 + sc[i];
-              sr[i] = 7 - args1 + sr[i];
-            }
-            else if(cable_orientation[i].equals("up")) {
-              //sy int sc1 = co_max_num[i] - (Integer)args[1] + sr[i];
-              //sy int sr1 = (Integer)args[0] - sc[i];
-              int sc1 = co_max_num[i] - args1 + sr[i];
-              int sr1 = args0 - sc[i];
-              sc[i] = sc1;
-              sr[i] = sr1;
-            }
-            else if(cable_orientation[i].equals("down")) {
-              //sy int sc1 = (Integer)args[1] - sr[i];
-              //sy int sr1 = 7 - (Integer)args[0] + sc[i];
-              int sc1 = args1 - sr[i];
-              int sr1 = 7 - args0 + sc[i];
-              sc[i] = sc1;
-              sr[i] = sr1;
-            }
+              if(cable_orientation[i].equals("left")) {
+                sc[i] = args0 - sc[i];
+                sr[i] = args1 - sr[i];
+              }
+              else if(cable_orientation[i].equals("right")) {
+                sc[i] = co_max_num[i] - args0 + sc[i];
+                sr[i] = 7 - args1 + sr[i];
+              }
+              else if(cable_orientation[i].equals("up")) {
+                int sc1 = co_max_num[i] - args1 + sr[i];
+                int sr1 = args0 - sc[i];
+                sc[i] = sc1;
+                sr[i] = sr1;
+              }
+              else if(cable_orientation[i].equals("down")) {
+                int sc1 = args1 - sr[i];
+                int sr1 = 7 - args0 + sc[i];
+                sc[i] = sc1;
+                sr[i] = sr1;
+              }
+              if(sc[i] < 0 || sr[i] < 0) continue ;
             
-            if(sc[i] < 0 || sr[i] < 0) continue ;
-            
-            try {
-              //sy String str =new String("led " + sc[i] + " " + sr[i] + " " + (Integer)args[2] + (char)0x0D);
               String str =new String("led " + sc[i] + " " + sr[i] + " " + args2 + (char)0x0D);
               //debug debug_tf.setText(str);
               if(portId[i] != null && portId[i].isCurrentlyOwned()) {
                 out[i].write(str.getBytes());
-                wait(0, 20);
+                wait(0, 30);
               }
-            }
-            catch(IOException e) {}
-            catch(InterruptedException e) {}
-          }//end for
+            }//end for
+          } catch(NullPointerException e) {
+            System.err.println("/led");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("NullPointerException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(ArrayIndexOutOfBoundsException e) {
+            System.err.println("/led");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("ArrayIndexOutOfBoundsException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(IOException e) {
+            System.err.println("/led");
+            System.err.println("IOException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(InterruptedException e) {
+            System.err.println("/led");
+            System.err.println("InterruptedException: " + e.getMessage());
+            e.printStackTrace();
+          }
         }
       };
     this.oscpin.addListener(this.prefix_tf.getText() + "/led", listener);
@@ -578,73 +586,86 @@ public void enableMsgLed() {
 
 public void enableMsgLedCol() {
     OSCListener listener = new OSCListener() {
-        public void acceptMessage(java.util.Date time, OSCMessage message) {
-          Object[] args = message.getArguments();
+        public synchronized void acceptMessage(java.util.Date time, OSCMessage message) {
+          try {
+            Object[] args = message.getArguments();
  
-          int args0 = (int)Float.parseFloat(args[0].toString());
-          int args1 = (int)Float.parseFloat(args[1].toString());
+            int args0 = (int)Float.parseFloat(args[0].toString());
+            int args1 = (int)Float.parseFloat(args[1].toString());
  
-          int[] sc = new int[2];
-          int[] sr = new int[2];
+            int[] sc = new int[2];
+            int[] sr = new int[2];
  
-          for(int j = 0; j < 2; j++) {
-            if(!checkAddressPatternPrefix(message, j))
-              continue;
+            for(int j = 0; j < 2; j++) {
+              if(!checkAddressPatternPrefix(message, j))
+                continue;
  
-            if(cable_orientation[j].equals("left"))
-              //sy sc[j] = (Integer)args[0] - starting_column[j];
-              sc[j] = args0 - starting_column[j];
-            else if(cable_orientation[j].equals("right"))
-              //sy sc[j] = co_max_num[j] - (Integer)args[0] + starting_column[j];
-              sc[j] = co_max_num[j] - args0 + starting_column[j];
-            else if(cable_orientation[j].equals("up"))
-              //sy sc[j] = (Integer)args[0] - starting_column[j];
-              sc[j] = args0 - starting_column[j];
-            else if(cable_orientation[j].equals("down"))
-              //sy sc [j]= 7 - (Integer)args[0] + starting_column[j];
-              sc [j]= 7 - args0 + starting_column[j];
+              if(cable_orientation[j].equals("left"))
+                sc[j] = args0 - starting_column[j];
+              else if(cable_orientation[j].equals("right"))
+                sc[j] = co_max_num[j] - args0 + starting_column[j];
+              else if(cable_orientation[j].equals("up"))
+                sc[j] = args0 - starting_column[j];
+              else if(cable_orientation[j].equals("down"))
+                sc [j]= 7 - args0 + starting_column[j];
+              
+              if(sc[j] < 0) continue ;
  
-            if(sc[j] < 0) continue ;
+              int shift = starting_row[j] % (co_max_num[j] + 1);
  
-            int shift = starting_row[j] % (co_max_num[j] + 1);
+              if(cable_orientation[j].equals("left"))
+                sr[j] = (short)(args1 >> shift);
+              else if(cable_orientation[j].equals("right")) {
+                short sr0 = (short)args1;
+                short sr1 = 0;
+                for(int i = 0; i < 8; i++)
+                  if((sr0 & (0x01 << i)) == (0x01 << i))
+                    sr1 |= (0x01 << (7 - i));
+                sr[j] = (short)(sr1 << shift);
+              }
+              else if(cable_orientation[j].equals("up")) {
+                short sr0 = (short)args1;
+                short sr1 = 0;
+                for(int i = 0; i < co_max_num[j] + 1; i++)
+                  if((sr0 & (0x01 << i)) == (0x01 << i))
+                    sr1 |= (0x01 << (co_max_num[j] - i));
+                sr[j] = (short)(sr1 << shift);
+              }
+              else if(cable_orientation[j].equals("down"))
+                sr[j] = (short)(args1 >> shift);
  
-            if(cable_orientation[j].equals("left"))
-              //sy sr[j] = (short)(((Integer)args[1]).shortValue() >> shift);
-              sr[j] = (short)(args1 >> shift);
-            else if(cable_orientation[j].equals("right")) {
-              //sy short sr0 = ((Integer)args[1]).shortValue();
-              short sr0 = (short)args1;
-              short sr1 = 0;
-              for(int i = 0; i < 8; i++)
-                if((sr0 & (0x01 << i)) == (0x01 << i))
-                  sr1 |= (0x01 << (7 - i));
-              sr[j] = (short)(sr1 << shift);
-            }
-            else if(cable_orientation[j].equals("up")) {
-              //sy short sr0 = ((Integer)args[1]).shortValue();
-              short sr0 = (short)args1;
-              short sr1 = 0;
-              for(int i = 0; i < co_max_num[j] + 1; i++)
-                if((sr0 & (0x01 << i)) == (0x01 << i))
-                  sr1 |= (0x01 << (co_max_num[j] - i));
-              sr[j] = (short)(sr1 << shift);
-            }
-            else if(cable_orientation[j].equals("down"))
-              //sy sr[j] = (short)(((Integer)args[1]).shortValue() >> shift);
-              sr[j] = (short)(args1 >> shift);
- 
-            try {
               String str;
               if(cable_orientation[j].equals("left") || cable_orientation[j].equals("right"))
                 str =new String("led_col " + sc[j] + " " + sr[j] + (char)0x0D);
               else
                 str =new String("led_row " + sc[j] + " " + sr[j] + (char)0x0D);
               //debug debug_tf.setText(str);
-              if(portId[j] != null && portId[j].isCurrentlyOwned())
+              if(portId[j] != null && portId[j].isCurrentlyOwned()) {
                 out[j].write(str.getBytes());
-            }
-            catch(IOException e){}
-          }//end for
+                wait(0, 30);
+              }
+            }//end for
+          } catch(NullPointerException e) {
+            System.err.println("/led_col");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("NullPointerException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(ArrayIndexOutOfBoundsException e) {
+            System.err.println("/led_col");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("ArrayIndexOutOfBoundsException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(IOException e) {
+            System.err.println("/led_col");
+            System.err.println("IOException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(InterruptedException e) {
+            System.err.println("/led_col");
+            System.err.println("InterruptedException: " + e.getMessage());
+            e.printStackTrace();
+          }
         }
       };
     this.oscpin.addListener(this.prefix_tf.getText() + "/led_col", listener);
@@ -652,74 +673,87 @@ public void enableMsgLedCol() {
 
 public void enableMsgLedRow() {
     OSCListener listener = new OSCListener() {
-        public void acceptMessage(java.util.Date time, OSCMessage message) {
-          Object[] args = message.getArguments();
+        public synchronized void acceptMessage(java.util.Date time, OSCMessage message) {
+          try {
+            Object[] args = message.getArguments();
  
-          int args0 = (int)Float.parseFloat(args[0].toString());
-          int args1 = (int)Float.parseFloat(args[1].toString());
+            int args0 = (int)Float.parseFloat(args[0].toString());
+            int args1 = (int)Float.parseFloat(args[1].toString());
  
-          int[] sc = new int[2];
-          int[] sr = new int[2];
+            int[] sc = new int[2];
+            int[] sr = new int[2];
  
-          for(int j = 0; j < 2; j++) {
-            if(!checkAddressPatternPrefix(message, j))
-              continue;
+            for(int j = 0; j < 2; j++) {
+              if(!checkAddressPatternPrefix(message, j))
+                continue;
  
-            if(cable_orientation[j].equals("left"))
-              //sy sr[j] = (Integer)args[0] - starting_row[j];
-              sr[j] = args0 - starting_row[j];
-            else if(cable_orientation[j].equals("right"))
-              //sy sr[j] = 7 - (Integer)args[0] + starting_row[j];
-              sr[j] = 7 - args0 + starting_row[j];
-            else if(cable_orientation[j].equals("up"))
-              //sy sr[j] = co_max_num[j] - (Integer)args[0] + starting_row[j];
-              sr[j] = co_max_num[j] - args0 + starting_row[j];
-            else if(cable_orientation[j].equals("down"))
-              //sy sr[j] = (Integer)args[0] - starting_row[j];
-              sr[j] = args0 - starting_row[j];
+              if(cable_orientation[j].equals("left"))
+                sr[j] = args0 - starting_row[j];
+              else if(cable_orientation[j].equals("right"))
+                sr[j] = 7 - args0 + starting_row[j];
+              else if(cable_orientation[j].equals("up"))
+                sr[j] = co_max_num[j] - args0 + starting_row[j];
+              else if(cable_orientation[j].equals("down"))
+                sr[j] = args0 - starting_row[j];
             
-            if(sr[j] < 0) continue;
+              if(sr[j] < 0) continue;
             
-            int shift = starting_column[j] % (co_max_num[j] + 1);
+              int shift = starting_column[j] % (co_max_num[j] + 1);
             
-            if(cable_orientation[j].equals("left"))
-              //sy sc[j] = (short)(((Integer)args[1]).shortValue() >> shift);
-              sc[j] = (short)(args1 >> shift);
-            else if(cable_orientation[j].equals("right")) {
-              //sy short sc0 = ((Integer)args[1]).shortValue();
-              short sc0 = (short)args1;
-              short sc1 = 0;
-              for(int i = 0; i < co_max_num[j] + 1; i++)
-                if((sc0 & (0x01 << i)) == (0x01 << i))
-                  sc1 |= (0x01 << (co_max_num[j] - i));
-              sc[j] = (short)(sc1 << shift);
-            }
-            else if(cable_orientation[j].equals("up"))
-              //sy sc[j] = (short)(((Integer)args[1]).shortValue() >> shift);
-              sc[j] = (short)(args1 >> shift);
-            else if(cable_orientation[j].equals("down")) {
-              //sy short sc0 = ((Integer)args[1]).shortValue();
-              short sc0 = (short)args1;
-              short sc1 = 0;
-              for(int i = 0; i < 8; i++)
-                if((sc0 & (0x01 << i)) == (0x01 << i))
-                  sc1 |= (0x01 << (7 - i));
-              sc[j] = (short)(sc1 << shift);
-            }
+              if(cable_orientation[j].equals("left"))
+                sc[j] = (short)(args1 >> shift);
+              else if(cable_orientation[j].equals("right")) {
+                short sc0 = (short)args1;
+                short sc1 = 0;
+                for(int i = 0; i < co_max_num[j] + 1; i++)
+                  if((sc0 & (0x01 << i)) == (0x01 << i))
+                    sc1 |= (0x01 << (co_max_num[j] - i));
+                sc[j] = (short)(sc1 << shift);
+              }
+              else if(cable_orientation[j].equals("up"))
+                sc[j] = (short)(args1 >> shift);
+              else if(cable_orientation[j].equals("down")) {
+                short sc0 = (short)args1;
+                short sc1 = 0;
+                for(int i = 0; i < 8; i++)
+                  if((sc0 & (0x01 << i)) == (0x01 << i))
+                    sc1 |= (0x01 << (7 - i));
+                sc[j] = (short)(sc1 << shift);
+              }
  
-            try {
               String str;
               if(cable_orientation[j].equals("left") || cable_orientation[j].equals("right"))
                 str =new String("led_row " + sr[j] + " " + sc[j] + (char)0x0D);
               else
                 str =new String("led_col " + sr[j] + " " + sc[j] + (char)0x0D);
- 
+            
               //debug debug_tf.setText(str);
-              if(portId[j] != null && portId[j].isCurrentlyOwned())
+              if(portId[j] != null && portId[j].isCurrentlyOwned()) {
                 out[j].write(str.getBytes());
-            }
-            catch(IOException e){}
-          }//end for
+                wait(0, 30);
+              }
+            }//end for
+          } catch(NullPointerException e) {
+            System.err.println("/led_row");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("NullPointerException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(ArrayIndexOutOfBoundsException e) {
+            System.err.println("/led_row");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("ArrayIndexOutOfBoundsException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(IOException e) {
+            System.err.println("/led_row");
+            System.err.println("IOException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(InterruptedException e) {
+            System.err.println("/led_row");
+            System.err.println("InterruptedException: " + e.getMessage());
+            e.printStackTrace();
+          }
         }
       };
     this.oscpin.addListener(this.prefix_tf.getText() + "/led_row", listener);
@@ -727,72 +761,88 @@ public void enableMsgLedRow() {
  
   public void enableMsgLedFrame() {
     OSCListener listener = new OSCListener() {
-        public void acceptMessage(java.util.Date time, OSCMessage message) {
-          Object[] args0 = message.getArguments();
-          int[] sc = new int[2];
-          int[] sr = new int[2];
+        public synchronized void acceptMessage(java.util.Date time, OSCMessage message) {
+          try {
+            Object[] args0 = message.getArguments();
+            int[] sc = new int[2];
+            int[] sr = new int[2];
+            int[] args = new int[16];
+            for(int i = 0; i < args0.length; i++)
+              args[i] = (int)Float.parseFloat(args0[i].toString());
  
-          int[] args = new int[16];
-          for(int i = 0; i < args0.length; i++)
-            args[i] = (int)Float.parseFloat(args0[i].toString());
+            for(int k = 0; k < 2; k++) {
+              if(!checkAddressPatternPrefix(message, k))
+                continue;
  
-          for(int k = 0; k < 2; k++) {
-            if(!checkAddressPatternPrefix(message, k))
-              continue;
+              int shift = starting_column[k] % (co_max_num[k] + 1);
  
-            int shift = starting_column[k] % (co_max_num[k] + 1);
+              for(int i = 0; i < 16; i++) {
+                if(cable_orientation[k].equals("left"))
+                  sr[k] = i - starting_row[k];
+                else if(cable_orientation[k].equals("right"))
+                  sr[k] = 7 - i + starting_row[k];
+                else if(cable_orientation[k].equals("up"))
+                  sr[k] = co_max_num[k] - i + starting_row[k];
+                else if(cable_orientation[k].equals("down"))
+                  sr[k] = i - starting_row[k];
  
-            for(int i = 0; i < 16; i++) {
-              if(cable_orientation[k].equals("left"))
-                sr[k] = i - starting_row[k];
-              else if(cable_orientation[k].equals("right"))
-                sr[k] = 7 - i + starting_row[k];
-              else if(cable_orientation[k].equals("up"))
-                sr[k] = co_max_num[k] - i + starting_row[k];
-              else if(cable_orientation[k].equals("down"))
-                sr[k] = i - starting_row[k];
+                if(i < starting_row[k] || (i - starting_row[k]) > 7) continue;
  
-              if(i < starting_row[k] || (i - starting_row[k]) > 7) continue;
- 
-              if(cable_orientation[k].equals("left"))
-                //sy sc[k] = (short)(((Integer)args[i]).shortValue() >> shift);
-                sc[k] = (short)(args[i] >> shift);
-              else if(cable_orientation[k].equals("right")) {
-                //sy short sc0 = ((Integer)args[i]).shortValue();
-                short sc0 = (short)args[i];
-                short sc1 = 0;
-                for(int j = 0; j < co_max_num[k] + 1; j++)
-                  if((sc0 & (0x01 << j)) == (0x01 << j))
-                    sc1 |= (0x01 << (co_max_num[k] - j));
-                sc[k] = (short)(sc1 << shift);
-              }
-              else if(cable_orientation[k].equals("up"))
-                //sy sc[k] = (short)(((Integer)args[i]).shortValue() >> shift);
-                sc[k] = (short)(args[i] >> shift);
-              else if(cable_orientation[k].equals("down")) {
-                //sy short sc0 = ((Integer)args[i]).shortValue();
-                short sc0 = (short)args[i];
-                short sc1 = 0;
-                for(int j = 0; j < 8; j++)
-                  if((sc0 & (0x01 << j)) == (0x01 << j))
-                    sc1 |= (0x01 << (7 - j));
-                sc[k] = (short)(sc1 << shift);
-              }
+                if(cable_orientation[k].equals("left"))
+                  sc[k] = (short)(args[i] >> shift);
+                else if(cable_orientation[k].equals("right")) {
+                  short sc0 = (short)args[i];
+                  short sc1 = 0;
+                  for(int j = 0; j < co_max_num[k] + 1; j++)
+                    if((sc0 & (0x01 << j)) == (0x01 << j))
+                      sc1 |= (0x01 << (co_max_num[k] - j));
+                  sc[k] = (short)(sc1 << shift);
+                }
+                else if(cable_orientation[k].equals("up"))
+                  sc[k] = (short)(args[i] >> shift);
+                else if(cable_orientation[k].equals("down")) {
+                  short sc0 = (short)args[i];
+                  short sc1 = 0;
+                  for(int j = 0; j < 8; j++)
+                    if((sc0 & (0x01 << j)) == (0x01 << j))
+                      sc1 |= (0x01 << (7 - j));
+                  sc[k] = (short)(sc1 << shift);
+                }
               
-              try {
                 String str;
                 if(cable_orientation[k].equals("left") || cable_orientation[k].equals("right"))
                   str =new String("led_row " + sr[k] + " " + sc[k] + (char)0x0D);
                 else
                   str =new String("led_col " + sr[k] + " " + sc[k] + (char)0x0D);
-                
+                  
                 //debug debug_tf.setText(str);
-                if(portId[k] != null && portId[k].isCurrentlyOwned())
+                if(portId[k] != null && portId[k].isCurrentlyOwned()) {
                   out[k].write(str.getBytes());
-              }
-              catch(IOException e) {}
-            }//end for i
-          }//end for j
+                  wait(0, 30);
+                }
+              }//end for i
+            }//end for j
+          } catch(NullPointerException e) {
+            System.err.println("/frame");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("NullPointerException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(ArrayIndexOutOfBoundsException e) {
+            System.err.println("/frame");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("ArrayIndexOutOfBoundsException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(IOException e) {
+            System.err.println("/frame");
+            System.err.println("IOException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(InterruptedException e) {
+            System.err.println("/frame");
+            System.err.println("InterruptedException: " + e.getMessage());
+            e.printStackTrace();
+          }
         }
       };
     this.oscpin.addListener(this.prefix_tf.getText() + "/frame", listener);
@@ -801,41 +851,53 @@ public void enableMsgLedRow() {
   public void enableMsgClear() {
     OSCListener listener = new OSCListener() {
         public void acceptMessage(java.util.Date time, OSCMessage message) {
-          Object[] args = message.getArguments();
+          try {
+            Object[] args = message.getArguments();
+            int args0 = 0;
+            if(args.length == 1)
+              args0 = (int)Float.parseFloat(args[0].toString());
  
-          int args0 = 0;
-          if(args.length == 1)
-            args0 = (int)Float.parseFloat(args[0].toString());
+            for(int j = 0; j < 2; j++) {
+              if(!checkAddressPatternPrefix(message, j))
+                continue;
  
-          for(int j = 0; j < 2; j++) {
-            if(!checkAddressPatternPrefix(message, j))
-              continue;
+              for(int i = 0; i < 8; i++) {
+                short state;
+                if(co_max_num[j] == 7) {//sixty four
+                  if(args.length == 0 || args0 == 0)
+                    state = (short)0x00;
+                  else
+                    state = (short)0xFF;
+                }
+                else {//one twenty eight
+                  if(args.length == 0 || args0 == 0)
+                    state = (short)0x0000;
+                  else
+                    state = (short)0xFFFF;
+                }
  
-            for(int i = 0; i < 8; i++) {
-              short state;
-              if(co_max_num[j] == 7) {//sixty four
-                //sy if(args.length == 0 || ((Integer)args[0]).intValue() == 0)
-                if(args.length == 0 || args0 == 0)
-                  state = (short)0x00;
-                else
-                  state = (short)0xFF;
-              }
-              else {//one twenty eight
-                //sy if(args.length == 0 || ((Integer)args[0]).intValue() == 0)
-                if(args.length == 0 || args0 == 0)
-                  state = (short)0x0000;
-                else
-                  state = (short)0xFFFF;
-              }
- 
-              try {
                 String str =new String("led_row " + i + " " + state + (char)0x0D);
                 //debug debug_tf.setText(str);
                 if(portId[j] != null && portId[j].isCurrentlyOwned())
                   out[j].write(str.getBytes());
               }
-              catch(IOException e){}
             }
+          } catch(NullPointerException e) {
+            System.err.println("/clear");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("NullPointerException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(ArrayIndexOutOfBoundsException e) {
+            System.err.println("/clear");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("ArrayIndexOutOfBoundsException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(IOException e) {
+            System.err.println("/clear");
+            System.err.println("IOException: " + e.getMessage());
+            e.printStackTrace();
           }
         }
       };
@@ -845,22 +907,36 @@ public void enableMsgLedRow() {
   public void enableMsgAdcEnable() {
     OSCListener listener = new OSCListener() {
         public void acceptMessage(java.util.Date time, OSCMessage message) {
-          Object[] args0 = message.getArguments();
- 
-          int[] args = new int[args0.length];
-          for(int i = 0; i < args.length; i++)
-            args[i] = (int)Float.parseFloat(args0[i].toString());
- 
           try {
-            //sy String str =new String("adc_enable " + (Integer)args[0] + " " + (Integer)args[1] + (char)0x0D);
+            Object[] args0 = message.getArguments();
+ 
+            int[] args = new int[args0.length];
+            for(int i = 0; i < args.length; i++)
+              args[i] = (int)Float.parseFloat(args0[i].toString());
+ 
             String str =new String("adc_enable " + args[0] + " " + args[1] + (char)0x0D);
             //debug debug_tf.setText(str);
             if(portId[0] != null && portId[0].isCurrentlyOwned())
               out[0].write(str.getBytes());
             if(portId[1] != null && portId[1].isCurrentlyOwned())
               out[1].write(str.getBytes());
+          } catch(NullPointerException e) {
+            System.err.println("/adc_enable");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("NullPointerException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(ArrayIndexOutOfBoundsException e) {
+            System.err.println("/adc_enable");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("ArrayIndexOutOfBoundsException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(IOException e) {
+            System.err.println("/adc_enable");
+            System.err.println("IOException: " + e.getMessage());
+            e.printStackTrace();
           }
-          catch(IOException e){}
         }
       };
     this.oscpin.addListener(this.prefix_tf.getText() + "/adc_enable", listener);
@@ -869,23 +945,37 @@ public void enableMsgLedRow() {
   public void enableMsgPwm() {
     OSCListener listener = new OSCListener() {
         public void acceptMessage(java.util.Date time, OSCMessage message) {
-          Object[] args0 = message.getArguments();
- 
-          int[] args = new int[2];
-          for(int i = 0; i < 2; i++)
-            args[i] = (int)Float.parseFloat(args0[i].toString());
-          float args_f = Float.parseFloat(args0[2].toString());
- 
           try {
-            //sy String str =new String("pwm " + (Integer)args[0] + " " + (Integer)args[1] + " " + (Float)args[2] + (char)0x0D);
+            Object[] args0 = message.getArguments();
+ 
+            int[] args = new int[2];
+            for(int i = 0; i < 2; i++)
+              args[i] = (int)Float.parseFloat(args0[i].toString());
+            float args_f = Float.parseFloat(args0[2].toString());
+ 
             String str =new String("pwm " + args[0] + " " + args[1] + " " + args_f + (char)0x0D);
             //debug debug_tf.setText(str);
             if(portId[0] != null && portId[0].isCurrentlyOwned())
               out[0].write(str.getBytes());
             if(portId[1] != null && portId[1].isCurrentlyOwned())
               out[1].write(str.getBytes());
+          } catch(NullPointerException e) {
+            System.err.println("/pwm");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("NullPointerException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(ArrayIndexOutOfBoundsException e) {
+            System.err.println("/pwm");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("ArrayIndexOutOfBoundsException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(IOException e) {
+            System.err.println("/pwm");
+            System.err.println("IOException: " + e.getMessage());
+            e.printStackTrace();
           }
-          catch(IOException e) {}
         }
       };
     this.oscpin.addListener(this.prefix_tf.getText() + "/pwm", listener);
@@ -916,11 +1006,26 @@ public void enableMsgLedRow() {
   public void enableMsgDevice() {
     OSCListener listener = new OSCListener() {
         public void acceptMessage(java.util.Date time, OSCMessage message) {
-          Object[] args = message.getArguments();
-          int device_no = ((Integer)args[0]).intValue();
-          if(device_no == 0 || device_no == 1) {
-            PicnomeCommunication.this.device_cb.setSelectedIndex(device_no);
-            PicnomeCommunication.this.changeDeviceSettings(device_no);
+          try {
+            Object[] args = message.getArguments();
+
+            int device_no = ((Integer)args[0]).intValue();
+            if(device_no == 0 || device_no == 1) {
+              PicnomeCommunication.this.device_cb.setSelectedIndex(device_no);
+              PicnomeCommunication.this.changeDeviceSettings(device_no);
+            }
+          } catch(NullPointerException e) {
+            System.err.println("/device");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("NullPointerException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(ArrayIndexOutOfBoundsException e) {
+            System.err.println("/device");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("ArrayIndexOutOfBoundsException: " + e.getMessage());
+            e.printStackTrace();
           }
         }
       };
@@ -930,21 +1035,36 @@ public void enableMsgLedRow() {
   public void enableMsgOscconfig() {
     OSCListener listener = new OSCListener() {
         public void acceptMessage(java.util.Date time, OSCMessage message) {
-          Object[] args = message.getArguments();
-          PicnomeCommunication.this.address_pattern_prefix[(Integer)args[2]] = (String)args[0];
-          PicnomeCommunication.this.host_port[(Integer)args[2]] = (Integer)args[1];
-          if(PicnomeCommunication.this.device_cb.getSelectedIndex() == (Integer)args[2]) {
-            PicnomeCommunication.this.prefix_tf.setText((String)args[0]);
-            PicnomeCommunication.this.hostport_tf.setText(((Integer)args[1]).toString());
-          }
+          try {
+            Object[] args = message.getArguments();
+
+            PicnomeCommunication.this.address_pattern_prefix[(Integer)args[2]] = (String)args[0];
+            PicnomeCommunication.this.host_port[(Integer)args[2]] = (Integer)args[1];
+            if(PicnomeCommunication.this.device_cb.getSelectedIndex() == (Integer)args[2]) {
+              PicnomeCommunication.this.prefix_tf.setText((String)args[0]);
+              PicnomeCommunication.this.hostport_tf.setText(((Integer)args[1]).toString());
+            }
  
-          if(args.length == 4) {
-            PicnomeCommunication.this.host_address[(Integer)args[2]] = Integer.toString((Integer)args[3]);
-            if(PicnomeCommunication.this.device_cb.getSelectedIndex() == (Integer)args[2])
-              PicnomeCommunication.this.hostaddress_tf.setText(Integer.toString((Integer)args[3]));
+            if(args.length == 4) {
+              PicnomeCommunication.this.host_address[(Integer)args[2]] = Integer.toString((Integer)args[3]);
+              if(PicnomeCommunication.this.device_cb.getSelectedIndex() == (Integer)args[2])
+                PicnomeCommunication.this.hostaddress_tf.setText(Integer.toString((Integer)args[3]));
+            }
+            PicnomeCommunication.this.initOSCPort();
+            PicnomeCommunication.this.initOSCListener("all");
+          } catch(NullPointerException e) {
+            System.err.println("/oscconfig");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("NullPointerException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(ArrayIndexOutOfBoundsException e) {
+            System.err.println("/oscconfig");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("ArrayIndexOutOfBoundsException: " + e.getMessage());
+            e.printStackTrace();
           }
-          PicnomeCommunication.this.initOSCPort();
-          PicnomeCommunication.this.initOSCListener("all");
         }
       };
     this.oscpin.addListener("/sys/oscconfig", listener);
@@ -953,29 +1073,45 @@ public void enableMsgLedRow() {
   public void enableMsgPrefix() {
     OSCListener listener = new OSCListener() {
         public void acceptMessage(java.util.Date time, OSCMessage message) {
-          Object[] args = message.getArguments();
-          if(args.length == 0) {
-            for(int i = 0; i < device_list.size(); i++) {
-              OSCMessage msg;
-              Object[] args0 = new Object[2];
-              args0[0] = String.valueOf(i);
-              args0[1] = address_pattern_prefix[i];
-              msg = new OSCMessage("/sys/prefix", args0);
-              try {
+          try {
+            Object[] args = message.getArguments();
+
+            if(args.length == 0) {
+              for(int i = 0; i < device_list.size(); i++) {
+                OSCMessage msg;
+                Object[] args0 = new Object[2];
+                args0[0] = String.valueOf(i);
+                args0[1] = address_pattern_prefix[i];
+                msg = new OSCMessage("/sys/prefix", args0);
                 oscpout.send(msg);
               }
-              catch(IOException e) {}
             }
-          }
-          else if(args.length == 2) {
-            PicnomeCommunication.this.address_pattern_prefix[(Integer)args[0]] = (String)args[1];
-            if(PicnomeCommunication.this.device_cb.getSelectedIndex() == (Integer)args[0])
-              prefix_tf.setText((String)args[1]);
-            PicnomeCommunication.this.initOSCListener("prefix");
-          }
-          else {
-            prefix_tf.setText((String)args[0]);
-            PicnomeCommunication.this.initOSCListener("prefix");
+            else if(args.length == 2) {
+              PicnomeCommunication.this.address_pattern_prefix[(Integer)args[0]] = (String)args[1];
+              if(PicnomeCommunication.this.device_cb.getSelectedIndex() == (Integer)args[0])
+                prefix_tf.setText((String)args[1]);
+              PicnomeCommunication.this.initOSCListener("prefix");
+            }
+            else {
+              prefix_tf.setText((String)args[0]);
+              PicnomeCommunication.this.initOSCListener("prefix");
+            }
+          } catch(NullPointerException e) {
+            System.err.println("/prefix");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("NullPointerException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(ArrayIndexOutOfBoundsException e) {
+            System.err.println("/prefix");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("ArrayIndexOutOfBoundsException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(IOException e) {
+            System.err.println("/prefix");
+            System.err.println("IOException: " + e.getMessage());
+            e.printStackTrace();
           }
         }
       };
@@ -985,10 +1121,10 @@ public void enableMsgLedRow() {
   public void enableMsgIntensity() {
     OSCListener listener = new OSCListener() {
         public void acceptMessage(java.util.Date time, OSCMessage message) {
-          Object[] args = message.getArguments();
+          try {
+            Object[] args = message.getArguments();
  
-          for(int i = 0; i < 2; i++) {
-            try {
+            for(int i = 0; i < 2; i++) {
               if(args.length == 1) {
                 String str =new String("intensity " + (Integer)args[0] + (char)0x0D);
                 //debug debug_tf.setText(str);
@@ -1002,7 +1138,22 @@ public void enableMsgLedRow() {
                   out[i].write(str.getBytes());
               }
             }
-            catch(IOException e) {}
+          } catch(NullPointerException e) {
+            System.err.println("/intensity");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("NullPointerException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(ArrayIndexOutOfBoundsException e) {
+            System.err.println("/intensity");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("ArrayIndexOutOfBoundsException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(IOException e) {
+            System.err.println("/intensity");
+            System.err.println("IOException: " + e.getMessage());
+            e.printStackTrace();
           }
         }
       };
@@ -1012,10 +1163,10 @@ public void enableMsgLedRow() {
   public void enableMsgTest() {
     OSCListener listener = new OSCListener() {
         public void acceptMessage(java.util.Date time, OSCMessage message) {
-          Object[] args = message.getArguments();
+          try {
+            Object[] args = message.getArguments();
  
-          for(int i = 0; i < 2; i++) {
-            try {
+            for(int i = 0; i < 2; i++) {
               if(args.length == 1) {
                 String str =new String("test " + (Integer)args[0] + (char)0x0D);
                 if(portId[i] != null && portId[i].isCurrentlyOwned())
@@ -1027,7 +1178,22 @@ public void enableMsgLedRow() {
                   out[i].write(str.getBytes());
               }
             }
-            catch(IOException e) {}
+          } catch(NullPointerException e) {
+            System.err.println("/test");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("NullPointerException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(ArrayIndexOutOfBoundsException e) {
+            System.err.println("/test");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("ArrayIndexOutOfBoundsException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(IOException e) {
+            System.err.println("/test");
+            System.err.println("IOException: " + e.getMessage());
+            e.printStackTrace();
           }
         }
       };
@@ -1037,16 +1203,31 @@ public void enableMsgLedRow() {
   public void enableMsgShutdown() {
     OSCListener listener = new OSCListener() {
         public void acceptMessage(java.util.Date time, OSCMessage message) {
-          Object[] args = message.getArguments();
+          try {
+            Object[] args = message.getArguments();
  
-          for(int i = 0; i < 2; i++) {
-            try {
+            for(int i = 0; i < 2; i++) {
               String str =new String("shutdown " + (Integer)args[0] + (char)0x0D);
               //debug debug_tf.setText(str);
               if(portId[i] != null && portId[i].isCurrentlyOwned())
                 out[i].write(str.getBytes());
             }
-            catch(IOException e) {}
+          } catch(NullPointerException e) {
+            System.err.println("/shutdown");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("NullPointerException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(ArrayIndexOutOfBoundsException e) {
+            System.err.println("/shutdown");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("ArrayIndexOutOfBoundsException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(IOException e) {
+            System.err.println("/shutdown");
+            System.err.println("IOException: " + e.getMessage());
+            e.printStackTrace();
           }
         }
       };
@@ -1056,12 +1237,12 @@ public void enableMsgLedRow() {
   public void enableMsgReport() {
     OSCListener listener = new OSCListener() {
         public void acceptMessage(java.util.Date time, OSCMessage message) {
-          Object[] args = message.getArguments();
-          Object[] args0;
-          String str;
-          OSCMessage msg;
-
           try {
+            Object[] args = message.getArguments();
+            Object[] args0;
+            String str;
+            OSCMessage msg;
+
             if(args.length == 0) {
               args0 = new Object[1];
               args0[0] = String.valueOf(device_list.size());
@@ -1112,8 +1293,23 @@ public void enableMsgLedRow() {
               if(portId[1] != null && portId[1].isCurrentlyOwned())
                 out[1].write(str.getBytes());
             }
+          } catch(NullPointerException e) {
+            System.err.println("/report");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("NullPointerException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(ArrayIndexOutOfBoundsException e) {
+            System.err.println("/report");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("ArrayIndexOutOfBoundsException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(IOException e) {
+            System.err.println("/report");
+            System.err.println("IOException: " + e.getMessage());
+            e.printStackTrace();
           }
-          catch(IOException e){}
         }
       };
     this.oscpin.addListener("/sys/report", listener);
@@ -1122,12 +1318,12 @@ public void enableMsgLedRow() {
 public void enableMsgType() {
     OSCListener listener = new OSCListener() {
         public void acceptMessage(java.util.Date time, OSCMessage message) {
-          Object[] args = message.getArguments();
-          Object[] args0;
-          String str;
-          OSCMessage msg;
- 
           try {
+            Object[] args = message.getArguments();
+            Object[] args0;
+            String str;
+            OSCMessage msg;
+ 
             if(args.length == 0) {
               for(int i = 0; i < device_list.size(); i++) {
                 args0 = new Object[2];
@@ -1140,8 +1336,23 @@ public void enableMsgType() {
                 oscpout.send(msg);
               }
             }
+          } catch(NullPointerException e) {
+            System.err.println("/type");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("NullPointerException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(ArrayIndexOutOfBoundsException e) {
+            System.err.println("/type");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("ArrayIndexOutOfBoundsException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(IOException e) {
+            System.err.println("/type");
+            System.err.println("IOException: " + e.getMessage());
+            e.printStackTrace();
           }
-          catch(IOException e){}
         }
       };
     this.oscpin.addListener("/sys/type", listener);
@@ -1172,6 +1383,10 @@ public void enableMsgType() {
     OSCListener listener = new OSCListener() {
         public void acceptMessage(java.util.Date time, OSCMessage message) {
           Object[] args = message.getArguments();
+
+          if(args.length < 1)
+            return;
+
           if(args.length == 0) {
             for(int i = 0; i < device_list.size(); i++) {
               OSCMessage msg;
