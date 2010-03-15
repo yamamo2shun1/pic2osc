@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.3.10 2010/02/07
+ * PicnomeCommunication.java,v.1.3.12 2010/03/15
  */
 
 // RXTX
@@ -579,28 +579,20 @@ public class PicnomeCommunication {
             sr[i] = starting_row[i];
 
             if(cable_orientation[i].equals("left")) {
-              //sy sc[i] = (Integer)args[0] - sc[i];
-              //sy sr[i] = (Integer)args[1] - sr[i];
               sc[i] = args0 - sc[i];
               sr[i] = args1 - sr[i];
             }
             else if(cable_orientation[i].equals("right")) {
-              //sy sc[i] = co_max_num[i] - (Integer)args[0] + sc[i];
-              //sy sr[i] = 7 - (Integer)args[1] + sr[i];
               sc[i] = co_max_num[i] - args0 + sc[i];
               sr[i] = 7 - args1 + sr[i];
             }
             else if(cable_orientation[i].equals("up")) {
-              //sy int sc1 = co_max_num[i] - (Integer)args[1] + sr[i];
-              //sy int sr1 = (Integer)args[0] - sc[i];
               int sc1 = co_max_num[i] - args1 + sr[i];
               int sr1 = args0 - sc[i];
               sc[i] = sc1;
               sr[i] = sr1;
             }
             else if(cable_orientation[i].equals("down")) {
-              //sy int sc1 = (Integer)args[1] - sr[i];
-              //sy int sr1 = 7 - (Integer)args[0] + sc[i];
               int sc1 = args1 - sr[i];
               int sr1 = 7 - args0 + sc[i];
               sc[i] = sc1;
@@ -608,9 +600,21 @@ public class PicnomeCommunication {
             }
             
             if(sc[i] < 0 || sr[i] < 0) continue ;
+
+            if(PicnomeCommunication.this.device[i].indexOf("PICnome128") == -1) {
+              if(sc[i] > 7 || sr[i] > 7)
+                continue ;
+            }
+            else if(PicnomeCommunication.this.device[i].indexOf("PICnome128") != -1) {
+              if(cable_orientation[i].equals("right") || cable_orientation[i].equals("left")) {
+                if(sr[i] > 7) continue ;
+              }
+              else {
+                if(sc[i] > 7) continue ;
+              }
+            }
             
             try {
-              //sy String str =new String("led " + sc[i] + " " + sr[i] + " " + (Integer)args[2] + (char)0x0D);
               String str =new String("led " + sc[i] + " " + sr[i] + " " + args2 + (char)0x0D);
               //debug debug_tf.setText(str);
               if(portId[i] != null && portId[i].isCurrentlyOwned()) {
