@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.3.12test 2010/03/02
+ * PicnomeCommunication.java,v.1.3.12 2010/03/15
  */
 
 // RXTX
@@ -518,6 +518,19 @@ public void enableMsgLed() {
                 sr[i] = sr1;
               }
               if(sc[i] < 0 || sr[i] < 0) continue ;
+
+              if(PicnomeCommunication.this.device[i].indexOf("PICnome128") == -1) {
+                if(sc[i] > 7 || sr[i] > 7)
+                  continue ;
+              }
+              else if(PicnomeCommunication.this.device[i].indexOf("PICnome128") != -1) {
+                if(cable_orientation[i].equals("right") || cable_orientation[i].equals("left")) {
+                  if(sr[i] > 7) continue ;
+                }
+                else {
+                  if(sc[i] > 7) continue ;
+                }
+              }
             
               String str =new String("led " + sc[i] + " " + sr[i] + " " + args2 + (char)0x0D);
               //debug debug_tf.setText(str);
