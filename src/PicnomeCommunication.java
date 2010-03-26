@@ -186,6 +186,12 @@ public class PicnomeCommunication {
     ArrayList<String> suffix1 = this.getUsbInfo("PICnome");
     ArrayList<String> suffix2 = this.getUsbInfo("PICnome128");
     Enumeration e = CommPortIdentifier.getPortIdentifiers();
+
+    this.device[0] = "";
+    this.device[1] = "";
+    this.device2[0] = "";
+    this.device2[1] = "";
+
     while(e.hasMoreElements()) {
       device_name = ((CommPortIdentifier)e.nextElement()).getName();
 
@@ -561,70 +567,88 @@ public class PicnomeCommunication {
   public void enableMsgLed() {
     OSCListener listener = new OSCListener() {
         public synchronized void acceptMessage(java.util.Date time, OSCMessage message) {
-          String address = message.getAddress();
-          Object[] args = message.getArguments();
+          try {
+            String address = message.getAddress();
+            Object[] args = message.getArguments();
 
-          int args0 = (int)Float.parseFloat(args[0].toString());
-          int args1 = (int)Float.parseFloat(args[1].toString());
-          int args2 = (int)Float.parseFloat(args[2].toString());
+            int args0 = (int)Float.parseFloat(args[0].toString());
+            int args1 = (int)Float.parseFloat(args[1].toString());
+            int args2 = (int)Float.parseFloat(args[2].toString());
 
-          int[] sc = new int[2];
-          int[] sr = new int[2];
+            int[] sc = new int[2];
+            int[] sr = new int[2];
 
-          for(int i = 0; i < 2; i++) {
-            if(!checkAddressPatternPrefix(message, i))
-              continue;
+            for(int i = 0; i < 2; i++) {
+              if(!checkAddressPatternPrefix(message, i))
+                continue;
 
-            sc[i] = starting_column[i];
-            sr[i] = starting_row[i];
+              sc[i] = starting_column[i];
+              sr[i] = starting_row[i];
 
-            if(cable_orientation[i].equals("left")) {
-              sc[i] = args0 - sc[i];
-              sr[i] = args1 - sr[i];
-            }
-            else if(cable_orientation[i].equals("right")) {
-              sc[i] = co_max_num[i] - args0 + sc[i];
-              sr[i] = 7 - args1 + sr[i];
-            }
-            else if(cable_orientation[i].equals("up")) {
-              int sc1 = co_max_num[i] - args1 + sr[i];
-              int sr1 = args0 - sc[i];
-              sc[i] = sc1;
-              sr[i] = sr1;
-            }
-            else if(cable_orientation[i].equals("down")) {
-              int sc1 = args1 - sr[i];
-              int sr1 = 7 - args0 + sc[i];
-              sc[i] = sc1;
-              sr[i] = sr1;
-            }
-            
-            if(sc[i] < 0 || sr[i] < 0) continue ;
-
-            if(PicnomeCommunication.this.device[i].indexOf("PICnome128") == -1) {
-              if(sc[i] > 7 || sr[i] > 7)
-                continue ;
-            }
-            else if(PicnomeCommunication.this.device[i].indexOf("PICnome128") != -1) {
-              if(cable_orientation[i].equals("right") || cable_orientation[i].equals("left")) {
-                if(sr[i] > 7) continue ;
+              if(cable_orientation[i].equals("left")) {
+                sc[i] = args0 - sc[i];
+                sr[i] = args1 - sr[i];
               }
-              else {
-                if(sc[i] > 7) continue ;
+              else if(cable_orientation[i].equals("right")) {
+                sc[i] = co_max_num[i] - args0 + sc[i];
+                sr[i] = 7 - args1 + sr[i];
               }
-            }
-            
-            try {
+              else if(cable_orientation[i].equals("up")) {
+                int sc1 = co_max_num[i] - args1 + sr[i];
+                int sr1 = args0 - sc[i];
+                sc[i] = sc1;
+                sr[i] = sr1;
+              }
+              else if(cable_orientation[i].equals("down")) {
+                int sc1 = args1 - sr[i];
+                int sr1 = 7 - args0 + sc[i];
+                sc[i] = sc1;
+                sr[i] = sr1;
+              }
+
+              if(sc[i] < 0 || sr[i] < 0) continue ;
+
+              if(PicnomeCommunication.this.device[i].indexOf("PICnome128") == -1) {
+                if(sc[i] > 7 || sr[i] > 7)
+                  continue ;
+              }
+              else if(PicnomeCommunication.this.device[i].indexOf("PICnome128") != -1) {
+                if(cable_orientation[i].equals("right") || cable_orientation[i].equals("left")) {
+                  if(sr[i] > 7) continue ;
+                }
+                else {
+                  if(sc[i] > 7) continue ;
+                }
+              }
+
               String str =new String("led " + sc[i] + " " + sr[i] + " " + args2 + (char)0x0D);
               //debug debug_tf.setText(str);
               if(portId[i] != null && portId[i].isCurrentlyOwned()) {
                 out[i].write(str.getBytes());
                 wait(0, 50);
               }
-            }
-            catch(IOException e) {}
-            catch(InterruptedException e) {}
-          }//end for
+            }//end for
+          } catch(NullPointerException e) {
+            System.err.println("/led");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments().length);
+            System.err.println("NullPointerException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(ArrayIndexOutOfBoundsException e) {
+            System.err.println("/led");
+            System.err.println(message.getAddress());
+            System.err.println(message.getArguments());
+            System.err.println("ArrayIndexOutOfBoundsException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(IOException e) {
+            System.err.println("/led");
+            System.err.println("IOException: " + e.getMessage());
+            e.printStackTrace();
+          } catch(InterruptedException e) {
+            System.err.println("/led");
+            System.err.println("InterruptedException: " + e.getMessage());
+            e.printStackTrace();
+          }
         }
       };
     this.oscpin.addListener(this.prefix_tf.getText() + "/led", listener);
