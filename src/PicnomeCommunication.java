@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.3.12 2010/03/15
+ * PicnomeCommunication.java,v.1.3.13 2010/03/26
  */
 
 // RXTX
@@ -159,6 +159,10 @@ public class PicnomeCommunication {
     ArrayList<String> comport0 = this.getUsbInfo("tkrworks PICnome");
     ArrayList<String> comport1 = this.getUsbInfo("tkrworks PICnome128");
     Enumeration e = CommPortIdentifier.getPortIdentifiers();
+
+    this.device[0] = "";
+    this.device[1] = "";
+
     while(e.hasMoreElements()) {
       device_name = ((CommPortIdentifier)e.nextElement()).getName();
 
@@ -1493,6 +1497,8 @@ public void enableMsgType() {
             if(buffer == 0x0A || buffer == 0x0D)
               break;
           }
+
+System.out.println(sb.toString());
 
           if(sb.length() > 0)
             sendOSCMessageFromHw(this.index, sb.toString());
