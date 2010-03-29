@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.3.13 2010/03/26
+ * PicnomeCommunication.java,v.1.3.14 2010/03/29
  */
 
 // RXTX
@@ -421,36 +421,63 @@ public class PicnomeCommunication {
     return b;
   }
 
+  int getHexStringToInt(String str) {
+    int value = 0;
+    if(str.equals("A"))
+      value = 10;
+    else if(str.equals("B"))
+      value = 11;
+    else if(str.equals("C"))
+      value = 12;
+    else if(str.equals("D"))
+      value = 13;
+    else if(str.equals("E"))
+      value = 14;
+    else if(str.equals("F"))
+      value = 15;
+    else
+      value = Integer.valueOf(str);
+    return value;
+  }
+
   void sendOSCMessageFromHw(int index, String str) {
     StringTokenizer st = new StringTokenizer(str);
     Object[] args;
     OSCMessage msg;
     String token = st.nextToken();
 
-    if(token.equals("press")) {
+    if(str.substring(0, 1).equals("p") || str.substring(0, 1).equals("r")) {
       if(((String)this.protocol_cb.getSelectedItem()).equals("Open Sound Control")) {
         args = new Object[3];
+
+        int x0 = this.getHexStringToInt(str.substring(1, 2));
+        int y0 = this.getHexStringToInt(str.substring(2, 3));
+        int state0 = -1;
+        if(str.substring(0, 1).equals("p"))
+          state0 = 1;
+        else if(str.substring(0, 1).equals("r"))
+          state0 = 0;
 
         int sc = this.starting_column[index];
         int sr = this.starting_row[index];
 
         if(this.cable_orientation[index].equals("left")) {
-          args[0] = Integer.valueOf(st.nextToken()) + sc; // X
-          args[1] = Integer.valueOf(st.nextToken()) + sr; // Y
+          args[0] = x0 + sc; // X
+          args[1] = y0 + sr; // Y
         }
         else if(this.cable_orientation[index].equals("right")) {
-          args[0] = this.co_max_num[index] - Integer.valueOf(st.nextToken()) + sc; // X
-          args[1] = 7 - Integer.valueOf(st.nextToken()) + sr; // Y
+          args[0] = this.co_max_num[index] - x0 + sc; // X
+          args[1] = 7 - y0 + sr; // Y
         }
         else if(this.cable_orientation[index].equals("up")) {
-          args[1] = this.co_max_num[index] - Integer.valueOf(st.nextToken()) + sr; // Y
-          args[0] = Integer.valueOf(st.nextToken()) + sc;     // X
+          args[1] = this.co_max_num[index] - x0 + sr; // Y
+          args[0] = y0 + sc;     // X
         }
         else if(this.cable_orientation[index].equals("down")) {
-          args[1] = Integer.valueOf(st.nextToken()) + sr;     // Y
-          args[0] = 7 - Integer.valueOf(st.nextToken()) + sc; // X
+          args[1] = x0 + sr;     // Y
+          args[0] = 7 - y0 + sc; // X
         }
-        args[2] = Integer.valueOf(st.nextToken()); // State
+        args[2] = state0; // State
 
         //debug this.debug_tf.setText(args[0] + " " + args[1] + " " + args[2]);
         msg = new OSCMessage(this.address_pattern_prefix[index] + "/press", args);
@@ -582,6 +609,19 @@ public class PicnomeCommunication {
               if(!checkAddressPatternPrefix(message, i))
                 continue;
 
+              if(PicnomeCommunication.this.device[i].indexOf("PICnome128") == -1) {
+                if(args0 > 7 || args1 > 7)
+                  return ;
+              }
+              else if(PicnomeCommunication.this.device[i].indexOf("PICnome128") != -1) {
+                if(cable_orientation[i].equals("right") || cable_orientation[i].equals("left")) {
+                  if(args1 > 7) return ;
+                }
+                else {
+                  if(args0 > 7) return ;
+                }
+              }
+
               sc[i] = starting_column[i];
               sr[i] = starting_row[i];
 
@@ -608,24 +648,60 @@ public class PicnomeCommunication {
 
               if(sc[i] < 0 || sr[i] < 0) continue ;
 
-              if(PicnomeCommunication.this.device[i].indexOf("PICnome128") == -1) {
-                if(sc[i] > 7 || sr[i] > 7)
-                  continue ;
+              String ssc, ssr;
+              switch(sc[i]){
+              case 10:
+                ssc = "A";
+                break;
+              case 11:
+                ssc = "B";
+                break;
+              case 12:
+                ssc = "C";
+                break;
+              case 13:
+                ssc = "D";
+                break;
+              case 14:
+                ssc = "E";
+                break;
+              case 15:
+                ssc = "F";
+                break;
+              default:
+                ssc = String.valueOf(sc[i]);
+                break;
               }
-              else if(PicnomeCommunication.this.device[i].indexOf("PICnome128") != -1) {
-                if(cable_orientation[i].equals("right") || cable_orientation[i].equals("left")) {
-                  if(sr[i] > 7) continue ;
-                }
-                else {
-                  if(sc[i] > 7) continue ;
-                }
+              switch(sr[i]){
+              case 10:
+                ssr = "A";
+                break;
+              case 11:
+                ssr = "B";
+                break;
+              case 12:
+                ssr = "C";
+                break;
+              case 13:
+                ssr = "D";
+                break;
+              case 14:
+                ssr = "E";
+                break;
+              case 15:
+                ssr = "F";
+                break;
+              default:
+                ssr = String.valueOf(sr[i]);
+                break;
               }
 
-              String str =new String("led " + sc[i] + " " + sr[i] + " " + args2 + (char)0x0D);
+              //sy String str =new String("led " + ssc + ssr + args2 + (char)0x0D);
+              String str =new String("l" + args2 + ssc + ssr + (char)0x0D);
               //debug debug_tf.setText(str);
               if(portId[i] != null && portId[i].isCurrentlyOwned()) {
                 out[i].write(str.getBytes());
-                wait(0, 50);
+                wait(0, 5);
               }
             }//end for
           } catch(NullPointerException e) {
@@ -790,13 +866,13 @@ public class PicnomeCommunication {
             try {
               String str;
               if(cable_orientation[j].equals("left") || cable_orientation[j].equals("right"))
-                str =new String("led_col " + sc[j] + " " + sr[j] + (char)0x0D);
+                str =new String("lc " + sc[j] + " " + sr[j] + (char)0x0D);
               else
-                str =new String("led_row " + sc[j] + " " + sr[j] + (char)0x0D);
+                str =new String("lr " + sc[j] + " " + sr[j] + (char)0x0D);
               //debug debug_tf.setText(str);
               if(portId[j] != null && portId[j].isCurrentlyOwned()) {
                 out[j].write(str.getBytes());
-                wait(0, 50);
+                wait(0, 5);
               }
             }
             catch(IOException e){}
@@ -867,14 +943,14 @@ public class PicnomeCommunication {
             try {
               String str;
               if(cable_orientation[j].equals("left") || cable_orientation[j].equals("right"))
-                str =new String("led_row " + sr[j] + " " + sc[j] + (char)0x0D);
+                str =new String("lr " + sr[j] + " " + sc[j] + (char)0x0D);
               else
-                str =new String("led_col " + sr[j] + " " + sc[j] + (char)0x0D);
+                str =new String("lc " + sr[j] + " " + sc[j] + (char)0x0D);
 
               //debug debug_tf.setText(str);
               if(portId[j] != null && portId[j].isCurrentlyOwned()) {
                 out[j].write(str.getBytes());
-                wait(0, 50);
+                wait(0, 5);
               }
             }
             catch(IOException e){}
@@ -942,14 +1018,14 @@ public class PicnomeCommunication {
               try {
                 String str;
                 if(cable_orientation[k].equals("left") || cable_orientation[k].equals("right"))
-                  str =new String("led_row " + sr[k] + " " + sc[k] + (char)0x0D);
+                  str =new String("lr " + sr[k] + " " + sc[k] + (char)0x0D);
                 else
-                  str =new String("led_col " + sr[k] + " " + sc[k] + (char)0x0D);
+                  str =new String("lc " + sr[k] + " " + sc[k] + (char)0x0D);
                 
                 //debug debug_tf.setText(str);
                 if(portId[k] != null && portId[k].isCurrentlyOwned()) {
                   out[k].write(str.getBytes());
-                  wait(0, 50);
+                  wait(0, 5);
                 }
               }
               catch(IOException e) {}
@@ -992,7 +1068,7 @@ public class PicnomeCommunication {
               }
 
               try {
-                String str =new String("led_row " + i + " " + state + (char)0x0D);
+                String str =new String("lr " + i + " " + state + (char)0x0D);
                 //debug debug_tf.setText(str);
                 if(portId[j] != null && portId[j].isCurrentlyOwned())
                   out[j].write(str.getBytes());
@@ -1016,7 +1092,7 @@ public class PicnomeCommunication {
 
           try {
             //sy String str =new String("adc_enable " + (Integer)args[0] + " " + (Integer)args[1] + (char)0x0D);
-            String str =new String("adc_enable " + args[0] + " " + args[1] + (char)0x0D);
+            String str =new String("ae " + args[0] + " " + args[1] + (char)0x0D);
             //debug debug_tf.setText(str);
             if(portId[0] != null && portId[0].isCurrentlyOwned())
               out[0].write(str.getBytes());
@@ -1153,13 +1229,13 @@ public class PicnomeCommunication {
           for(int i = 0; i < 2; i++) {
             try {
               if(args.length == 1) {
-                String str =new String("intensity " + (Integer)args[0] + (char)0x0D);
+                String str =new String("i " + (Integer)args[0] + (char)0x0D);
                 //debug debug_tf.setText(str);
                 if(portId[i] != null && portId[i].isCurrentlyOwned())
                   out[i].write(str.getBytes());
               }
               else if(args.length == 2 && (Integer)args[0] == i) {
-                String str =new String("intensity " + (Integer)args[1] + (char)0x0D);
+                String str =new String("i " + (Integer)args[1] + (char)0x0D);
                 //debug debug_tf.setText(str);
                 if(portId[i] != null && portId[i].isCurrentlyOwned())
                   out[i].write(str.getBytes());
@@ -1180,12 +1256,12 @@ public class PicnomeCommunication {
           for(int i = 0; i < 2; i++) {
             try {
               if(args.length == 1) {
-                String str =new String("test " + (Integer)args[0] + (char)0x0D);
+                String str =new String("t " + (Integer)args[0] + (char)0x0D);
                 if(portId[i] != null && portId[i].isCurrentlyOwned())
                   out[i].write(str.getBytes());
               }
               else if(args.length == 2 && (Integer)args[0] == i) {
-                String str =new String("test " + (Integer)args[1] + (char)0x0D);
+                String str =new String("t " + (Integer)args[1] + (char)0x0D);
                 if(portId[i] != null && portId[i].isCurrentlyOwned())
                   out[i].write(str.getBytes());
               }
@@ -1204,7 +1280,7 @@ public class PicnomeCommunication {
 
           for(int i = 0; i < 2; i++) {
             try {
-              String str =new String("shutdown " + (Integer)args[0] + (char)0x0D);
+              String str =new String("s " + (Integer)args[0] + (char)0x0D);
               //debug debug_tf.setText(str);
               if(portId[i] != null && portId[i].isCurrentlyOwned())
                 out[i].write(str.getBytes());
@@ -1270,7 +1346,7 @@ public class PicnomeCommunication {
               }
             }
             else {
-              str = new String("report " + (Integer)args[0] + (char)0x0D);
+              str = new String("r " + (Integer)args[0] + (char)0x0D);
               //debug debug_tf.setText(str);
               if(portId[0] != null && portId[0].isCurrentlyOwned())
                 out[0].write(str.getBytes());
@@ -1432,6 +1508,7 @@ public class PicnomeCommunication {
           }
           String str = sb.toString();
           //debug debug_tf.setText(this.index + " / " + str);
+          //sy System.out.println(str);
           if(sb.length() > 0)
             sendOSCMessageFromHw(this.index, str);
         }
