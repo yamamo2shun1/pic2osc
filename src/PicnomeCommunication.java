@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.3.14 2010/03/29
+ * PicnomeCommunication.java,v.1.3.15 2010/03/30
  */
 
 // RXTX
@@ -698,6 +698,13 @@ public class PicnomeCommunication {
 
               //sy String str =new String("led " + ssc + ssr + args2 + (char)0x0D);
               String str =new String("l" + args2 + ssc + ssr + (char)0x0D);
+/*
+              String str;
+              if(args2 == 1) // (l)ighting
+                str =new String("l" + ssc + ssr + (char)0x0D);
+              else // (e)xtinction
+                str =new String("e" + ssc + ssr + (char)0x0D);
+*/
               //debug debug_tf.setText(str);
               if(portId[i] != null && portId[i].isCurrentlyOwned()) {
                 out[i].write(str.getBytes());
@@ -822,16 +829,12 @@ public class PicnomeCommunication {
               continue;
 
             if(cable_orientation[j].equals("left"))
-              //sy sc[j] = (Integer)args[0] - starting_column[j];
               sc[j] = args0 - starting_column[j];
             else if(cable_orientation[j].equals("right"))
-              //sy sc[j] = co_max_num[j] - (Integer)args[0] + starting_column[j];
               sc[j] = co_max_num[j] - args0 + starting_column[j];
             else if(cable_orientation[j].equals("up"))
-              //sy sc[j] = (Integer)args[0] - starting_column[j];
               sc[j] = args0 - starting_column[j];
             else if(cable_orientation[j].equals("down"))
-              //sy sc [j]= 7 - (Integer)args[0] + starting_column[j];
               sc [j]= 7 - args0 + starting_column[j];
 
             if(sc[j] < 0) continue ;
@@ -839,36 +842,32 @@ public class PicnomeCommunication {
             int shift = starting_row[j] % (co_max_num[j] + 1);
 
             if(cable_orientation[j].equals("left"))
-              //sy sr[j] = (short)(((Integer)args[1]).shortValue() >> shift);
-              sr[j] = (short)(args1 >> shift);
+              sr[j] = (char)(args1 >> shift);
             else if(cable_orientation[j].equals("right")) {
-              //sy short sr0 = ((Integer)args[1]).shortValue();
-              short sr0 = (short)args1;
-              short sr1 = 0;
+              char sr0 = (char)args1;
+              char sr1 = 0;
               for(int i = 0; i < 8; i++)
                 if((sr0 & (0x01 << i)) == (0x01 << i))
                   sr1 |= (0x01 << (7 - i));
-              sr[j] = (short)(sr1 << shift);
+              sr[j] = (char)(sr1 << shift);
             }
             else if(cable_orientation[j].equals("up")) {
-              //sy short sr0 = ((Integer)args[1]).shortValue();
-              short sr0 = (short)args1;
-              short sr1 = 0;
+              char sr0 = (char)args1;
+              char sr1 = 0;
               for(int i = 0; i < co_max_num[j] + 1; i++)
                 if((sr0 & (0x01 << i)) == (0x01 << i))
                   sr1 |= (0x01 << (co_max_num[j] - i));
-              sr[j] = (short)(sr1 << shift);
+              sr[j] = (char)(sr1 << shift);
             }
             else if(cable_orientation[j].equals("down"))
-              //sy sr[j] = (short)(((Integer)args[1]).shortValue() >> shift);
-              sr[j] = (short)(args1 >> shift);
+              sr[j] = (char)(args1 >> shift);
 
             try {
               String str;
               if(cable_orientation[j].equals("left") || cable_orientation[j].equals("right"))
-                str =new String("lc " + sc[j] + " " + sr[j] + (char)0x0D);
+                str =new String("lc " + sc[j] + " " + sr[j] + (char)0x0D); // (l)ed_(c)ol
               else
-                str =new String("lr " + sc[j] + " " + sr[j] + (char)0x0D);
+                str =new String("lr " + sc[j] + " " + sr[j] + (char)0x0D); // (l)ed_(r)ow
               //debug debug_tf.setText(str);
               if(portId[j] != null && portId[j].isCurrentlyOwned()) {
                 out[j].write(str.getBytes());
@@ -899,16 +898,12 @@ public class PicnomeCommunication {
               continue;
 
             if(cable_orientation[j].equals("left"))
-              //sy sr[j] = (Integer)args[0] - starting_row[j];
               sr[j] = args0 - starting_row[j];
             else if(cable_orientation[j].equals("right"))
-              //sy sr[j] = 7 - (Integer)args[0] + starting_row[j];
               sr[j] = 7 - args0 + starting_row[j];
             else if(cable_orientation[j].equals("up"))
-              //sy sr[j] = co_max_num[j] - (Integer)args[0] + starting_row[j];
               sr[j] = co_max_num[j] - args0 + starting_row[j];
             else if(cable_orientation[j].equals("down"))
-              //sy sr[j] = (Integer)args[0] - starting_row[j];
               sr[j] = args0 - starting_row[j];
             
             if(sr[j] < 0) continue;
@@ -916,36 +911,32 @@ public class PicnomeCommunication {
             int shift = starting_column[j] % (co_max_num[j] + 1);
             
             if(cable_orientation[j].equals("left"))
-              //sy sc[j] = (short)(((Integer)args[1]).shortValue() >> shift);
-              sc[j] = (short)(args1 >> shift);
+              sc[j] = (char)(args1 >> shift);
             else if(cable_orientation[j].equals("right")) {
-              //sy short sc0 = ((Integer)args[1]).shortValue();
-              short sc0 = (short)args1;
-              short sc1 = 0;
+              char sc0 = (char)args1;
+              char sc1 = 0;
               for(int i = 0; i < co_max_num[j] + 1; i++)
                 if((sc0 & (0x01 << i)) == (0x01 << i))
                   sc1 |= (0x01 << (co_max_num[j] - i));
-              sc[j] = (short)(sc1 << shift);
+              sc[j] = (char)(sc1 << shift);
             }
             else if(cable_orientation[j].equals("up"))
-              //sy sc[j] = (short)(((Integer)args[1]).shortValue() >> shift);
-              sc[j] = (short)(args1 >> shift);
+              sc[j] = (char)(args1 >> shift);
             else if(cable_orientation[j].equals("down")) {
-              //sy short sc0 = ((Integer)args[1]).shortValue();
-              short sc0 = (short)args1;
-              short sc1 = 0;
+              char sc0 = (char)args1;
+              char sc1 = 0;
               for(int i = 0; i < 8; i++)
                 if((sc0 & (0x01 << i)) == (0x01 << i))
                   sc1 |= (0x01 << (7 - i));
-              sc[j] = (short)(sc1 << shift);
+              sc[j] = (char)(sc1 << shift);
             }
 
             try {
               String str;
               if(cable_orientation[j].equals("left") || cable_orientation[j].equals("right"))
-                str =new String("lr " + sr[j] + " " + sc[j] + (char)0x0D);
+                str =new String("lr " + sr[j] + " " + sc[j] + (char)0x0D); // (l)ed_(r)ow
               else
-                str =new String("lc " + sr[j] + " " + sc[j] + (char)0x0D);
+                str =new String("lc " + sr[j] + " " + sc[j] + (char)0x0D); // (l)ed_(c)o0
 
               //debug debug_tf.setText(str);
               if(portId[j] != null && portId[j].isCurrentlyOwned()) {
@@ -991,36 +982,32 @@ public class PicnomeCommunication {
               if(i < starting_row[k] || (i - starting_row[k]) > 7) continue;
 
               if(cable_orientation[k].equals("left"))
-                //sy sc[k] = (short)(((Integer)args[i]).shortValue() >> shift);
-                sc[k] = (short)(args[i] >> shift);
+                sc[k] = (char)(args[i] >> shift);
               else if(cable_orientation[k].equals("right")) {
-                //sy short sc0 = ((Integer)args[i]).shortValue();
-                short sc0 = (short)args[i];
-                short sc1 = 0;
+                char sc0 = (char)args[i];
+                char sc1 = 0;
                 for(int j = 0; j < co_max_num[k] + 1; j++)
                   if((sc0 & (0x01 << j)) == (0x01 << j))
                     sc1 |= (0x01 << (co_max_num[k] - j));
-                sc[k] = (short)(sc1 << shift);
+                sc[k] = (char)(sc1 << shift);
               }
               else if(cable_orientation[k].equals("up"))
-                //sy sc[k] = (short)(((Integer)args[i]).shortValue() >> shift);
-                sc[k] = (short)(args[i] >> shift);
+                sc[k] = (char)(args[i] >> shift);
               else if(cable_orientation[k].equals("down")) {
-                //sy short sc0 = ((Integer)args[i]).shortValue();
-                short sc0 = (short)args[i];
-                short sc1 = 0;
+                char sc0 = (char)args[i];
+                char sc1 = 0;
                 for(int j = 0; j < 8; j++)
                   if((sc0 & (0x01 << j)) == (0x01 << j))
                     sc1 |= (0x01 << (7 - j));
-                sc[k] = (short)(sc1 << shift);
+                sc[k] = (char)(sc1 << shift);
               }
               
               try {
                 String str;
                 if(cable_orientation[k].equals("left") || cable_orientation[k].equals("right"))
-                  str =new String("lr " + sr[k] + " " + sc[k] + (char)0x0D);
+                  str =new String("lr " + sr[k] + " " + sc[k] + (char)0x0D); // (l)ed_(r)ow
                 else
-                  str =new String("lc " + sr[k] + " " + sc[k] + (char)0x0D);
+                  str =new String("lc " + sr[k] + " " + sc[k] + (char)0x0D); // (l)ed_(c)ol
                 
                 //debug debug_tf.setText(str);
                 if(portId[k] != null && portId[k].isCurrentlyOwned()) {
@@ -1051,20 +1038,18 @@ public class PicnomeCommunication {
               continue;
 
             for(int i = 0; i < 8; i++) {
-              short state;
+              int state;
               if(co_max_num[j] == 7) {//sixty four
-                //sy if(args.length == 0 || ((Integer)args[0]).intValue() == 0)
                 if(args.length == 0 || args0 == 0)
-                  state = (short)0x00;
+                  state = 0;
                 else
-                  state = (short)0xFF;
+                  state = 255;
               }
               else {//one twenty eight
-                //sy if(args.length == 0 || ((Integer)args[0]).intValue() == 0)
                 if(args.length == 0 || args0 == 0)
-                  state = (short)0x0000;
+                  state = 0;
                 else
-                  state = (short)0xFFFF;
+                  state = 65535;
               }
 
               try {

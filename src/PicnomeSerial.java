@@ -443,7 +443,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       int idx = this.pserial.device_cb.getSelectedIndex();
       for(int i = 0; i < 8; i++) {
         try {
-          String str =new String("led_row " + i + " " + 0 + (char)0x0D);
+          String str =new String("lr " + i + " " + 0 + (char)0x0D);
           if(this.pserial.portId[idx] != null && this.pserial.portId[idx].isCurrentlyOwned())
             this.pserial.out[idx].write(str.getBytes());
         }
@@ -532,9 +532,9 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
         boolean b = this.pserial.adc_ck[adc_id].isSelected();
         String str;
         if(b)
-          str =new String("adc_enable " + adc_id + " " + 1 + (char)0x0D);
+          str =new String("ae " + adc_id + " " + 1 + (char)0x0D);
         else
-          str =new String("adc_enable " + adc_id + " " + 0 + (char)0x0D);
+          str =new String("ae " + adc_id + " " + 0 + (char)0x0D);
 
         if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0])) {
           this.pserial.adc_enable[0][adc_id] = b;
@@ -575,7 +575,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       if((Integer)this.pserial.intensity_s.getValue() != this.pserial.intensity[0]) {
         this.pserial.intensity[0] = (Integer)this.pserial.intensity_s.getValue();
         try {
-          String str =new String("intensity " + this.pserial.intensity[0] + (char)0x0D);
+          String str =new String("i " + this.pserial.intensity[0] + (char)0x0D);
           if(this.pserial.portId[0] != null && this.pserial.portId[0].isCurrentlyOwned())
             this.pserial.out[0].write(str.getBytes());
         }
@@ -588,7 +588,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       if((Integer)this.pserial.intensity_s.getValue() != this.pserial.intensity[1]) {
         this.pserial.intensity[1] = (Integer)this.pserial.intensity_s.getValue();
         try {
-          String str =new String("intensity " + this.pserial.intensity[1] + (char)0x0D);
+          String str =new String("i " + this.pserial.intensity[1] + (char)0x0D);
           if(this.pserial.portId[1] != null && this.pserial.portId[1].isCurrentlyOwned())
             this.pserial.out[1].write(str.getBytes());
         }
