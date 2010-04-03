@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.3.14 2010/03/29
+ * PicnomeSerial.java,v.1.3.16 2010/04/03
  */
 
 import java.io.*;
@@ -28,14 +28,19 @@ import javax.swing.event.*;
 
 public class PicnomeSerial extends JFrame implements ActionListener, ChangeListener {
   PicnomeCommunication pserial = new PicnomeCommunication();
-  MidiDetailFrame mdf = new MidiDetailFrame();
+  private MidiDetailFrame mdf = new MidiDetailFrame();
 
-  JPanel psd_p;
-  CardLayout psd_cl;
-  File hex_f;
-  FileReader hex_fr;
-  Timer timer;
-  int ch, size, count, bar;
+  private JPanel psd_p;
+  private CardLayout psd_cl;
+  private File hex_f;
+  private FileReader hex_fr;
+  private Timer timer;
+  private int ch;
+  private int size;
+  private int count;
+  private int bar;
+  private int prev_index;
+  private boolean para_change_flag;
 
   public static void main(String[] args) {
     PicnomeSerial psgui = new PicnomeSerial();
@@ -88,91 +93,91 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     ps_sl.putConstraint(SpringLayout.WEST, ioprotocol_l, 38, SpringLayout.WEST, ps_p);
     ps_p.add(ioprotocol_l);
     String[] protocol_str = {"Open Sound Control", "MIDI"};
-    this.pserial.protocol_cb = new JComboBox(protocol_str);
-    this.pserial.protocol_cb.setActionCommand("ProtocolChanged");
-    this.pserial.protocol_cb.addActionListener(this);
-    ps_sl.putConstraint(SpringLayout.NORTH, this.pserial.protocol_cb, -4, SpringLayout.NORTH, ioprotocol_l);
-    ps_sl.putConstraint(SpringLayout.WEST, this.pserial.protocol_cb, 10, SpringLayout.EAST, ioprotocol_l);
-    ps_p.add(this.pserial.protocol_cb);
+    pserial.protocol_cb = new JComboBox(protocol_str);
+    pserial.protocol_cb.setActionCommand("ProtocolChanged");
+    pserial.protocol_cb.addActionListener(this);
+    ps_sl.putConstraint(SpringLayout.NORTH, pserial.protocol_cb, -4, SpringLayout.NORTH, ioprotocol_l);
+    ps_sl.putConstraint(SpringLayout.WEST, pserial.protocol_cb, 10, SpringLayout.EAST, ioprotocol_l);
+    ps_p.add(pserial.protocol_cb);
 
-    this.psd_p = new JPanel();
-    this.psd_cl = new CardLayout();
-    this.psd_p.setLayout(psd_cl);
+    psd_p = new JPanel();
+    psd_cl = new CardLayout();
+    psd_p.setLayout(psd_cl);
 
-    this.psd_p.setPreferredSize(new Dimension(400, 90));
-    ps_sl.putConstraint(SpringLayout.NORTH, this.psd_p, 40, SpringLayout.NORTH, ps_p);
-    ps_sl.putConstraint(SpringLayout.WEST, this.psd_p, 10, SpringLayout.WEST, ps_p);
-    ps_p.add(this.psd_p);
+    psd_p.setPreferredSize(new Dimension(400, 90));
+    ps_sl.putConstraint(SpringLayout.NORTH, psd_p, 40, SpringLayout.NORTH, ps_p);
+    ps_sl.putConstraint(SpringLayout.WEST, psd_p, 10, SpringLayout.WEST, ps_p);
+    ps_p.add(psd_p);
 
     //Open Sound Control Setting
     JPanel osc_p = new JPanel();
     SpringLayout osc_sl = new SpringLayout();
     osc_p.setLayout(osc_sl);
     osc_p.setPreferredSize(new Dimension(400, 90));
-    this.psd_p.add(osc_p, "osc");
+    psd_p.add(osc_p, "osc");
 
     JLabel hostaddress_l = new JLabel("Host Address :");
     osc_sl.putConstraint(SpringLayout.NORTH, hostaddress_l, 5, SpringLayout.NORTH, osc_p);
     osc_sl.putConstraint(SpringLayout.WEST, hostaddress_l, 20, SpringLayout.WEST, osc_p);
     osc_p.add(hostaddress_l);
 
-    this.pserial.hostaddress_tf = new JTextField("127.0.0.1", 10);
-    osc_sl.putConstraint(SpringLayout.NORTH, this.pserial.hostaddress_tf, -6, SpringLayout.NORTH, hostaddress_l);
-    osc_sl.putConstraint(SpringLayout.WEST, this.pserial.hostaddress_tf, 10, SpringLayout.EAST, hostaddress_l);
-    osc_p.add(this.pserial.hostaddress_tf);
+    pserial.hostaddress_tf = new JTextField("127.0.0.1", 10);
+    osc_sl.putConstraint(SpringLayout.NORTH, pserial.hostaddress_tf, -6, SpringLayout.NORTH, hostaddress_l);
+    osc_sl.putConstraint(SpringLayout.WEST, pserial.hostaddress_tf, 10, SpringLayout.EAST, hostaddress_l);
+    osc_p.add(pserial.hostaddress_tf);
 
     JLabel hostport_l = new JLabel("Host Port :");
     osc_sl.putConstraint(SpringLayout.NORTH, hostport_l, 35, SpringLayout.NORTH, osc_p);
     osc_sl.putConstraint(SpringLayout.WEST, hostport_l, 46, SpringLayout.WEST, osc_p);
     osc_p.add(hostport_l);
 
-    this.pserial.hostport_tf = new JTextField("8000", 3);
-    osc_sl.putConstraint(SpringLayout.NORTH, this.pserial.hostport_tf, -6, SpringLayout.NORTH, hostport_l);
-    osc_sl.putConstraint(SpringLayout.WEST, this.pserial.hostport_tf, 10, SpringLayout.EAST, hostport_l);
-    osc_p.add(this.pserial.hostport_tf);
+    pserial.hostport_tf = new JTextField("8000", 3);
+    osc_sl.putConstraint(SpringLayout.NORTH, pserial.hostport_tf, -6, SpringLayout.NORTH, hostport_l);
+    osc_sl.putConstraint(SpringLayout.WEST, pserial.hostport_tf, 10, SpringLayout.EAST, hostport_l);
+    osc_p.add(pserial.hostport_tf);
 
     JLabel listenport_l = new JLabel("Listen Port :");
     osc_sl.putConstraint(SpringLayout.NORTH, listenport_l, 65, SpringLayout.NORTH, osc_p);
     osc_sl.putConstraint(SpringLayout.WEST, listenport_l, 38, SpringLayout.WEST, osc_p);
     osc_p.add(listenport_l);
 
-    this.pserial.listenport_tf = new JTextField("8080", 3);
-    osc_sl.putConstraint(SpringLayout.NORTH, this.pserial.listenport_tf, -6, SpringLayout.NORTH, listenport_l);
-    osc_sl.putConstraint(SpringLayout.WEST, this.pserial.listenport_tf, 10, SpringLayout.EAST, listenport_l);
-    osc_p.add(this.pserial.listenport_tf);
+    pserial.listenport_tf = new JTextField("8080", 3);
+    osc_sl.putConstraint(SpringLayout.NORTH, pserial.listenport_tf, -6, SpringLayout.NORTH, listenport_l);
+    osc_sl.putConstraint(SpringLayout.WEST, pserial.listenport_tf, 10, SpringLayout.EAST, listenport_l);
+    osc_p.add(pserial.listenport_tf);
 
     //MIDI Setting
     JPanel midi_p = new JPanel();
     SpringLayout midi_sl = new SpringLayout();
     midi_p.setLayout(midi_sl);
     midi_p.setPreferredSize(new Dimension(400, 90));
-    this.psd_p.add(midi_p, "midi");
+    psd_p.add(midi_p, "midi");
 
     JLabel midiinput_l = new JLabel("MIDI Input :");
     midi_sl.putConstraint(SpringLayout.NORTH, midiinput_l, 5, SpringLayout.NORTH, midi_p);
     midi_sl.putConstraint(SpringLayout.WEST, midiinput_l, 38, SpringLayout.WEST, midi_p);
     midi_p.add(midiinput_l);
-    this.pserial.midiinput_cb = new JComboBox(this.pserial.midiinput_list);
-    this.pserial.midiinput_cb.setPreferredSize(new Dimension(250, 30));
-    midi_sl.putConstraint(SpringLayout.NORTH, this.pserial.midiinput_cb, -4, SpringLayout.NORTH, midiinput_l);
-    midi_sl.putConstraint(SpringLayout.WEST, this.pserial.midiinput_cb, 10, SpringLayout.EAST, midiinput_l);
-    midi_p.add(this.pserial.midiinput_cb);
+    pserial.midiinput_cb = new JComboBox(pserial.midiinput_list);
+    pserial.midiinput_cb.setPreferredSize(new Dimension(250, 30));
+    midi_sl.putConstraint(SpringLayout.NORTH, pserial.midiinput_cb, -4, SpringLayout.NORTH, midiinput_l);
+    midi_sl.putConstraint(SpringLayout.WEST, pserial.midiinput_cb, 10, SpringLayout.EAST, midiinput_l);
+    midi_p.add(pserial.midiinput_cb);
 
     JLabel midioutput_l = new JLabel("MIDI Output :");
     midi_sl.putConstraint(SpringLayout.NORTH, midioutput_l, 35, SpringLayout.NORTH, midi_p);
     midi_sl.putConstraint(SpringLayout.WEST, midioutput_l, 27, SpringLayout.WEST, midi_p);
     midi_p.add(midioutput_l);
-    this.pserial.midioutput_cb = new JComboBox(this.pserial.midioutput_list);
-    this.pserial.midioutput_cb.setPreferredSize(new Dimension(250, 30));
-    midi_sl.putConstraint(SpringLayout.NORTH, this.pserial.midioutput_cb, -4, SpringLayout.NORTH, midioutput_l);
-    midi_sl.putConstraint(SpringLayout.WEST, this.pserial.midioutput_cb, 10, SpringLayout.EAST, midioutput_l);
-    midi_p.add(this.pserial.midioutput_cb);
+    pserial.midioutput_cb = new JComboBox(pserial.midioutput_list);
+    pserial.midioutput_cb.setPreferredSize(new Dimension(250, 30));
+    midi_sl.putConstraint(SpringLayout.NORTH, pserial.midioutput_cb, -4, SpringLayout.NORTH, midioutput_l);
+    midi_sl.putConstraint(SpringLayout.WEST, pserial.midioutput_cb, 10, SpringLayout.EAST, midioutput_l);
+    midi_p.add(pserial.midioutput_cb);
 
-    this.pserial.mididetail_b = new JButton("Detail...");
-    this.pserial.mididetail_b.addActionListener(this);
-    midi_sl.putConstraint(SpringLayout.NORTH, this.pserial.mididetail_b, 60, SpringLayout.NORTH, midi_p);
-    midi_sl.putConstraint(SpringLayout.WEST, this.pserial.mididetail_b, 300, SpringLayout.WEST, midi_p);
-    midi_p.add(this.pserial.mididetail_b);
+    pserial.mididetail_b = new JButton("Detail...");
+    pserial.mididetail_b.addActionListener(this);
+    midi_sl.putConstraint(SpringLayout.NORTH, pserial.mididetail_b, 60, SpringLayout.NORTH, midi_p);
+    midi_sl.putConstraint(SpringLayout.WEST, pserial.mididetail_b, 300, SpringLayout.WEST, midi_p);
+    midi_p.add(pserial.mididetail_b);
 
     //Device Settings
     JPanel ds_p = new JPanel();
@@ -190,68 +195,68 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     ds_sl.putConstraint(SpringLayout.NORTH, device_l, 10, SpringLayout.NORTH, ds_p);
     ds_sl.putConstraint(SpringLayout.WEST, device_l, 22, SpringLayout.WEST, ds_p);
     ds_p.add(device_l);
-    this.pserial.device_cb = new JComboBox(this.pserial.device_list);
-    this.pserial.device_cb.setActionCommand("DeviceChanged");
-    this.pserial.device_cb.addActionListener(this);
-    ds_sl.putConstraint(SpringLayout.NORTH, this.pserial.device_cb, -4, SpringLayout.NORTH, device_l);
-    ds_sl.putConstraint(SpringLayout.WEST, this.pserial.device_cb, 10, SpringLayout.EAST, device_l);
-    ds_p.add(this.pserial.device_cb);
-    this.pserial.openclose_b = new JButton("Open");
-    this.pserial.openclose_b.addActionListener(this);
-    ds_sl.putConstraint(SpringLayout.NORTH, this.pserial.openclose_b, -2, SpringLayout.NORTH, this.pserial.device_cb);
-    ds_sl.putConstraint(SpringLayout.WEST, this.pserial.openclose_b, 10, SpringLayout.EAST, this.pserial.device_cb);
-    ds_p.add(this.pserial.openclose_b);
+    pserial.device_cb = new JComboBox(pserial.device_list);
+    pserial.device_cb.setActionCommand("DeviceChanged");
+    pserial.device_cb.addActionListener(this);
+    ds_sl.putConstraint(SpringLayout.NORTH, pserial.device_cb, -4, SpringLayout.NORTH, device_l);
+    ds_sl.putConstraint(SpringLayout.WEST, pserial.device_cb, 10, SpringLayout.EAST, device_l);
+    ds_p.add(pserial.device_cb);
+    pserial.openclose_b = new JButton("Open");
+    pserial.openclose_b.addActionListener(this);
+    ds_sl.putConstraint(SpringLayout.NORTH, pserial.openclose_b, -2, SpringLayout.NORTH, pserial.device_cb);
+    ds_sl.putConstraint(SpringLayout.WEST, pserial.openclose_b, 10, SpringLayout.EAST, pserial.device_cb);
+    ds_p.add(pserial.openclose_b);
 
     JLabel cable_l = new JLabel("Cable Orientation :");
     ds_sl.putConstraint(SpringLayout.NORTH, cable_l, 40, SpringLayout.NORTH, ds_p);
     ds_sl.putConstraint(SpringLayout.WEST, cable_l, 22, SpringLayout.WEST, ds_p);
     ds_p.add(cable_l);
     String[] cable_str = {"left", "right", "up", "down"};
-    this.pserial.cable_cb = new JComboBox(cable_str);
-    this.pserial.cable_cb.setActionCommand("CableChanged");
-    this.pserial.cable_cb.addActionListener(this);
-    ds_sl.putConstraint(SpringLayout.NORTH, this.pserial.cable_cb, -4, SpringLayout.NORTH, cable_l);
-    ds_sl.putConstraint(SpringLayout.WEST, this.pserial.cable_cb, 10, SpringLayout.EAST, cable_l);
-    ds_p.add(this.pserial.cable_cb);
+    pserial.cable_cb = new JComboBox(cable_str);
+    pserial.cable_cb.setActionCommand("CableChanged");
+    pserial.cable_cb.addActionListener(this);
+    ds_sl.putConstraint(SpringLayout.NORTH, pserial.cable_cb, -4, SpringLayout.NORTH, cable_l);
+    ds_sl.putConstraint(SpringLayout.WEST, pserial.cable_cb, 10, SpringLayout.EAST, cable_l);
+    ds_p.add(pserial.cable_cb);
 
     JLabel intensity_l = new JLabel("Intensity :");
     ds_sl.putConstraint(SpringLayout.NORTH, intensity_l, 72, SpringLayout.NORTH, ds_p);
     ds_sl.putConstraint(SpringLayout.WEST, intensity_l, 22, SpringLayout.WEST, ds_p);
     ds_p.add(intensity_l);
     SpinnerNumberModel intensity_m = new SpinnerNumberModel(15, 0, 15, 1);
-    this.pserial.intensity_s = new JSpinner(intensity_m);
-    JSpinner.NumberEditor intensity_edit = new JSpinner.NumberEditor(this.pserial.intensity_s);
-    this.pserial.intensity_s.setEditor(intensity_edit);
+    pserial.intensity_s = new JSpinner(intensity_m);
+    JSpinner.NumberEditor intensity_edit = new JSpinner.NumberEditor(pserial.intensity_s);
+    pserial.intensity_s.setEditor(intensity_edit);
     JFormattedTextField intensity_text = intensity_edit.getTextField();
     intensity_text.setEditable(false);
-    this.pserial.intensity_s.addChangeListener(this);
-    this.pserial.intensity_s.setPreferredSize(new Dimension(50, 22));
-    ds_sl.putConstraint(SpringLayout.NORTH, this.pserial.intensity_s, -2, SpringLayout.NORTH, intensity_l);
-    ds_sl.putConstraint(SpringLayout.WEST, this.pserial.intensity_s, 10, SpringLayout.EAST, intensity_l);
-    ds_p.add(this.pserial.intensity_s);
+    pserial.intensity_s.addChangeListener(this);
+    pserial.intensity_s.setPreferredSize(new Dimension(50, 22));
+    ds_sl.putConstraint(SpringLayout.NORTH, pserial.intensity_s, -2, SpringLayout.NORTH, intensity_l);
+    ds_sl.putConstraint(SpringLayout.WEST, pserial.intensity_s, 10, SpringLayout.EAST, intensity_l);
+    ds_p.add(pserial.intensity_s);
 
-    this.pserial.led_clear_b = new JButton("LED Clear");
-    this.pserial.led_clear_b.addActionListener(this);
-    ds_sl.putConstraint(SpringLayout.NORTH, this.pserial.led_clear_b, -2, SpringLayout.NORTH, this.pserial.intensity_s);
-    ds_sl.putConstraint(SpringLayout.WEST, this.pserial.led_clear_b, 30, SpringLayout.EAST, this.pserial.intensity_s);
-    ds_p.add(this.pserial.led_clear_b);
+    pserial.led_clear_b = new JButton("LED Clear");
+    pserial.led_clear_b.addActionListener(this);
+    ds_sl.putConstraint(SpringLayout.NORTH, pserial.led_clear_b, -2, SpringLayout.NORTH, pserial.intensity_s);
+    ds_sl.putConstraint(SpringLayout.WEST, pserial.led_clear_b, 30, SpringLayout.EAST, pserial.intensity_s);
+    ds_p.add(pserial.led_clear_b);
 
-    this.pserial.led_test_b = new JButton("LED Test On");
-    this.pserial.led_test_b.addActionListener(this);
-    ds_sl.putConstraint(SpringLayout.NORTH, this.pserial.led_test_b, 0, SpringLayout.NORTH, this.pserial.led_clear_b);
-    ds_sl.putConstraint(SpringLayout.WEST, this.pserial.led_test_b, 10, SpringLayout.EAST, this.pserial.led_clear_b);
-    ds_p.add(this.pserial.led_test_b);
+    pserial.led_test_b = new JButton("LED Test On");
+    pserial.led_test_b.addActionListener(this);
+    ds_sl.putConstraint(SpringLayout.NORTH, pserial.led_test_b, 0, SpringLayout.NORTH, pserial.led_clear_b);
+    ds_sl.putConstraint(SpringLayout.WEST, pserial.led_test_b, 10, SpringLayout.EAST, pserial.led_clear_b);
+    ds_p.add(pserial.led_test_b);
 
 /* for DEBUG
-    this.pserial.debug_tf = new JTextField("", 8);
-    ds_sl.putConstraint(SpringLayout.NORTH, this.pserial.debug_tf, 35, SpringLayout.NORTH, ds_p);
-    ds_sl.putConstraint(SpringLayout.WEST, this.pserial.debug_tf, 250, SpringLayout.WEST, ds_p);
-    ds_p.add(this.pserial.debug_tf);
+    pserial.debug_tf = new JTextField("", 8);
+    ds_sl.putConstraint(SpringLayout.NORTH, pserial.debug_tf, 35, SpringLayout.NORTH, ds_p);
+    ds_sl.putConstraint(SpringLayout.WEST, pserial.debug_tf, 250, SpringLayout.WEST, ds_p);
+    ds_p.add(pserial.debug_tf);
 
-    this.pserial.debug2_tf = new JTextField("", 8);
-    ds_sl.putConstraint(SpringLayout.NORTH, this.pserial.debug2_tf, 35, SpringLayout.NORTH, ds_p);
-    ds_sl.putConstraint(SpringLayout.WEST, this.pserial.debug2_tf, 270, SpringLayout.WEST, ds_p);
-    ds_p.add(this.pserial.debug2_tf);
+    pserial.debug2_tf = new JTextField("", 8);
+    ds_sl.putConstraint(SpringLayout.NORTH, pserial.debug2_tf, 35, SpringLayout.NORTH, ds_p);
+    ds_sl.putConstraint(SpringLayout.WEST, pserial.debug2_tf, 270, SpringLayout.WEST, ds_p);
+    ds_p.add(pserial.debug2_tf);
 */
 
     JPanel dsps_p = new JPanel();
@@ -269,57 +274,57 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     dsps_sl.putConstraint(SpringLayout.NORTH, prefix_l, 10, SpringLayout.NORTH, dsps_p);
     dsps_sl.putConstraint(SpringLayout.WEST, prefix_l, 65, SpringLayout.WEST, dsps_p);
     dsps_p.add(prefix_l);
-    this.pserial.prefix_tf = new JTextField("/test", 5);
-    this.pserial.prefix_tf.addActionListener(this);
-    dsps_sl.putConstraint(SpringLayout.NORTH, this.pserial.prefix_tf, -4, SpringLayout.NORTH, prefix_l);
-    dsps_sl.putConstraint(SpringLayout.WEST, this.pserial.prefix_tf, 10, SpringLayout.EAST, prefix_l);
-    dsps_p.add(this.pserial.prefix_tf);
+    pserial.prefix_tf = new JTextField("/test", 5);
+    pserial.prefix_tf.addActionListener(this);
+    dsps_sl.putConstraint(SpringLayout.NORTH, pserial.prefix_tf, -4, SpringLayout.NORTH, prefix_l);
+    dsps_sl.putConstraint(SpringLayout.WEST, pserial.prefix_tf, 10, SpringLayout.EAST, prefix_l);
+    dsps_p.add(pserial.prefix_tf);
 
     JLabel startcolumn_l = new JLabel("Starting Column :");
     dsps_sl.putConstraint(SpringLayout.NORTH, startcolumn_l, 40, SpringLayout.NORTH, dsps_p);
     dsps_sl.putConstraint(SpringLayout.WEST, startcolumn_l, 102, SpringLayout.WEST, dsps_p);
     dsps_p.add(startcolumn_l);
     SpinnerNumberModel startcolumn_m = new SpinnerNumberModel(0, 0, null, 1);
-    this.pserial.startcolumn_s = new JSpinner(startcolumn_m);
-    JSpinner.NumberEditor startcolumn_edit = new JSpinner.NumberEditor(this.pserial.startcolumn_s);
-    this.pserial.startcolumn_s.setEditor(startcolumn_edit);
+    pserial.startcolumn_s = new JSpinner(startcolumn_m);
+    JSpinner.NumberEditor startcolumn_edit = new JSpinner.NumberEditor(pserial.startcolumn_s);
+    pserial.startcolumn_s.setEditor(startcolumn_edit);
     JFormattedTextField startcolumn_text = startcolumn_edit.getTextField();
     startcolumn_text.setEditable(false);
-    this.pserial.startcolumn_s.addChangeListener(new ChangeListener() {
+    pserial.startcolumn_s.addChangeListener(new ChangeListener() {
         public void stateChanged(ChangeEvent e) {
-          if(((String)PicnomeSerial.this.pserial.device_cb.getSelectedItem()).equals(PicnomeSerial.this.pserial.device[0]))
-            PicnomeSerial.this.pserial.starting_column[0] = (Integer)PicnomeSerial.this.pserial.startcolumn_s.getValue();
-          else if(((String)PicnomeSerial.this.pserial.device_cb.getSelectedItem()).equals(PicnomeSerial.this.pserial.device[1]))
-            PicnomeSerial.this.pserial.starting_column[1] = (Integer)PicnomeSerial.this.pserial.startcolumn_s.getValue();
+          if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0)))
+            pserial.setCurrentStartingColumn(0, (Integer)pserial.startcolumn_s.getValue());
+          else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1)))
+            pserial.setCurrentStartingColumn(1, (Integer)pserial.startcolumn_s.getValue());
         }
       });
-    this.pserial.startcolumn_s.setPreferredSize(new Dimension(50, 22));
-    dsps_sl.putConstraint(SpringLayout.NORTH, this.pserial.startcolumn_s, -4, SpringLayout.NORTH, startcolumn_l);
-    dsps_sl.putConstraint(SpringLayout.WEST, this.pserial.startcolumn_s, 10, SpringLayout.EAST, startcolumn_l);
-    dsps_p.add(this.pserial.startcolumn_s);
+    pserial.startcolumn_s.setPreferredSize(new Dimension(50, 22));
+    dsps_sl.putConstraint(SpringLayout.NORTH, pserial.startcolumn_s, -4, SpringLayout.NORTH, startcolumn_l);
+    dsps_sl.putConstraint(SpringLayout.WEST, pserial.startcolumn_s, 10, SpringLayout.EAST, startcolumn_l);
+    dsps_p.add(pserial.startcolumn_s);
 
     JLabel startrow_l = new JLabel("Starting Row :");
     dsps_sl.putConstraint(SpringLayout.NORTH, startrow_l, 70, SpringLayout.NORTH, dsps_p);
     dsps_sl.putConstraint(SpringLayout.WEST, startrow_l, 125, SpringLayout.WEST, dsps_p);
     dsps_p.add(startrow_l);
     SpinnerNumberModel startrow_m = new SpinnerNumberModel(0, 0, null, 1);
-    this.pserial.startrow_s = new JSpinner(startrow_m);
-    JSpinner.NumberEditor startrow_edit = new JSpinner.NumberEditor(this.pserial.startrow_s);
-    this.pserial.startrow_s.setEditor(startrow_edit);
+    pserial.startrow_s = new JSpinner(startrow_m);
+    JSpinner.NumberEditor startrow_edit = new JSpinner.NumberEditor(pserial.startrow_s);
+    pserial.startrow_s.setEditor(startrow_edit);
     JFormattedTextField startrow_text = startrow_edit.getTextField();
     startrow_text.setEditable(false);
-    this.pserial.startrow_s.addChangeListener(new ChangeListener() {
+    pserial.startrow_s.addChangeListener(new ChangeListener() {
         public void stateChanged(ChangeEvent e) {
-          if(((String)PicnomeSerial.this.pserial.device_cb.getSelectedItem()).equals(PicnomeSerial.this.pserial.device[0]))
-            PicnomeSerial.this.pserial.starting_row[0] = (Integer)PicnomeSerial.this.pserial.startrow_s.getValue();
-          else if(((String)PicnomeSerial.this.pserial.device_cb.getSelectedItem()).equals(PicnomeSerial.this.pserial.device[1]))
-            PicnomeSerial.this.pserial.starting_row[1] = (Integer)PicnomeSerial.this.pserial.startrow_s.getValue();
+          if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0)))
+            pserial.setCurrentStartingRow(0, (Integer)pserial.startrow_s.getValue());
+          else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1)))
+            pserial.setCurrentStartingRow(1, (Integer)pserial.startrow_s.getValue());
         }
       });
-    this.pserial.startrow_s.setPreferredSize(new Dimension(50, 22));
-    dsps_sl.putConstraint(SpringLayout.NORTH, this.pserial.startrow_s, -4, SpringLayout.NORTH, startrow_l);
-    dsps_sl.putConstraint(SpringLayout.WEST, this.pserial.startrow_s, 10, SpringLayout.EAST, startrow_l);
-    dsps_p.add(this.pserial.startrow_s);
+    pserial.startrow_s.setPreferredSize(new Dimension(50, 22));
+    dsps_sl.putConstraint(SpringLayout.NORTH, pserial.startrow_s, -4, SpringLayout.NORTH, startrow_l);
+    dsps_sl.putConstraint(SpringLayout.WEST, pserial.startrow_s, 10, SpringLayout.EAST, startrow_l);
+    dsps_p.add(pserial.startrow_s);
 
     JPanel ais_p = new JPanel();
     SpringLayout ais_sl = new SpringLayout();
@@ -332,41 +337,41 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     ds_sl.putConstraint(SpringLayout.WEST, ais_p, 10, SpringLayout.WEST, ds_p);
     ds_p.add(ais_p);
 
-    this.pserial.adc_ck[0] = new JCheckBox(" adc 0");
-    this.pserial.adc_ck[0].addActionListener(this);
-    ais_sl.putConstraint(SpringLayout.NORTH, this.pserial.adc_ck[0], 10, SpringLayout.NORTH, ais_p);
-    ais_sl.putConstraint(SpringLayout.WEST, this.pserial.adc_ck[0], 10, SpringLayout.WEST, ais_p);
-    ais_p.add(this.pserial.adc_ck[0]);
-    this.pserial.adc_ck[1] = new JCheckBox(" adc 1");
-    this.pserial.adc_ck[1].addActionListener(this);
-    ais_sl.putConstraint(SpringLayout.NORTH, this.pserial.adc_ck[1], 10, SpringLayout.NORTH, ais_p);
-    ais_sl.putConstraint(SpringLayout.WEST, this.pserial.adc_ck[1], 100, SpringLayout.WEST, ais_p);
-    ais_p.add(this.pserial.adc_ck[1]);
-    this.pserial.adc_ck[2] = new JCheckBox(" adc 2");
-    this.pserial.adc_ck[2].addActionListener(this);
-    ais_sl.putConstraint(SpringLayout.NORTH, this.pserial.adc_ck[2], 10, SpringLayout.NORTH, ais_p);
-    ais_sl.putConstraint(SpringLayout.WEST, this.pserial.adc_ck[2], 190, SpringLayout.WEST, ais_p);
-    ais_p.add(this.pserial.adc_ck[2]);
-    this.pserial.adc_ck[3] = new JCheckBox(" adc 3");
-    this.pserial.adc_ck[3].addActionListener(this);
-    ais_sl.putConstraint(SpringLayout.NORTH, this.pserial.adc_ck[3], 10, SpringLayout.NORTH, ais_p);
-    ais_sl.putConstraint(SpringLayout.WEST, this.pserial.adc_ck[3], 280, SpringLayout.WEST, ais_p);
-    ais_p.add(this.pserial.adc_ck[3]);
-    this.pserial.adc_ck[4] = new JCheckBox(" adc 4");
-    this.pserial.adc_ck[4].addActionListener(this);
-    ais_sl.putConstraint(SpringLayout.NORTH, this.pserial.adc_ck[4], 40, SpringLayout.NORTH, ais_p);
-    ais_sl.putConstraint(SpringLayout.WEST, this.pserial.adc_ck[4], 10, SpringLayout.WEST, ais_p);
-    ais_p.add(this.pserial.adc_ck[4]);
-    this.pserial.adc_ck[5] = new JCheckBox(" adc 5");
-    this.pserial.adc_ck[5].addActionListener(this);
-    ais_sl.putConstraint(SpringLayout.NORTH, this.pserial.adc_ck[5], 40, SpringLayout.NORTH, ais_p);
-    ais_sl.putConstraint(SpringLayout.WEST, this.pserial.adc_ck[5], 100, SpringLayout.WEST, ais_p);
-    ais_p.add(this.pserial.adc_ck[5]);
-    this.pserial.adc_ck[6] = new JCheckBox(" adc 6");
-    this.pserial.adc_ck[6].addActionListener(this);
-    ais_sl.putConstraint(SpringLayout.NORTH, this.pserial.adc_ck[6], 40, SpringLayout.NORTH, ais_p);
-    ais_sl.putConstraint(SpringLayout.WEST, this.pserial.adc_ck[6], 190, SpringLayout.WEST, ais_p);
-    ais_p.add(this.pserial.adc_ck[6]);
+    pserial.adc_ck[0] = new JCheckBox(" adc 0");
+    pserial.adc_ck[0].addActionListener(this);
+    ais_sl.putConstraint(SpringLayout.NORTH, pserial.adc_ck[0], 10, SpringLayout.NORTH, ais_p);
+    ais_sl.putConstraint(SpringLayout.WEST, pserial.adc_ck[0], 10, SpringLayout.WEST, ais_p);
+    ais_p.add(pserial.adc_ck[0]);
+    pserial.adc_ck[1] = new JCheckBox(" adc 1");
+    pserial.adc_ck[1].addActionListener(this);
+    ais_sl.putConstraint(SpringLayout.NORTH, pserial.adc_ck[1], 10, SpringLayout.NORTH, ais_p);
+    ais_sl.putConstraint(SpringLayout.WEST, pserial.adc_ck[1], 100, SpringLayout.WEST, ais_p);
+    ais_p.add(pserial.adc_ck[1]);
+    pserial.adc_ck[2] = new JCheckBox(" adc 2");
+    pserial.adc_ck[2].addActionListener(this);
+    ais_sl.putConstraint(SpringLayout.NORTH, pserial.adc_ck[2], 10, SpringLayout.NORTH, ais_p);
+    ais_sl.putConstraint(SpringLayout.WEST, pserial.adc_ck[2], 190, SpringLayout.WEST, ais_p);
+    ais_p.add(pserial.adc_ck[2]);
+    pserial.adc_ck[3] = new JCheckBox(" adc 3");
+    pserial.adc_ck[3].addActionListener(this);
+    ais_sl.putConstraint(SpringLayout.NORTH, pserial.adc_ck[3], 10, SpringLayout.NORTH, ais_p);
+    ais_sl.putConstraint(SpringLayout.WEST, pserial.adc_ck[3], 280, SpringLayout.WEST, ais_p);
+    ais_p.add(pserial.adc_ck[3]);
+    pserial.adc_ck[4] = new JCheckBox(" adc 4");
+    pserial.adc_ck[4].addActionListener(this);
+    ais_sl.putConstraint(SpringLayout.NORTH, pserial.adc_ck[4], 40, SpringLayout.NORTH, ais_p);
+    ais_sl.putConstraint(SpringLayout.WEST, pserial.adc_ck[4], 10, SpringLayout.WEST, ais_p);
+    ais_p.add(pserial.adc_ck[4]);
+    pserial.adc_ck[5] = new JCheckBox(" adc 5");
+    pserial.adc_ck[5].addActionListener(this);
+    ais_sl.putConstraint(SpringLayout.NORTH, pserial.adc_ck[5], 40, SpringLayout.NORTH, ais_p);
+    ais_sl.putConstraint(SpringLayout.WEST, pserial.adc_ck[5], 100, SpringLayout.WEST, ais_p);
+    ais_p.add(pserial.adc_ck[5]);
+    pserial.adc_ck[6] = new JCheckBox(" adc 6");
+    pserial.adc_ck[6].addActionListener(this);
+    ais_sl.putConstraint(SpringLayout.NORTH, pserial.adc_ck[6], 40, SpringLayout.NORTH, ais_p);
+    ais_sl.putConstraint(SpringLayout.WEST, pserial.adc_ck[6], 190, SpringLayout.WEST, ais_p);
+    ais_p.add(pserial.adc_ck[6]);
 
     //Firmware Update
     JPanel fu_p = new JPanel();
@@ -384,27 +389,27 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     fu_sl.putConstraint(SpringLayout.NORTH, hex_l, 10, SpringLayout.NORTH, fu_p);
     fu_sl.putConstraint(SpringLayout.WEST, hex_l, 38, SpringLayout.WEST, fu_p);
     fu_p.add(hex_l);
-    this.pserial.hex_tf = new JTextField("", 10);
-    fu_sl.putConstraint(SpringLayout.NORTH, this.pserial.hex_tf, -4, SpringLayout.NORTH, hex_l);
-    fu_sl.putConstraint(SpringLayout.WEST, this.pserial.hex_tf, 10, SpringLayout.EAST, hex_l);
-    fu_p.add(this.pserial.hex_tf);
-    this.pserial.hex_b = new JButton("Select");
-    this.pserial.hex_b.addActionListener(this);
-    fu_sl.putConstraint(SpringLayout.NORTH, this.pserial.hex_b, -2, SpringLayout.NORTH, this.pserial.hex_tf);
-    fu_sl.putConstraint(SpringLayout.WEST, this.pserial.hex_b, 10, SpringLayout.EAST, this.pserial.hex_tf);
-    fu_p.add(this.pserial.hex_b);
-    this.pserial.update_b = new JButton("Update");
-    this.pserial.update_b.addActionListener(this);
-    fu_sl.putConstraint(SpringLayout.NORTH, this.pserial.update_b, 0, SpringLayout.NORTH, this.pserial.hex_b);
-    fu_sl.putConstraint(SpringLayout.WEST, this.pserial.update_b, 8, SpringLayout.EAST, this.pserial.hex_b);
-    fu_p.add(this.pserial.update_b);
-    this.pserial.update_b.setEnabled(false);
-    this.pserial.update_pb = new JProgressBar(0, 100);
-    fu_sl.putConstraint(SpringLayout.NORTH, this.pserial.update_pb, 32, SpringLayout.NORTH, fu_p);
-    fu_sl.putConstraint(SpringLayout.WEST, this.pserial.update_pb, 40, SpringLayout.WEST, fu_p);
-    fu_p.add(this.pserial.update_pb);
-    this.pserial.update_pb.setPreferredSize(new Dimension(350, 30));
-    this.timer = new Timer(1, this);
+    pserial.hex_tf = new JTextField("", 10);
+    fu_sl.putConstraint(SpringLayout.NORTH, pserial.hex_tf, -4, SpringLayout.NORTH, hex_l);
+    fu_sl.putConstraint(SpringLayout.WEST, pserial.hex_tf, 10, SpringLayout.EAST, hex_l);
+    fu_p.add(pserial.hex_tf);
+    pserial.hex_b = new JButton("Select");
+    pserial.hex_b.addActionListener(this);
+    fu_sl.putConstraint(SpringLayout.NORTH, pserial.hex_b, -2, SpringLayout.NORTH, pserial.hex_tf);
+    fu_sl.putConstraint(SpringLayout.WEST, pserial.hex_b, 10, SpringLayout.EAST, pserial.hex_tf);
+    fu_p.add(pserial.hex_b);
+    pserial.update_b = new JButton("Update");
+    pserial.update_b.addActionListener(this);
+    fu_sl.putConstraint(SpringLayout.NORTH, pserial.update_b, 0, SpringLayout.NORTH, pserial.hex_b);
+    fu_sl.putConstraint(SpringLayout.WEST, pserial.update_b, 8, SpringLayout.EAST, pserial.hex_b);
+    fu_p.add(pserial.update_b);
+    pserial.update_b.setEnabled(false);
+    pserial.update_pb = new JProgressBar(0, 100);
+    fu_sl.putConstraint(SpringLayout.NORTH, pserial.update_pb, 32, SpringLayout.NORTH, fu_p);
+    fu_sl.putConstraint(SpringLayout.WEST, pserial.update_pb, 40, SpringLayout.WEST, fu_p);
+    fu_p.add(pserial.update_pb);
+    pserial.update_pb.setPreferredSize(new Dimension(350, 30));
+    timer = new Timer(1, this);
   }
 
   PicnomeSerial() {
@@ -416,186 +421,167 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
 
     if(cmd == null)
       cmd = "timer";
-    else if(cmd.equals(this.pserial.prefix_tf.getText()))
+    else if(cmd.equals(pserial.prefix_tf.getText()))
       cmd = "Prefix";
 
-    //DEBUG this.pserial.debug_tf.setText(cmd);
+    //DEBUG pserial.debug_tf.setText(cmd);
 
     if(cmd.equals("DeviceChanged")) {
-      if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0]))
-        this.pserial.changeDeviceSettings(0);
-      else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1]))
-        this.pserial.changeDeviceSettings(1);
+      if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0)))
+        pserial.changeDeviceSettings(0);
+      else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1)))
+        pserial.changeDeviceSettings(1);
     }
     else if(cmd.equals("ProtocolChanged")) {
-      if(((String)this.pserial.protocol_cb.getSelectedItem()).equals("Open Sound Control"))
-        this.psd_cl.first(this.psd_p);
-      else if(((String)this.pserial.protocol_cb.getSelectedItem()).equals("MIDI"))
-        this.psd_cl.last(this.psd_p);
+      if(((String)pserial.protocol_cb.getSelectedItem()).equals("Open Sound Control"))
+        psd_cl.first(psd_p);
+      else if(((String)pserial.protocol_cb.getSelectedItem()).equals("MIDI"))
+        psd_cl.last(psd_p);
     }
     else if(cmd.equals("CableChanged")) {
-      if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0]))
-        this.pserial.cable_orientation[0] = (String)this.pserial.cable_cb.getSelectedItem();
-      else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1]))
-        this.pserial.cable_orientation[1] = (String)this.pserial.cable_cb.getSelectedItem();
+      if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0)))
+        pserial.setCurrentCable(0, (String)pserial.cable_cb.getSelectedItem());
+      else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1)))
+        pserial.setCurrentCable(1, (String)pserial.cable_cb.getSelectedItem());
     }
     else if(cmd.equals("LED Clear")) {
-      int idx = this.pserial.device_cb.getSelectedIndex();
+      int idx = pserial.device_cb.getSelectedIndex();
       for(int i = 0; i < 8; i++) {
-        try {
-          String str =new String("lr " + i + " " + 0 + (char)0x0D);
-          if(this.pserial.portId[idx] != null && this.pserial.portId[idx].isCurrentlyOwned())
-            this.pserial.out[idx].write(str.getBytes());
-        }
-        catch(IOException ioe){}
+        String str =new String("lr " + i + " " + 0 + (char)0x0D);
+        if(pserial.checkPortState(idx))
+          pserial.sendDataToSerial(idx, str);
       }
     }
     else if(cmd.equals("LED Test On")) {
-      int idx = this.pserial.device_cb.getSelectedIndex();
-      try {
-        String str =new String("test 1" + (char)0x0D);
-        //debug debug_tf.setText(str);
-        if(this.pserial.portId[idx] != null && this.pserial.portId[idx].isCurrentlyOwned())
-          this.pserial.out[idx].write(str.getBytes());
-        this.pserial.led_test_b.setText("LED Test Off");
-      }
-      catch(IOException ioe){}
+      int idx = pserial.device_cb.getSelectedIndex();
+      String str =new String("test 1" + (char)0x0D);
+      //debug debug_tf.setText(str);
+      if(pserial.checkPortState(idx))
+        pserial.sendDataToSerial(idx, str);
+      pserial.led_test_b.setText("LED Test Off");
     }
     else if(cmd.equals("LED Test Off")) {
-      int idx = this.pserial.device_cb.getSelectedIndex();
-      try {
-        String str =new String("test 0" + (char)0x0D);
-        //debug debug_tf.setText(str);
-        if(this.pserial.portId[idx] != null && this.pserial.portId[idx].isCurrentlyOwned())
-          this.pserial.out[idx].write(str.getBytes());
-        this.pserial.led_test_b.setText("LED Test On");
-      }
-      catch(IOException ioe){}
+      int idx = pserial.device_cb.getSelectedIndex();
+      String str =new String("test 0" + (char)0x0D);
+      //debug debug_tf.setText(str);
+      if(pserial.checkPortState(idx))
+        pserial.sendDataToSerial(idx, str);
+      pserial.led_test_b.setText("LED Test On");
     }
     else if(cmd.equals("Open")) {
       boolean b;
 
-      if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0])) {
-        b = this.pserial.openSerialPort(0);
-        b = this.pserial.setSerialPort(0);
-        if(this.pserial.co_max_num[0] == 7)
-          this.mdf.setHalfVisible();
+      if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0))) {
+        b = pserial.openSerialPort(0);
+        b = pserial.setSerialPort(0);
+        if(pserial.getCurrentMaxColumn(0) == 7)
+          mdf.setHalfVisible();
       }
-      else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1])) {
-        b = this.pserial.openSerialPort(1);
-        b = this.pserial.setSerialPort(1);
-        if(this.pserial.co_max_num[1] == 7)
-          this.mdf.setHalfVisible();
+      else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1))) {
+        b = pserial.openSerialPort(1);
+        b = pserial.setSerialPort(1);
+        if(pserial.getCurrentMaxColumn(1) == 7)
+          mdf.setHalfVisible();
       }
-      this.pserial.openclose_b.setText("Close");
+      pserial.openclose_b.setText("Close");
     }
     else if(cmd.equals("Close")) {
       boolean b;
 
-      if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0]))
-        b = this.pserial.closeSerialPort(0);
-      else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1]))
-        b = this.pserial.closeSerialPort(1);
-      this.pserial.openclose_b.setText("Open");
+      if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0)))
+        b = pserial.closeSerialPort(0);
+      else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1)))
+        b = pserial.closeSerialPort(1);
+      pserial.openclose_b.setText("Open");
     }
     else if(cmd.equals("Detail..."))
-      this.mdf.setVisible(true);
+      mdf.setVisible(true);
     else if(cmd.equals("Select")) {
       JFileChooser fc = new JFileChooser();
       int selected = fc.showOpenDialog(this);
       if (selected == JFileChooser.APPROVE_OPTION) {
-        this.hex_f = fc.getSelectedFile();
-        this.pserial.hex_tf.setText(this.hex_f.getName());
-        this.pserial.update_b.setEnabled(true);
+        hex_f = fc.getSelectedFile();
+        pserial.hex_tf.setText(hex_f.getName());
+        pserial.update_b.setEnabled(true);
       }
     }
     else if(cmd.equals("Update")) {
       try
       {
-        this.hex_fr = new FileReader(this.hex_f);
-        this. size = 0;
-        this.count = 0;
-        this.bar = 0;
-        while(this.hex_fr.read() != -1)
-          this.size++;
-        this.timer.start();
-        this.hex_fr = new FileReader(this.hex_f);
+        hex_fr = new FileReader(hex_f);
+        size = 0;
+        count = 0;
+        bar = 0;
+        while(hex_fr.read() != -1)
+          size++;
+        timer.start();
+        hex_fr = new FileReader(hex_f);
       }
       catch(IOException ioe){}
     }
     else if(cmd.equals("Prefix"))
-      this.pserial.initOSCListener("prefix");
+      pserial.initOSCListener("prefix");
     else if(cmd.equals(" adc 0") || cmd.equals(" adc 1") || cmd.equals(" adc 2") || cmd.equals(" adc 3") ||
             cmd.equals(" adc 4") || cmd.equals(" adc 5") || cmd.equals(" adc 6")) {
-      try {
-        int adc_id = Integer.parseInt(cmd.substring(5, 6));
-        boolean b = this.pserial.adc_ck[adc_id].isSelected();
-        String str;
-        if(b)
-          str =new String("ae " + adc_id + " " + 1 + (char)0x0D);
-        else
-          str =new String("ae " + adc_id + " " + 0 + (char)0x0D);
-
-        if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0])) {
-          this.pserial.adc_enable[0][adc_id] = b;
-          this.pserial.out[0].write(str.getBytes());
-        }
-        else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1])) {
-          this.pserial.adc_enable[1][adc_id] = b;
-          this.pserial.out[1].write(str.getBytes());
-        }
+      int adc_id = Integer.parseInt(cmd.substring(5, 6));
+      boolean b = pserial.adc_ck[adc_id].isSelected();
+      String str;
+      if(b)
+        str =new String("ae " + adc_id + " " + 1 + (char)0x0D);
+      else
+        str =new String("ae " + adc_id + " " + 0 + (char)0x0D);
+      
+      if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0))) {
+        pserial.setAdcEnable(0, adc_id, b);
+        pserial.sendDataToSerial(0, str);
       }
-      catch(IOException ioe){}
+      else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1))) {
+        pserial.setAdcEnable(1, adc_id, b);
+        pserial.sendDataToSerial(1, str);
+      }
     }
     else if(cmd.equals("timer")) {
       try {
-        if((this.ch = this.hex_fr.read()) != -1) {
-          this.bar = (int)(((double)this.count / (double)this.size) * 100);
-          this.pserial.update_pb.setValue(this.bar);
-          this.count++;
-          this.pserial.out[0].write(this.ch);
+        if((ch = hex_fr.read()) != -1) {
+          bar = (int)(((double)count / (double)size) * 100);
+          pserial.update_pb.setValue(bar);
+          count++;
+          pserial.sendDataToSerial(0, ch);
         }
-        if(this.ch == -1 || this.ch == 59) {
-          this.pserial.update_pb.setValue(0);
-          if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0]))
-            this.pserial.closeSerialPort(0);
-          else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1]))
-            this.pserial.closeSerialPort(1);
-          this.pserial.openclose_b.setText("Open");
-          this.hex_fr.close();
-          this.timer.stop();
+        if(ch == -1 || ch == 59) {
+          pserial.update_pb.setValue(0);
+          if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0)))
+            pserial.closeSerialPort(0);
+          else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1)))
+            pserial.closeSerialPort(1);
+          pserial.openclose_b.setText("Open");
+          hex_fr.close();
+          timer.stop();
         }
-      }
-      catch(IOException ioe){}
+      } catch(IOException ioe) {}
     }
   }
 
   public void stateChanged(ChangeEvent e) {
-    if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[0])) {
-      if((Integer)this.pserial.intensity_s.getValue() != this.pserial.intensity[0]) {
-        this.pserial.intensity[0] = (Integer)this.pserial.intensity_s.getValue();
-        try {
-          String str =new String("i " + this.pserial.intensity[0] + (char)0x0D);
-          if(this.pserial.portId[0] != null && this.pserial.portId[0].isCurrentlyOwned())
-            this.pserial.out[0].write(str.getBytes());
-        }
-        catch(IOException ioe){}
+    if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0))) {
+      if((Integer)pserial.intensity_s.getValue() != pserial.getCurrentIntensity(0)) {
+        pserial.setCurrentIntensity(0, (Integer)pserial.intensity_s.getValue());
+        String str =new String("i " + pserial.getCurrentIntensity(0) + (char)0x0D);
+        if(pserial.checkPortState(0))
+          pserial.sendDataToSerial(0, str);
       }
-      //sy this.pserial.starting_column[0] = (Integer)this.pserial.startcolumn_s.getValue();
-      //sy this.pserial.starting_row[0] = (Integer)this.pserial.startrow_s.getValue();
+      //sy pserial.starting_column[0] = (Integer)pserial.startcolumn_s.getValue();
+      //sy pserial.starting_row[0] = (Integer)pserial.startrow_s.getValue();
     }
-    else if(((String)this.pserial.device_cb.getSelectedItem()).equals(this.pserial.device[1])) {
-      if((Integer)this.pserial.intensity_s.getValue() != this.pserial.intensity[1]) {
-        this.pserial.intensity[1] = (Integer)this.pserial.intensity_s.getValue();
-        try {
-          String str =new String("i " + this.pserial.intensity[1] + (char)0x0D);
-          if(this.pserial.portId[1] != null && this.pserial.portId[1].isCurrentlyOwned())
-            this.pserial.out[1].write(str.getBytes());
-        }
-        catch(IOException ioe){}
+    else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1))) {
+      if((Integer)pserial.intensity_s.getValue() != pserial.getCurrentIntensity(1)) {
+        pserial.setCurrentIntensity(1, (Integer)pserial.intensity_s.getValue());
+        String str =new String("i " + pserial.getCurrentIntensity(1) + (char)0x0D);
+        if(pserial.checkPortState(1))
+          pserial.sendDataToSerial(1, str);
       }
-      //sy this.pserial.starting_column[1] = (Integer)this.pserial.startcolumn_s.getValue();
-      //sy this.pserial.starting_row[1] = (Integer)this.pserial.startrow_s.getValue();
+      //sy pserial.starting_column[1] = (Integer)pserial.startcolumn_s.getValue();
+      //sy pserial.starting_row[1] = (Integer)pserial.startrow_s.getValue();
     }
   }
 
@@ -610,119 +596,119 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     }
     public void init() {
       SpringLayout sl = new SpringLayout();
-      this.mididetail_p = new JPanel();
-      this.mididetail_p.setPreferredSize(new Dimension(1800, 570));
-      this.mididetail_p.setLayout(sl);
+      mididetail_p = new JPanel();
+      mididetail_p.setPreferredSize(new Dimension(1800, 570));
+      mididetail_p.setLayout(sl);
       //sy c.setLayout(sl);
 
-      PicnomeSerial.this.pserial.prev_index = 0;
-      PicnomeSerial.this.pserial.para_change_flag = false;
+      prev_index = 0;
+      para_change_flag = false;
       String[] type_name = {"Channel (1 - 16)", "Velocity 1 (0 - 127)", "Velocity 2 (0 - 127)",
                             "Duration 1 (0 - 60000) [msec]", "Duration 2 (0 - 60000) [msec]"};
-      PicnomeSerial.this.pserial.midiparameter_cb = new JComboBox(type_name);
-      PicnomeSerial.this.pserial.midiparameter_cb.setActionCommand("TypeChanged");
-      PicnomeSerial.this.pserial.midiparameter_cb.addActionListener(this);
-      sl.putConstraint(SpringLayout.WEST, PicnomeSerial.this.pserial.midiparameter_cb, 10, SpringLayout.WEST, this.mididetail_p);
-      sl.putConstraint(SpringLayout.NORTH, PicnomeSerial.this.pserial.midiparameter_cb, 20, SpringLayout.NORTH, this.mididetail_p);
-      this.mididetail_p.add(PicnomeSerial.this.pserial.midiparameter_cb);
+      pserial.midiparameter_cb = new JComboBox(type_name);
+      pserial.midiparameter_cb.setActionCommand("TypeChanged");
+      pserial.midiparameter_cb.addActionListener(this);
+      sl.putConstraint(SpringLayout.WEST, pserial.midiparameter_cb, 10, SpringLayout.WEST, mididetail_p);
+      sl.putConstraint(SpringLayout.NORTH, pserial.midiparameter_cb, 20, SpringLayout.NORTH, mididetail_p);
+      mididetail_p.add(pserial.midiparameter_cb);
 
-      this.save = new JButton("Save As...");
-      this.save.addActionListener(this);
-      sl.putConstraint(SpringLayout.WEST, this.save, 10, SpringLayout.EAST, PicnomeSerial.this.pserial.midiparameter_cb);
-      sl.putConstraint(SpringLayout.NORTH, this.save, 0, SpringLayout.NORTH, PicnomeSerial.this.pserial.midiparameter_cb);
-      this.mididetail_p.add(this.save);
+      save = new JButton("Save As...");
+      save.addActionListener(this);
+      sl.putConstraint(SpringLayout.WEST, save, 10, SpringLayout.EAST, pserial.midiparameter_cb);
+      sl.putConstraint(SpringLayout.NORTH, save, 0, SpringLayout.NORTH, pserial.midiparameter_cb);
+      mididetail_p.add(save);
 
-      this.load = new JButton("Load...");
-      this.load.addActionListener(this);
-      sl.putConstraint(SpringLayout.WEST, this.load, 10, SpringLayout.EAST, this.save);
-      sl.putConstraint(SpringLayout.NORTH, this.load, 0, SpringLayout.NORTH, this.save);
-      this.mididetail_p.add(this.load);
+      load = new JButton("Load...");
+      load.addActionListener(this);
+      sl.putConstraint(SpringLayout.WEST, load, 10, SpringLayout.EAST, save);
+      sl.putConstraint(SpringLayout.NORTH, load, 0, SpringLayout.NORTH, save);
+      mididetail_p.add(load);
 
-      for(int j = 0; j < this.mpcp[0].length; j++) {
-        for(int i = 0; i < this.mpcp.length; i++) {
-          this.mpcp[i][j] = new MidiPadConfPanel(i, j);
-          sl.putConstraint(SpringLayout.WEST, this.mpcp[i][j], (110 * i) + 10, SpringLayout.WEST, this.mididetail_p);
-          sl.putConstraint(SpringLayout.NORTH, this.mpcp[i][j], (60 * j) + 60, SpringLayout.NORTH, this.mididetail_p);
-          this.mididetail_p.add(this.mpcp[i][j]);
+      for(int j = 0; j < mpcp[0].length; j++) {
+        for(int i = 0; i < mpcp.length; i++) {
+          mpcp[i][j] = new MidiPadConfPanel(i, j);
+          sl.putConstraint(SpringLayout.WEST, mpcp[i][j], (110 * i) + 10, SpringLayout.WEST, mididetail_p);
+          sl.putConstraint(SpringLayout.NORTH, mpcp[i][j], (60 * j) + 60, SpringLayout.NORTH, mididetail_p);
+          mididetail_p.add(mpcp[i][j]);
 
           for(int k = 0; k < 5; k++)
             switch(k) {
             case 0:
-              PicnomeSerial.this.pserial.midi_parameter[i][j][k] = 0;
+              pserial.midi_parameter[i][j][k] = 0;
               break;
             case 1:
-              PicnomeSerial.this.pserial.midi_parameter[i][j][k] = 127;
+              pserial.midi_parameter[i][j][k] = 127;
               break;
             case 2:
-              PicnomeSerial.this.pserial.midi_parameter[i][j][k] = 0;
+              pserial.midi_parameter[i][j][k] = 0;
               break;
             case 3:
-              PicnomeSerial.this.pserial.midi_parameter[i][j][k] = 30000;
+              pserial.midi_parameter[i][j][k] = 30000;
               break;
             case 4:
-              PicnomeSerial.this.pserial.midi_parameter[i][j][k] = 0;
+              pserial.midi_parameter[i][j][k] = 0;
               break;
             }
         }
       }
       Container c = getContentPane();
-      JScrollPane sp = new JScrollPane(this.mididetail_p);
+      JScrollPane sp = new JScrollPane(mididetail_p);
       c.add(sp);
     }
 
     public void setHalfVisible() {
-      for(int j = 0; j < this.mpcp[0].length; j++)
-        for(int i = 0; i < this.mpcp.length; i++)
+      for(int j = 0; j < mpcp[0].length; j++)
+        for(int i = 0; i < mpcp.length; i++)
           if(i > 7)
-            this.mpcp[i][j].setVisible(false);
+            mpcp[i][j].setVisible(false);
     }
 
     public void actionPerformed(ActionEvent e) {
       String cmd = e.getActionCommand();
 
       if(cmd.equals("TypeChanged")) {
-        PicnomeSerial.this.pserial.para_change_flag = true;
-        String index_name = (String)PicnomeSerial.this.pserial.midiparameter_cb.getSelectedItem();
-        int index = PicnomeSerial.this.pserial.midiparameter_cb.getSelectedIndex();
+        para_change_flag = true;
+        String index_name = (String)pserial.midiparameter_cb.getSelectedItem();
+        int index = pserial.midiparameter_cb.getSelectedIndex();
 
-        if(index != PicnomeSerial.this.pserial.prev_index)
-          for(int j = 0; j < this.mpcp[0].length; j++)
-            for(int i = 0; i < this.mpcp.length; i++)
-              PicnomeSerial.this.pserial.midi_parameter[i][j][PicnomeSerial.this.pserial.prev_index] = (Integer)this.mpcp[i][j].value.getValue();
+        if(index != prev_index)
+          for(int j = 0; j < mpcp[0].length; j++)
+            for(int i = 0; i < mpcp.length; i++)
+              pserial.midi_parameter[i][j][prev_index] = (Integer)mpcp[i][j].value.getValue();
 
-        for(int j = 0; j < this.mpcp[0].length; j++) {
-          for(int i = 0; i < this.mpcp.length; i++) {
+        for(int j = 0; j < mpcp[0].length; j++) {
+          for(int i = 0; i < mpcp.length; i++) {
             switch(index) {
             case 0:
-              this.mpcp[i][j].setSliderRange(1, 16);
+              mpcp[i][j].setSliderRange(1, 16);
               break;
             case 1:
-              this.mpcp[i][j].setSliderRange(0, 127);
+              mpcp[i][j].setSliderRange(0, 127);
               break;
             case 2:
-              this.mpcp[i][j].setSliderRange(0, 127);
+              mpcp[i][j].setSliderRange(0, 127);
               break;
             case 3:
-              this.mpcp[i][j].setSliderRange(0, 60000);
+              mpcp[i][j].setSliderRange(0, 60000);
               break;
             case 4:
-              this.mpcp[i][j].setSliderRange(0, 60000);
+              mpcp[i][j].setSliderRange(0, 60000);
               break;
             }
-            this.mpcp[i][j].value.setValue(PicnomeSerial.this.pserial.midi_parameter[i][j][index]);
+            mpcp[i][j].value.setValue(pserial.midi_parameter[i][j][index]);
           }
         }
-        PicnomeSerial.this.pserial.prev_index = index;
-        PicnomeSerial.this.pserial.para_change_flag = false;
+        prev_index = index;
+        para_change_flag = false;
       }
       else if(cmd.equals("Save As...")) {
         JFileChooser fc = new JFileChooser();
         int selected = fc.showSaveDialog(this);
         if (selected == JFileChooser.APPROVE_OPTION) {
-          this.save_f = fc.getSelectedFile();
+          save_f = fc.getSelectedFile();
         }
         try {
-          FileWriter fw = new FileWriter(this.save_f);
+          FileWriter fw = new FileWriter(save_f);
           BufferedWriter bw = new BufferedWriter(fw);
           for(int k = 0; k < 5; k++) {
             switch(k) {
@@ -742,12 +728,12 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
               bw.write("//MIDI duration 2" + System.getProperty("line.separator"));
               break;
             }
-            for(int j = 0; j < this.mpcp[0].length; j++) {
+            for(int j = 0; j < mpcp[0].length; j++) {
               String line = "";
-              for(int i = 0; i < this.mpcp.length - 1; i++) {
-                line += (Integer.toString(PicnomeSerial.this.pserial.midi_parameter[i][j][k]) + " ");
+              for(int i = 0; i < mpcp.length - 1; i++) {
+                line += (Integer.toString(pserial.midi_parameter[i][j][k]) + " ");
               }
-              line += (Integer.toString(PicnomeSerial.this.pserial.midi_parameter[this.mpcp.length - 1][j][k]));
+              line += (Integer.toString(pserial.midi_parameter[mpcp.length - 1][j][k]));
               line += System.getProperty("line.separator");
               bw.write(line);
             }
@@ -762,11 +748,11 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       else if(cmd.equals("Load...")) {
         JFileChooser fc = new JFileChooser();
         int selected = fc.showOpenDialog(this);
-        if (selected == JFileChooser.APPROVE_OPTION) {
-          this.load_f = fc.getSelectedFile();
+        if(selected == JFileChooser.APPROVE_OPTION) {
+          load_f = fc.getSelectedFile();
         }
         try {
-          FileReader fr = new FileReader(this.load_f);
+          FileReader fr = new FileReader(load_f);
           BufferedReader br = new BufferedReader(fr);
           String line = "";
           int x = 0, y = 0, index = -1;
@@ -779,16 +765,16 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
               java.util.StringTokenizer st = new java.util.StringTokenizer(line);
               x = 0;
               while(st.hasMoreTokens()) {
-                PicnomeSerial.this.pserial.midi_parameter[x][y][index] = Integer.valueOf(st.nextToken());
+                pserial.midi_parameter[x][y][index] = Integer.valueOf(st.nextToken());
                 x++;
               }
               y++;
             }
           }
-          int k = PicnomeSerial.this.pserial.midiparameter_cb.getSelectedIndex();
-          for(int j = 0; j < this.mpcp[0].length; j++) {
-            for(int i = 0; i < this.mpcp.length; i++) {
-              this.mpcp[i][j].value.setValue(PicnomeSerial.this.pserial.midi_parameter[i][j][k]);
+          int k = pserial.midiparameter_cb.getSelectedIndex();
+          for(int j = 0; j < mpcp[0].length; j++) {
+            for(int i = 0; i < mpcp.length; i++) {
+              mpcp[i][j].value.setValue(pserial.midi_parameter[i][j][k]);
             }
           }
         }
@@ -805,54 +791,54 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     int lattice_x, lattice_y;
 
     MidiPadConfPanel(int x, int y) {
-      this.lattice_x = x;
-      this.lattice_y = y;
+      lattice_x = x;
+      lattice_y = y;
       SpringLayout mpcp_sl = new SpringLayout();
-      this.setLayout(mpcp_sl);
-      this.setPreferredSize(new Dimension(110, 50));
+      setLayout(mpcp_sl);
+      setPreferredSize(new Dimension(110, 50));
 
-      this.snm = new SpinnerNumberModel(1, 1, 16, 1);
-      this.value = new JSpinner(this.snm);
-      JSpinner.NumberEditor ne = new JSpinner.NumberEditor(this.value);
-      this.value.setEditor(ne);
+      snm = new SpinnerNumberModel(1, 1, 16, 1);
+      value = new JSpinner(snm);
+      JSpinner.NumberEditor ne = new JSpinner.NumberEditor(value);
+      value.setEditor(ne);
       JFormattedTextField ftf = ne.getTextField();
       ftf.setEditable(false);
-      this.value.addChangeListener(this);
-      this.value.setPreferredSize(new Dimension(100, 22));
-      mpcp_sl.putConstraint(SpringLayout.WEST, this.value, 0, SpringLayout.WEST, this); 
-      mpcp_sl.putConstraint(SpringLayout.NORTH, this.value, 0, SpringLayout.NORTH, this);
-      this.add(this.value);
+      value.addChangeListener(this);
+      value.setPreferredSize(new Dimension(100, 22));
+      mpcp_sl.putConstraint(SpringLayout.WEST, value, 0, SpringLayout.WEST, this); 
+      mpcp_sl.putConstraint(SpringLayout.NORTH, value, 0, SpringLayout.NORTH, this);
+      add(value);
 
-      this.slider = new JSlider();
-      this.slider.setValue(1);
-      this.slider.setMinimum(1);
-      this.slider.setMaximum(16); 
-      this.slider.addChangeListener(this);
-      this.slider.setPreferredSize(new Dimension(116, 25));
-      mpcp_sl.putConstraint(SpringLayout.WEST, this.slider, -6, SpringLayout.WEST, this);
-      mpcp_sl.putConstraint(SpringLayout.NORTH, this.slider, 30, SpringLayout.NORTH, this);
-      this.add(this.slider);
+      slider = new JSlider();
+      slider.setValue(1);
+      slider.setMinimum(1);
+      slider.setMaximum(16); 
+      slider.addChangeListener(this);
+      slider.setPreferredSize(new Dimension(116, 25));
+      mpcp_sl.putConstraint(SpringLayout.WEST, slider, -6, SpringLayout.WEST, this);
+      mpcp_sl.putConstraint(SpringLayout.NORTH, slider, 30, SpringLayout.NORTH, this);
+      add(slider);
     }
 
     void setSliderRange(int min, int max) {
-      this.snm.setMinimum(min);
-      this.snm.setMaximum(max);
-      this.slider.setMinimum(min);
-      this.slider.setMaximum(max);
+      snm.setMinimum(min);
+      snm.setMaximum(max);
+      slider.setMinimum(min);
+      slider.setMaximum(max);
     }
 
     public void stateChanged(ChangeEvent e) {
-      if(e.getSource() == this.value)
-        this.slider.setValue((Integer)this.value.getValue());
-      else if(e.getSource() == this.slider)
-        this.value.setValue(this.slider.getValue());
-      if(PicnomeSerial.this.pserial.para_change_flag == false) {
-        int index = PicnomeSerial.this.pserial.midiparameter_cb.getSelectedIndex(); 
-        PicnomeSerial.this.pserial.midi_parameter[lattice_x][lattice_y][index] = (Integer)this.value.getValue();
+      if(e.getSource() == value)
+        slider.setValue((Integer)value.getValue());
+      else if(e.getSource() == slider)
+        value.setValue(slider.getValue());
+      if(para_change_flag == false) {
+        int index = pserial.midiparameter_cb.getSelectedIndex(); 
+        pserial.midi_parameter[lattice_x][lattice_y][index] = (Integer)value.getValue();
 /*midi
         if(index == 0)
-          PicnomeSerial.this.pserial.midiout[lattice_x + (lattice_y * 8)] = PicnomeSerial.this.pserial.midiio.getMidiOut(
-            PicnomeSerial.this.pserial.midi_parameter[lattice_x][lattice_y][index] - 1, PicnomeSerial.this.pserial.midi_out_port);
+          pserial.midiout[lattice_x + (lattice_y * 8)] = pserial.midiio.getMidiOut(
+            pserial.midi_parameter[lattice_x][lattice_y][index] - 1, pserial.midi_out_port);
 midi*/
       }
     }
