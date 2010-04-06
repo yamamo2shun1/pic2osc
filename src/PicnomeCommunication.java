@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.3.15 2010/03/31
+ * PicnomeCommunication.java,v.1.3.16 2010/04/03
  */
 
 // RXTX
@@ -58,6 +58,7 @@ public class PicnomeCommunication {
   InputStream[] in = new InputStream[2];
   InputStreamReader[] inr = new InputStreamReader[2];
   OutputStream[] out = new OutputStream[2];
+  SerialReader sr;
 
   OSCPortIn oscpin;
   OSCPortOut oscpout;
@@ -229,7 +230,9 @@ public class PicnomeCommunication {
       this.in[index] = this.port[index].getInputStream();
       this.inr[index] = new InputStreamReader(this.in[index]);
       this.out[index] = this.port[index].getOutputStream();
-      this.initSerialListener(index);
+      //sy0 this.initSerialListener(index);
+      this.sr = new SerialReader(index, this.inr[index]);
+      this.sr.start();
 
       if(((String)this.protocol_cb.getSelectedItem()).equals("Open Sound Control")) {
         this.initOSCPort();
@@ -253,6 +256,7 @@ public class PicnomeCommunication {
     }
     this.port[index].setDTR(true);
     this.port[index].setRTS(false);
+    
     return true;
   }
 
@@ -1051,6 +1055,7 @@ public void enableMsgLedRow() {
     this.oscpin.addListener(this.prefix_tf.getText() + "/adc_enable", listener);
   }
  
+/*
   public void enableMsgPwm() {
     OSCListener listener = new OSCListener() {
         public void acceptMessage(java.util.Date time, OSCMessage message) {
@@ -1090,7 +1095,6 @@ public void enableMsgLedRow() {
     this.oscpin.addListener(this.prefix_tf.getText() + "/pwm", listener);
   }
 
-/*sy
   public void enableMsgOutput()
   {
     OSCListener listener = new OSCListener()
@@ -1550,7 +1554,7 @@ public void enableMsgType() {
       this.enableMsgLedFrame();
       this.enableMsgClear();
       this.enableMsgAdcEnable();
-      this.enableMsgPwm();
+      //sy this.enableMsgPwm();
       //sy this.enableMsgOutput();
     }
     if(str.equals("all")) {
@@ -1569,42 +1573,38 @@ public void enableMsgType() {
     }
   }
 
-  class SerialPortListener implements SerialPortEventListener {
+  public class SerialReader extends Thread {
     private int index;
     private InputStreamReader inr;
-
-    SerialPortListener(int index, InputStreamReader inr) {
+    
+    SerialReader(int index, InputStreamReader inr) {
       this.index = index;
       this.inr = inr;
     }
+    
+    public void run() {
+      int buffer = 0;
+      StringBuilder sb = new StringBuilder();
 
-    public void serialEvent(SerialPortEvent event) {
-      if(event.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
+      //sy while((buffer = inr.read()) != -1) {
+      while(true) {
         try {
-          int buffer = 0;
-          StringBuffer sb = new StringBuffer();
-          while((buffer = inr.read()) != -1) {
-            if(buffer != 0x0A || buffer != 0x0D)
-              sb.append((char)buffer);
-            if(buffer == 0x0A || buffer == 0x0D)
-              break;
-          }
-
-System.out.println(sb.toString());
-
-          if(sb.length() > 0)
-            sendOSCMessageFromHw(this.index, sb.toString());
+          buffer = inr.read();
         }
-        catch(IOException e) {}
+        catch(IOException e) {
+          //sy debug_tf.setText("ioe: " + e.getMessage());
+          continue;
+        }
+        if(buffer == -1 || buffer == 0)
+          continue;
+        if(buffer == 0x0A || buffer == 0x0D) {
+          //debug System.out.println(sb.toString());
+          sendOSCMessageFromHw(this.index, sb.toString());
+          sb = new StringBuilder();
+        }
+        else
+          sb.append((char)buffer);
       }
     }
-  }
-
-  void initSerialListener(int index) {
-    try {
-      this.port[index].addEventListener(new SerialPortListener(index, this.inr[index]));
-      this.port[index].notifyOnDataAvailable(true);
-    }
-    catch (TooManyListenersException e) {}
   }
 }

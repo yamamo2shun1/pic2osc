@@ -25,6 +25,7 @@
   </target>
   <target name="wrap" depends="jar">
     <exec executable="exewrap">
+      <arg line="-t 1.6"/>
       <arg value="-g"/>
       <arg value="-i"/>
       <arg file="icon\PICnomeSerial-v1.0.ico"/>
