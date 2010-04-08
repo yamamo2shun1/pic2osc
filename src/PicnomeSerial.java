@@ -407,7 +407,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
   }
 
   PicnomeSerial() {
-    super("PICnomeSerial v1.3.16");
+    super("PICnomeSerial v1.3.17");
   }
 
   public void actionPerformed(ActionEvent e) {
