@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.3.16 2010/04/03
+ * PicnomeSerial.java,v.1.3.17 2010/04/19
  */
 
 import java.io.*;
@@ -423,6 +423,12 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       cmd = "timer";
     else if(cmd.equals(pserial.prefix_tf.getText()))
       cmd = "Prefix";
+    else if(cmd.equals(pserial.hostaddress_tf.getText()))
+      cmd = "HostAddress";
+    else if(cmd.equals(pserial.listenport_tf.getText()))
+      cmd = "ListenPort";
+    else if(cmd.equals(pserial.hostport_tf.getText()))
+      cmd = "HostPort";
 
     //DEBUG pserial.debug_tf.setText(cmd);
 
@@ -521,6 +527,12 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     }
     else if(cmd.equals("Prefix"))
       pserial.initOSCListener("prefix");
+    else if(cmd.equals("HostAddress") || cmd.equals("HostPort") || cmd.equals("ListenPort")) {
+      try {
+        pserial.dch.close();
+      } catch(IOException ioe) {}
+      pserial.initOSCPort();
+    }
     else if(cmd.equals(" adc 0") || cmd.equals(" adc 1") || cmd.equals(" adc 2") || cmd.equals(" adc 3") ||
             cmd.equals(" adc 4") || cmd.equals(" adc 5") || cmd.equals(" adc 6")) {
       int adc_id = Integer.parseInt(cmd.substring(5, 6));
