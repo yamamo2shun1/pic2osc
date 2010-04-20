@@ -662,18 +662,19 @@ public class PicnomeCommunication implements PCInterface {
 
   private void enablePrefixMsgs() {
     OSCListener listener = new OSCListener() {
-        public synchronized void messageReceived(OSCMessage message, SocketAddress sender, long time) {
-          if(message.getName().equals(prefix_tf.getText() + "/led"))
+        public void messageReceived(OSCMessage message, SocketAddress sender, long time) {
+          String msgname = message.getName();
+          if(msgname.equals(prefix_tf.getText() + "/led"))
             controlMsgLed(message);
-          else if(message.getName().equals(prefix_tf.getText() + "/led_col"))
+          else if(msgname.equals(prefix_tf.getText() + "/led_col"))
             controlMsgLedCol(message);
-          else if(message.getName().equals(prefix_tf.getText() + "/led_row"))
+          else if(msgname.equals(prefix_tf.getText() + "/led_row"))
             controlMsgLedRow(message);
-          else if(message.getName().equals(prefix_tf.getText() + "/frame"))
+          else if(msgname.equals(prefix_tf.getText() + "/frame"))
             controlMsgFrame(message);
-          else if(message.getName().equals(prefix_tf.getText() + "/clear"))
+          else if(msgname.equals(prefix_tf.getText() + "/clear"))
             controlMsgClear(message);
-          else if(message.getName().equals(prefix_tf.getText() + "/adc_enable"))
+          else if(msgname.equals(prefix_tf.getText() + "/adc_enable"))
             controlMsgAdcEnable(message);
         }
       };
