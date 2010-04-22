@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.3.19 2010/04/22
+ * PicnomeCommunication.java,v.1.3.20 2010/04/22
  */
 
 // RXTX
@@ -1352,6 +1352,12 @@ public class PicnomeCommunication {
             controlMsgShutdown(om);
           else if(address.equals("/sys/report"))
             controlMsgReport(om);
+          else if(address.equals("/sys/type"))
+            controlMsgType(om);
+          else if(address.equals("/sys/offset"))
+            controlMsgOffset(om);
+          else if(address.equals("/sys/cable"))
+            controlMsgCable(om);
 
           wait(0, 1);
         }
