@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.3.20 2010/04/22
+ * PicnomeCommunication.java,v.1.3.21 2010/04/25
  */
 
 // RXTX
@@ -992,10 +992,15 @@ public class PicnomeCommunication {
     Object[] args0 = message.getArguments();
     
     int[] args = new int[args0.length];
-    for(int i = 0; i < args.length; i++)
+    for(int i = 0; i < args.length; i++) {
       args[i] = (int)Float.parseFloat(args0[i].toString());
+    }
     
     String str =new String("ae " + args[0] + " " + args[1] + (char)0x0D);
+    if((Integer)args[1] == 1)
+      adc_ck[(Integer)args[0]].setSelected(true);
+    else
+      adc_ck[(Integer)args[0]].setSelected(false);
     //debug debug_tf.setText(str);
     if(checkPortState(index))
       sendDataToSerial(index, str);
