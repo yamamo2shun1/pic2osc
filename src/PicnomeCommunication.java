@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.3.21 2010/04/25
+ * PicnomeCommunication.java,v.1.3.23 2010/04/27
  */
 
 // RXTX
@@ -130,107 +130,170 @@ public class PicnomeCommunication {
   private List<String> getUsbInfo(String name) {
     String id = "none";
     String iousbdevices = new String();
-
-    try {
-      ProcessBuilder pb = new ProcessBuilder("ioreg", "-w", "0", "-S", "-p", "IOUSB", "-n", name, "-r");
-      Process p = pb.start();
-      InputStream is = p.getInputStream();
-
-      int c;
-      while((c = is.read()) != -1)
-        iousbdevices += (new Character((char)c)).toString();
-      is.close();
-    }catch(IOException e) {}
-
     List<String> sfx = new ArrayList<String>();
-    List<String> vid = new ArrayList<String>();
-    List<String> pid = new ArrayList<String>();
-    while(iousbdevices.indexOf(name) != -1) {
-      int pos_start = iousbdevices.indexOf(name);
-      int pos_end = iousbdevices.indexOf(" }");
-      String iousbdevice = iousbdevices.substring(pos_start, pos_end);
 
-      if(iousbdevice.indexOf(name + "@") != -1) {
-        pos_start = iousbdevice.indexOf(name + "@") + name.length() + 1;
-        pos_end = iousbdevice.indexOf("00");
-        if(pos_start != -1)
-          id = iousbdevice.substring(pos_start, pos_end);
-        sfx.add(id);
-      }
+    if(System.getProperty("os.name").startsWith("Mac OS X")) {
+      try {
+        ProcessBuilder pb = new ProcessBuilder("ioreg", "-w", "0", "-S", "-p", "IOUSB", "-n", name, "-r");
+        Process p = pb.start();
+        InputStream is = p.getInputStream();
 
-      if((pos_start = iousbdevice.indexOf("idVendor")) != -1) {
-        pos_end = iousbdevice.length();
+        int c;
+        while((c = is.read()) != -1)
+          iousbdevices += (new Character((char)c)).toString();
+        is.close();
+      }catch(IOException e) {}
       
-        iousbdevice = iousbdevice.substring(pos_start, pos_end);
-        pos_end = iousbdevice.indexOf("\n");
-        id = iousbdevice.substring(iousbdevice.indexOf(" = ") + 3, pos_end);
-        vid.add(id);
-      }
+      List<String> vid = new ArrayList<String>();
+      List<String> pid = new ArrayList<String>();
+      while(iousbdevices.indexOf(name) != -1) {
+        int pos_start = iousbdevices.indexOf(name);
+        int pos_end = iousbdevices.indexOf(" }");
+        String iousbdevice = iousbdevices.substring(pos_start, pos_end);
+        
+        if(iousbdevice.indexOf(name + "@") != -1) {
+          pos_start = iousbdevice.indexOf(name + "@") + name.length() + 1;
+          pos_end = iousbdevice.indexOf("00");
+          if(pos_start != -1)
+            id = iousbdevice.substring(pos_start, pos_end);
+          sfx.add(id);
+        }
 
-      iousbdevice = iousbdevices.substring(iousbdevices.indexOf(name), iousbdevices.indexOf(" }"));
-      if((pos_start = iousbdevice.indexOf("idProduct")) != -1) {
-        pos_end = iousbdevice.length();
-      
-        iousbdevice = iousbdevice.substring(pos_start, pos_end);
-        pos_end = iousbdevice.indexOf("\n");
-        id = iousbdevice.substring(iousbdevice.indexOf(" = ") + 3, pos_end);
-        pid.add(id);
-      }
-      iousbdevices = iousbdevices.substring(iousbdevices.indexOf(" }") + 2, iousbdevices.length());
+        if((pos_start = iousbdevice.indexOf("idVendor")) != -1) {
+          pos_end = iousbdevice.length();
+          
+          iousbdevice = iousbdevice.substring(pos_start, pos_end);
+          pos_end = iousbdevice.indexOf("\n");
+          id = iousbdevice.substring(iousbdevice.indexOf(" = ") + 3, pos_end);
+          vid.add(id);
+        }
 
-      if(!(vid.get(vid.size() - 1).equals("1240") && (pid.get(pid.size() - 1).equals("65477") || pid.get(pid.size() - 1).equals("64768")))) {
-        sfx.remove(sfx.size() - 1);
-        vid.remove(vid.size() - 1);
-        pid.remove(pid.size() - 1);
+        iousbdevice = iousbdevices.substring(iousbdevices.indexOf(name), iousbdevices.indexOf(" }"));
+        if((pos_start = iousbdevice.indexOf("idProduct")) != -1) {
+          pos_end = iousbdevice.length();
+          
+          iousbdevice = iousbdevice.substring(pos_start, pos_end);
+          pos_end = iousbdevice.indexOf("\n");
+          id = iousbdevice.substring(iousbdevice.indexOf(" = ") + 3, pos_end);
+          pid.add(id);
+        }
+        iousbdevices = iousbdevices.substring(iousbdevices.indexOf(" }") + 2, iousbdevices.length());
+        
+        if(!(vid.get(vid.size() - 1).equals("1240") && (pid.get(pid.size() - 1).equals("65477") || pid.get(pid.size() - 1).equals("64768")))) {
+          sfx.remove(sfx.size() - 1);
+          vid.remove(vid.size() - 1);
+          pid.remove(pid.size() - 1);
+        }
+      }
+    }
+    else if(System.getProperty("os.name").startsWith("Windows")) {
+      try {
+        ProcessBuilder pb = new ProcessBuilder("powercfg", "/devicequery", "all_devices");
+        Process p = pb.start();
+        InputStream is = p.getInputStream();
+
+        int c;
+        while((c = is.read()) != -1)
+          iousbdevices += (new Character((char)c)).toString();
+        is.close();
+      }catch(IOException e) {}
+
+      //sy ArrayList<String> comport = new ArrayList<String>();
+
+      while(iousbdevices.indexOf(name) != -1) {
+        int pos_start = iousbdevices.indexOf(name);
+        iousbdevices = iousbdevices.substring(pos_start, iousbdevices.length());
+        int pos_end = iousbdevices.indexOf(")");
+        String iousbdevice = iousbdevices.substring(0, pos_end + 1);
+
+        pos_start = iousbdevice.indexOf("(");
+        pos_end = iousbdevice.indexOf(")");
+        id = iousbdevice.substring(pos_start + 1, pos_end);
+
+        if((iousbdevice.indexOf("PICnome128") == -1 && name.indexOf("PICnome128") == -1) || (iousbdevice.indexOf("PICnome128") != -1 && name.indexOf("PICnome128") != -1))
+          sfx.add(id);
+
+        iousbdevices = iousbdevices.substring(iousbdevices.indexOf(")") + 2, iousbdevices.length());
       }
     }
     return sfx;
   }
 
   private void initDeviceList() {
-    String device_name;
-    List<String> suffix0 = getUsbInfo("IOUSBDevice");
-    List<String> suffix1 = getUsbInfo("PICnome");
-    List<String> suffix2 = getUsbInfo("PICnome128");
-    Enumeration e = CommPortIdentifier.getPortIdentifiers();
+    if(System.getProperty("os.name").startsWith("Mac OS X")) {
+      String device_name;
+      List<String> suffix0 = getUsbInfo("IOUSBDevice");
+      List<String> suffix1 = getUsbInfo("PICnome");
+      List<String> suffix2 = getUsbInfo("PICnome128");
+      Enumeration e = CommPortIdentifier.getPortIdentifiers();
 
-    for(int i = 0; i < max_picnome_num; i++) {
-      device[i] = "";
-      device2[i] = "";
+      for(int i = 0; i < max_picnome_num; i++) {
+        device[i] = "";
+        device2[i] = "";
+      }
+
+      while(e.hasMoreElements()) {
+        device_name = ((CommPortIdentifier)e.nextElement()).getName();
+
+        if(device_name.indexOf("/dev/cu.usbmodem") != -1) {
+          for(String s0str: suffix0) {
+            if(device_name.indexOf(s0str) != -1) {
+              if(current_picnome_num >= max_picnome_num)
+                break;
+              device[current_picnome_num] = "tkrworks-PICnome-" + s0str;
+              device2[current_picnome_num] = device_name;
+              current_picnome_num++;
+              device_list.add("tkrworks-PICnome-" + s0str);
+            }
+          }
+          for(String s2str: suffix2) {//for one twenty eight
+            if(device_name.indexOf(s2str) != -1) {
+              if(current_picnome_num >= max_picnome_num)
+                break;
+              device[current_picnome_num] = "tkrworks-PICnome128-" + s2str;
+              device2[current_picnome_num] = device_name;
+              current_picnome_num++;
+              device_list.add("tkrworks-PICnome128-" + s2str);
+            }
+          }
+          for(String s1str: suffix1) {//for sixty four
+            if(device_name.indexOf(s1str) != -1) {
+              if(current_picnome_num >= max_picnome_num)
+                break;
+              device[current_picnome_num] = "tkrworks-PICnome-" + s1str;
+              device2[current_picnome_num] = device_name;
+              current_picnome_num++;
+              device_list.add("tkrworks-PICnome-" + s1str);
+            }
+          }
+        }
+      }
     }
+    else if(System.getProperty("os.name").startsWith("Windows")) {
+      int dev_num = 0;
+      String device_name;
+      List<String> comport0 = this.getUsbInfo("tkrworks PICnome");
+      List<String> comport1 = this.getUsbInfo("tkrworks PICnome128");
+      Enumeration e = CommPortIdentifier.getPortIdentifiers();
+      
+      this.device[0] = "";
+      this.device[1] = "";
 
-    while(e.hasMoreElements()) {
-      device_name = ((CommPortIdentifier)e.nextElement()).getName();
-
-      if(device_name.indexOf("/dev/cu.usbmodem") != -1) {
-        for(String s0str: suffix0) {
-          if(device_name.indexOf(s0str) != -1) {
-            if(current_picnome_num >= max_picnome_num)
-              break;
-            device[current_picnome_num] = "tkrworks-PICnome-" + s0str;
-            device2[current_picnome_num] = device_name;
-            current_picnome_num++;
-            device_list.add("tkrworks-PICnome-" + s0str);
+      while(e.hasMoreElements()) {
+        device_name = ((CommPortIdentifier)e.nextElement()).getName();
+        
+        for(int i = 0; i < comport0.size(); i++) {
+          if(device_name.indexOf(comport0.get(i)) != -1) {
+            this.device[dev_num] = "tkrworks-PICnome-" + comport0.get(i);
+            dev_num++;
+            this.device_list.add("tkrworks-PICnome-" + comport0.get(i));
           }
         }
-        for(String s2str: suffix2) {//for one twenty eight
-          if(device_name.indexOf(s2str) != -1) {
-            if(current_picnome_num >= max_picnome_num)
-              break;
-            device[current_picnome_num] = "tkrworks-PICnome128-" + s2str;
-            device2[current_picnome_num] = device_name;
-            current_picnome_num++;
-            device_list.add("tkrworks-PICnome128-" + s2str);
-          }
-        }
-        for(String s1str: suffix1) {//for sixty four
-          if(device_name.indexOf(s1str) != -1) {
-            if(current_picnome_num >= max_picnome_num)
-              break;
-            device[current_picnome_num] = "tkrworks-PICnome-" + s1str;
-            device2[current_picnome_num] = device_name;
-            current_picnome_num++;
-            device_list.add("tkrworks-PICnome-" + s1str);
+        for(int i = 0; i < comport1.size(); i++) {
+          if(device_name.indexOf(comport1.get(i)) != -1) {
+            this.device[dev_num] = "tkrworks-PICnome128-" + comport1.get(i);
+            dev_num++;
+            this.device_list.add("tkrworks-PICnome128-" + comport1.get(i));
           }
         }
       }
@@ -256,11 +319,26 @@ public class PicnomeCommunication {
 
   public boolean openSerialPort(int index) {
     try {
-      if(device[index].indexOf("PICnome128") != -1)
-        co_max_num[index] = 15;
-      else
-        co_max_num[index] = 7;
-      portId[index] = CommPortIdentifier.getPortIdentifier(device2[index]);
+      if(System.getProperty("os.name").startsWith("Mac OS X")) {
+        if(device[index].indexOf("PICnome128") != -1)
+          co_max_num[index] = 15;
+        else
+          co_max_num[index] = 7;
+        portId[index] = CommPortIdentifier.getPortIdentifier(device2[index]);
+      }
+      else if(System.getProperty("os.name").startsWith("Windows")) {
+        String selected_name = (String)device_cb.getSelectedItem();
+        if(device[index].indexOf("PICnome128") != -1) {
+          co_max_num[index] = 15;
+          portId[index] = CommPortIdentifier.getPortIdentifier(
+            selected_name.substring(selected_name.indexOf("tkrworks-PICnome128-") + (new String("tkrworks-PICnome128-")).length(), selected_name.length()));
+        }
+        else {
+          co_max_num[index] = 7;
+          portId[index] = CommPortIdentifier.getPortIdentifier(
+            selected_name.substring(selected_name.indexOf("tkrworks-PICnome-") + (new String("tkrworks-PICnome-")).length(), selected_name.length()));
+        }
+      }
       port[index] = (SerialPort)portId[index].open("PICnomeSerial", 2000);
     }
     catch (NoSuchPortException e) {
@@ -276,7 +354,6 @@ public class PicnomeCommunication {
       in[index] = port[index].getInputStream();
       inr[index] = new InputStreamReader(in[index]);
       out[index] = port[index].getOutputStream();
-      //sy0 initSerialListener(index);
       (new Thread(new SerialReader(index, inr[index]))).start();
 
 
@@ -286,11 +363,6 @@ public class PicnomeCommunication {
       }
       else//for MIDI
         openMIDIPort();
-
-      //sy initOSCPort();
-      //sy initOSCListener("all");
-      //sy openMIDIPort();
-
     }
     catch(IOException e) {}
     return true;
@@ -659,10 +731,16 @@ public class PicnomeCommunication {
           return ;
       }
       else if(device[index].indexOf("PICnome128") != -1) {
-        if(cable_orientation[index].equals("right") || cable_orientation[index].equals("left"))
-          if(args1 > 7) return ;
-        else
-          if(args0 > 7) return ;
+        if(cable_orientation[index].equals("right") || cable_orientation[index].equals("left")) {
+          if(args1 > 7) {
+            return ;
+          }
+        }
+        else {
+          if(args0 > 7) {
+            return ;
+          }
+        }
       }
         
       sc = starting_column[index];
@@ -688,7 +766,7 @@ public class PicnomeCommunication {
         sc = sc1;
         sr = sr1;
       }
-        
+
       if(sc < 0 || sr < 0) return ;
         
       String ssc, ssr;
@@ -800,7 +878,6 @@ public class PicnomeCommunication {
 
     int args0 = (int)Float.parseFloat(args[0].toString());
     int args1 = (int)Float.parseFloat(args[1].toString());
-    System.out.println(args0 + " " + args1);
 
     int sc = 0, sr = 0;
       
