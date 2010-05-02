@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.3.23 2010/04/27
+ * PicnomeSerial.java,v.1.3.24 2010/05/01
  */
 
 import java.io.*;
@@ -471,7 +471,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
   }
 
   PicnomeSerial() {
-    super("PICnomeSerial v1.3.23");
+    super("PICnomeSerial v1.3.24");
   }
 
   public void actionPerformed(ActionEvent e) {

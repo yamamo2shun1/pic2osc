@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.3.23 2010/04/27
+ * PicnomeCommunication.java,v.1.3.24 2010/05/01
  */
 
 // RXTX
@@ -284,15 +284,15 @@ public class PicnomeCommunication {
         
         for(int i = 0; i < comport0.size(); i++) {
           if(device_name.indexOf(comport0.get(i)) != -1) {
-            this.device[dev_num] = "tkrworks-PICnome-" + comport0.get(i);
-            dev_num++;
+            this.device[current_picnome_num] = "tkrworks-PICnome-" + comport0.get(i);
+            current_picnome_num++;
             this.device_list.add("tkrworks-PICnome-" + comport0.get(i));
           }
         }
         for(int i = 0; i < comport1.size(); i++) {
           if(device_name.indexOf(comport1.get(i)) != -1) {
-            this.device[dev_num] = "tkrworks-PICnome128-" + comport1.get(i);
-            dev_num++;
+            this.device[current_picnome_num] = "tkrworks-PICnome128-" + comport1.get(i);
+            current_picnome_num++;
             this.device_list.add("tkrworks-PICnome128-" + comport1.get(i));
           }
         }
@@ -356,7 +356,6 @@ public class PicnomeCommunication {
       out[index] = port[index].getOutputStream();
       (new Thread(new SerialReader(index, inr[index]))).start();
 
-
       if(((String)protocol_cb.getSelectedItem()).equals("Open Sound Control")) {
         initOSCPort();
         initOSCListener();
@@ -370,7 +369,10 @@ public class PicnomeCommunication {
 
   public boolean setSerialPort(int index) {
     try {
-      port[index].setSerialPortParams(230400, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
+      if(System.getProperty("os.name").startsWith("Mac OS X"))
+        port[index].setSerialPortParams(230400, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
+      else if(System.getProperty("os.name").startsWith("Windows"))
+        port[index].setSerialPortParams(115200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
       port[index].setFlowControlMode(SerialPort.FLOWCONTROL_NONE);
     }
     catch (UnsupportedCommOperationException e) {
@@ -402,7 +404,7 @@ public class PicnomeCommunication {
     return true;
   }
 
-  protected void initOSCPort() {
+  public void initOSCPort() {
     byte[] hostaddress = new byte[4];
     String ha_str = hostaddress_tf.getText();
 
@@ -1462,18 +1464,24 @@ public class PicnomeCommunication {
     public void run() {
       int buffer = 0;
       StringBuilder sb = new StringBuilder();
-      try {
-        while((buffer = inr.read()) != -1) {
-          if(buffer == 0x0A || buffer == 0x0D) {
-            //debug System.out.println(sb.toString());
-            sendOSCMessageFromHw(index, sb.toString());
-            sb = new StringBuilder();
-          }
-          else
-            sb.append((char)buffer);
+      while(true) {
+        try {
+          buffer = inr.read();
         }
+        catch(IOException e) {
+          //sy debug_tf.setText("ioe: " + e.getMessage());
+          continue;
+        }
+        if(buffer == -1 || buffer == 0)
+          continue;
+        if(buffer == 0x0A || buffer == 0x0D) {
+          //debug System.out.println(sb.toString());
+          sendOSCMessageFromHw(this.index, sb.toString());
+          sb = new StringBuilder();
+        }
+        else
+          sb.append((char)buffer);
       }
-      catch(IOException e) {}
     }
   }
 }
