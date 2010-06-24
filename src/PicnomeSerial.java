@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.3.24 2010/05/01
+ * PicnomeSerial.java,v.1.4.01 2010/06/24
  */
 
 import java.io.*;
@@ -130,6 +130,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     osc_p.add(hostaddress_l);
 
     pserial.hostaddress_tf = new JTextField("127.0.0.1", 10);
+    pserial.hostaddress_tf.addActionListener(this);
     if(System.getProperty("os.name").startsWith("Mac OS X"))
       osc_sl.putConstraint(SpringLayout.NORTH, pserial.hostaddress_tf, -6, SpringLayout.NORTH, hostaddress_l);
     else if(System.getProperty("os.name").startsWith("Windows"))
@@ -146,6 +147,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     osc_p.add(hostport_l);
 
     pserial.hostport_tf = new JTextField("8000", 3);
+    pserial.hostport_tf.addActionListener(this);
     if(System.getProperty("os.name").startsWith("Mac OS X"))
       osc_sl.putConstraint(SpringLayout.NORTH, pserial.hostport_tf, -6, SpringLayout.NORTH, hostport_l);
     else if(System.getProperty("os.name").startsWith("Windows"))
@@ -471,7 +473,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
   }
 
   PicnomeSerial() {
-    super("PICnomeSerial v1.3.24");
+    super("PICnome Serial ver. / f/w ver.");
   }
 
   public void actionPerformed(ActionEvent e) {
@@ -548,6 +550,13 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
           mdf.setHalfVisible();
       }
       pserial.openclose_b.setText("Close");
+      int timeout_count = 0;
+      while(!pserial.fwver_flag) {
+        timeout_count++;
+        if(timeout_count > 65536)
+          break;
+      };
+      setTitle("PICnomeSerial " + pserial.psver + " /  " + pserial.fwver);
     }
     else if(cmd.equals("Close")) {
       boolean b;
@@ -585,8 +594,8 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     }
     else if(cmd.equals("Prefix"))
       pserial.initOSCListener();
-    else if(cmd.equals("HostAddress") || cmd.equals("HostPort") || cmd.equals("ListenPort")) {
-      pserial.initOSCPort();
+    else if(cmd.equals("HostAddress") || cmd.equals("HostPort")) {
+      pserial.setOSCHostInfo();
     }
     else if(cmd.equals(" adc 0") || cmd.equals(" adc 1") || cmd.equals(" adc 2") || cmd.equals(" adc 3") ||
             cmd.equals(" adc 4") || cmd.equals(" adc 5") || cmd.equals(" adc 6")) {
@@ -670,8 +679,11 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
 
       prev_index = 0;
       para_change_flag = false;
+/*
       String[] type_name = {"Channel (1 - 16)", "Velocity 1 (0 - 127)", "Velocity 2 (0 - 127)",
                             "Duration 1 (0 - 60000) [msec]", "Duration 2 (0 - 60000) [msec]"};
+*/
+      String[] type_name = {"Channel (1 - 16)", "Velocity 1 (0 - 127)", "Velocity 2 (0 - 127)"};
       pserial.midiparameter_cb = new JComboBox(type_name);
       pserial.midiparameter_cb.setActionCommand("TypeChanged");
       pserial.midiparameter_cb.addActionListener(this);
@@ -698,7 +710,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
           sl.putConstraint(SpringLayout.NORTH, mpcp[i][j], (60 * j) + 60, SpringLayout.NORTH, mididetail_p);
           mididetail_p.add(mpcp[i][j]);
 
-          for(int k = 0; k < 5; k++)
+          for(int k = 0; k < 3; k++)
             switch(k) {
             case 0:
               pserial.midi_parameter[i][j][k] = 0;
@@ -709,12 +721,14 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
             case 2:
               pserial.midi_parameter[i][j][k] = 0;
               break;
+/*
             case 3:
               pserial.midi_parameter[i][j][k] = 30000;
               break;
             case 4:
               pserial.midi_parameter[i][j][k] = 0;
               break;
+*/
             }
         }
       }
@@ -755,12 +769,14 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
             case 2:
               mpcp[i][j].setSliderRange(0, 127);
               break;
+/*
             case 3:
               mpcp[i][j].setSliderRange(0, 60000);
               break;
             case 4:
               mpcp[i][j].setSliderRange(0, 60000);
               break;
+*/
             }
             mpcp[i][j].value.setValue(pserial.midi_parameter[i][j][index]);
           }
@@ -777,7 +793,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
         try {
           FileWriter fw = new FileWriter(save_f);
           BufferedWriter bw = new BufferedWriter(fw);
-          for(int k = 0; k < 5; k++) {
+          for(int k = 0; k < 3; k++) {
             switch(k) {
             case 0:
               bw.write("//MIDI channel" + System.getProperty("line.separator"));
@@ -788,12 +804,14 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
             case 2:
               bw.write("//MIDI velocity 2" + System.getProperty("line.separator"));
               break;
+/*
             case 3:
               bw.write("//MIDI duration 1" + System.getProperty("line.separator"));
               break;
             case 4:
               bw.write("//MIDI duration 2" + System.getProperty("line.separator"));
               break;
+*/
             }
             for(int j = 0; j < mpcp[0].length; j++) {
               String line = "";

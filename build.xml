@@ -21,6 +21,17 @@
       </manifest>
     </jar>
   </target>
+  <target name="bundle" depends="jar">
+    <taskdef name="jarbundler" classname="net.sourceforge.jarbundler.JarBundler" />
+    <jarbundler dir="."
+                name="PICnomeSerial"
+                mainclass="PicnomeSerial" />
+    <resourcefileset dir="lib" includes="librxtxSerial.jnilib"/>
+    <jarfileset dir="lib">
+      <include name="*.jar" />
+    </jarfileset>
+    <jarfilelist dir="lib" file="javaosc.jar, RXTXcomm.jar" />
+  </target>
   <target name="clean-win">
     <delete>
       <fileset dir="." includes="PicnomeSerial-windows.jar"/>
