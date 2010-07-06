@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.4.01 2010/06/24
+ * PicnomeCommunication.java,v.1.4.03(109) 2010/07/06
  */
 
 // RXTX
@@ -36,7 +36,7 @@ import java.io.*;
 import java.net.*;
 
 public class PicnomeCommunication {
-  public String psver = "1.4.0";
+  public String psver = "1.4.03";
   public String fwver = "";
   public boolean fwver_flag = false;
 
@@ -801,9 +801,12 @@ public class PicnomeCommunication {
         
     int shift = starting_row[index] % (co_max_num[index] + 1);
         
-    if(cable_orientation[index].equals("left"))
+    if(cable_orientation[index].equals("left")) {
+      if(args1 > 255) args1 = 255;
       sr = (char)(args1 >> shift);
+    }
     else if(cable_orientation[index].equals("right")) {
+      if(args1 > 255) args1 = 255;
       char sr0 = (char)args1;
       char sr1 = 0;
       for(int i = 0; i < 8; i++)
@@ -812,6 +815,7 @@ public class PicnomeCommunication {
       sr = (char)(sr1 << shift);
     }
     else if(cable_orientation[index].equals("up")) {
+      if(device[index].indexOf("128") == -1 && args1 > 255) args1 = 255;
       char sr0 = (char)args1;
       char sr1 = 0;
       for(int i = 0; i < co_max_num[index] + 1; i++)
@@ -819,8 +823,10 @@ public class PicnomeCommunication {
           sr1 |= (0x01 << (co_max_num[index] - i));
       sr = (char)(sr1 << shift);
     }
-    else if(cable_orientation[index].equals("down"))
+    else if(cable_orientation[index].equals("down")) {
+      if(device[index].indexOf("128") == -1 && args1 > 255) args1 = 255;
       sr = (char)(args1 >> shift);
+    }
       
     String str;
     if(cable_orientation[index].equals("left") || cable_orientation[index].equals("right"))
@@ -854,9 +860,12 @@ public class PicnomeCommunication {
         
     int shift = starting_column[index] % (co_max_num[index] + 1);
         
-    if(cable_orientation[index].equals("left"))
+    if(cable_orientation[index].equals("left")) {
+      if(device[index].indexOf("128") == -1 && args1 > 255) args1 = 255;
       sc = (char)(args1 >> shift);
+    }
     else if(cable_orientation[index].equals("right")) {
+      if(device[index].indexOf("128") == -1 && args1 > 255) args1 = 255;
       char sc0 = (char)args1;
       char sc1 = 0;
       for(int i = 0; i < co_max_num[index] + 1; i++)
@@ -864,9 +873,12 @@ public class PicnomeCommunication {
           sc1 |= (0x01 << (co_max_num[index] - i));
       sc = (char)(sc1 << shift);
     }
-    else if(cable_orientation[index].equals("up"))
+    else if(cable_orientation[index].equals("up")) {
+      if(args1 > 255) args1 = 255;
       sc = (char)(args1 >> shift);
+    }
     else if(cable_orientation[index].equals("down")) {
+      if(args1 > 255) args1 = 255;
       char sc0 = (char)args1;
       char sc1 = 0;
       for(int i = 0; i < 8; i++)
@@ -892,23 +904,55 @@ public class PicnomeCommunication {
     int sc = 0, sr = 0;
     
     int[] args = new int[16];
-    for(int i = 0; i < args0.length; i++)
+    for(int i = 0; i < args0.length; i++) {
       args[i] = (int)Float.parseFloat(args0[i].toString());
+      if(cable_orientation[index].equals("left") || cable_orientation[index].equals("right")) {
+        if(device[index].indexOf("128") == -1 && args[i] > 255) args[i] = 255;
+      }
+      else {
+        if(args[i] > 255) args[i] = 255;
+      }
+    }
       
-    int shift = starting_column[index] % (co_max_num[index] + 1);
+    int shift;
+    if(cable_orientation[index].equals("left") || cable_orientation[index].equals("right"))
+      shift = starting_column[index] % (co_max_num[index] + 1);
+    else
+      shift = starting_column[index] % (7 + 1);
       
-    for(int i = 0; i < 16; i++) {
+    for(int i = 0; i < (co_max_num[index] + 1); i++) {
+      if((cable_orientation[index].equals("left") || cable_orientation[index].equals("right")) && i > 7)
+        break;
+
       if(cable_orientation[index].equals("left"))
         sr = i - starting_row[index];
       else if(cable_orientation[index].equals("right"))
         sr = 7 - i + starting_row[index];
       else if(cable_orientation[index].equals("up"))
-        sr = co_max_num[index] - i + starting_row[index];
+        sr = co_max_num[index] - i + starting_column[index];
       else if(cable_orientation[index].equals("down"))
-        sr = i - starting_row[index];
-          
-      if(i < starting_row[index] || (i - starting_row[index]) > 7)
-        continue;
+        sr = i - starting_column[index];
+      
+      if(co_max_num[index] == 7) {
+        if(cable_orientation[index].equals("left") || cable_orientation[index].equals("right")) {
+          if(i < starting_row[index] || ((i - starting_row[index]) > 7))
+            continue;
+        }
+        else {
+          if(i < starting_column[index] || ((i - starting_column[index]) > 7))
+            continue;
+        }
+      }
+      else if(co_max_num[index] == 15) {
+        if(cable_orientation[index].equals("left") || cable_orientation[index].equals("right")) {
+          if(i < starting_row[index] || ((i - starting_row[index]) > 7))
+            continue;
+        }
+        else {
+          if(i < starting_column[index] || ((i - starting_column[index]) > 15))
+            continue;
+        }
+      }
         
       if(cable_orientation[index].equals("left"))
         sc = (char)(args[i] >> shift);
@@ -925,7 +969,7 @@ public class PicnomeCommunication {
       else if(cable_orientation[index].equals("down")) {
         char sc0 = (char)args[i];
         char sc1 = 0;
-        for(int j = 0; j < 8; j++)
+        for(int j = 0; j < (7 + 1); j++)
           if((sc0 & (0x01 << j)) == (0x01 << j))
             sc1 |= (0x01 << (7 - j));
         sc = (char)(sc1 << shift);
