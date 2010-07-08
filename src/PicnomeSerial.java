@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.4.03(109) 2010/07/06
+ * PicnomeSerial.java,v.1.4.05(111) 2010/07/08
  */
 
 import java.io.*;
@@ -63,6 +63,20 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     else if(System.getProperty("os.name").startsWith("Windows"))
       psgui.mdf.setBounds(470, 40, 990, 665);// win
     psgui.setVisible(true);
+
+    for(int i = 0; i < psgui.pserial.getCurrentNum(); i++) {
+        psgui.pserial.openSerialPort(i);
+        psgui.pserial.setSerialPort(i);
+        if(psgui.pserial.getCurrentMaxColumn(i) == 7)
+          psgui.mdf.setHalfVisible();
+    }
+    int timeout_count = 0;
+    while(!psgui.pserial.fwver_flag) {
+      timeout_count++;
+      if(timeout_count > 65536)
+        break;
+    };
+    psgui.setTitle("PICnomeSerial " + psgui.pserial.psver + " /  " + psgui.pserial.fwver);
   }
 
   public void init() {
@@ -186,6 +200,8 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       midi_sl.putConstraint(SpringLayout.WEST, midiinput_l, 39, SpringLayout.WEST, midi_p);
     midi_p.add(midiinput_l);
     pserial.midiinput_cb = new JComboBox(pserial.midiinput_list);
+    pserial.midiinput_cb.setActionCommand("MidiInChanged");
+    pserial.midiinput_cb.addActionListener(this);
     if(System.getProperty("os.name").startsWith("Mac OS X"))
       pserial.midiinput_cb.setPreferredSize(new Dimension(250, 30));
     midi_sl.putConstraint(SpringLayout.NORTH, pserial.midiinput_cb, -4, SpringLayout.NORTH, midiinput_l);
@@ -200,6 +216,8 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       midi_sl.putConstraint(SpringLayout.WEST, midioutput_l, 29, SpringLayout.WEST, midi_p);
     midi_p.add(midioutput_l);
     pserial.midioutput_cb = new JComboBox(pserial.midioutput_list);
+    pserial.midioutput_cb.setActionCommand("MidiOutChanged");
+    pserial.midioutput_cb.addActionListener(this);
     if(System.getProperty("os.name").startsWith("Mac OS X"))
       pserial.midioutput_cb.setPreferredSize(new Dimension(250, 30));
     midi_sl.putConstraint(SpringLayout.NORTH, pserial.midioutput_cb, -4, SpringLayout.NORTH, midioutput_l);
@@ -234,6 +252,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     ds_sl.putConstraint(SpringLayout.NORTH, pserial.device_cb, -4, SpringLayout.NORTH, device_l);
     ds_sl.putConstraint(SpringLayout.WEST, pserial.device_cb, 10, SpringLayout.EAST, device_l);
     ds_p.add(pserial.device_cb);
+/*
     pserial.openclose_b = new JButton("Open");
     pserial.openclose_b.addActionListener(this);
     if(System.getProperty("os.name").startsWith("Mac OS X"))
@@ -242,7 +261,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       ds_sl.putConstraint(SpringLayout.NORTH, pserial.openclose_b, -1, SpringLayout.NORTH, pserial.device_cb);
     ds_sl.putConstraint(SpringLayout.WEST, pserial.openclose_b, 10, SpringLayout.EAST, pserial.device_cb);
     ds_p.add(pserial.openclose_b);
-
+*/
     JLabel cable_l = new JLabel("Cable Orientation :");
     ds_sl.putConstraint(SpringLayout.NORTH, cable_l, 40, SpringLayout.NORTH, ds_p);
     ds_sl.putConstraint(SpringLayout.WEST, cable_l, 22, SpringLayout.WEST, ds_p);
@@ -499,10 +518,40 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
         pserial.changeDeviceSettings(1);
     }
     else if(cmd.equals("ProtocolChanged")) {
-      if(((String)pserial.protocol_cb.getSelectedItem()).equals("Open Sound Control"))
+      if(((String)pserial.protocol_cb.getSelectedItem()).equals("Open Sound Control")) {
         psd_cl.first(psd_p);
-      else if(((String)pserial.protocol_cb.getSelectedItem()).equals("MIDI"))
+        if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0)))
+          pserial.setCurrentProtocol(0, "Open Sound Control");
+        else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1)))
+          pserial.setCurrentProtocol(1, "Open Sound Control");
+      }
+      else if(((String)pserial.protocol_cb.getSelectedItem()).equals("MIDI")) {
         psd_cl.last(psd_p);
+        if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0)))
+          pserial.setCurrentProtocol(0, "MIDI");
+        else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1)))
+          pserial.setCurrentProtocol(1, "MIDI");
+      }
+    }
+    else if(cmd.equals("MidiInChanged")) {
+      if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0))) {
+        pserial.setCurrentMidiIn(0, pserial.midiinput_cb.getSelectedIndex());
+        pserial.openMIDIPort(0);
+      }
+      else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1))) {
+        pserial.setCurrentMidiIn(1, pserial.midiinput_cb.getSelectedIndex());
+        pserial.openMIDIPort(1);
+      }
+    }
+    else if(cmd.equals("MidiOutChanged")) {
+      if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0))) {
+        pserial.setCurrentMidiOut(0, pserial.midioutput_cb.getSelectedIndex());
+        pserial.openMIDIPort(0);
+      }
+      else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1))) {
+        pserial.setCurrentMidiOut(1, pserial.midioutput_cb.getSelectedIndex());
+        pserial.openMIDIPort(1);
+      }
     }
     else if(cmd.equals("CableChanged")) {
       if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0)))
@@ -519,21 +568,42 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       }
     }
     else if(cmd.equals("LED Test On")) {
-      int idx = pserial.device_cb.getSelectedIndex();
+      //sy int idx = pserial.device_cb.getSelectedIndex();
       String str =new String("test 1" + (char)0x0D);
-      //debug debug_tf.setText(str);
+
+      if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0))) {
+        if(pserial.checkPortState(0))
+          pserial.sendDataToSerial(0, str);
+      }
+      else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1))) {
+        if(pserial.checkPortState(1))
+          pserial.sendDataToSerial(1, str);
+      }
+/*
       if(pserial.checkPortState(idx))
         pserial.sendDataToSerial(idx, str);
+*/
       pserial.led_test_b.setText("LED Test Off");
     }
     else if(cmd.equals("LED Test Off")) {
-      int idx = pserial.device_cb.getSelectedIndex();
+      //sy int idx = pserial.device_cb.getSelectedIndex();
       String str =new String("test 0" + (char)0x0D);
-      //debug debug_tf.setText(str);
+
+      if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0))) {
+        if(pserial.checkPortState(0))
+          pserial.sendDataToSerial(0, str);
+      }
+      else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1))) {
+        if(pserial.checkPortState(1))
+          pserial.sendDataToSerial(1, str);
+      }
+/*
       if(pserial.checkPortState(idx))
         pserial.sendDataToSerial(idx, str);
+*/
       pserial.led_test_b.setText("LED Test On");
     }
+/*
     else if(cmd.equals("Open")) {
       boolean b;
 
@@ -567,6 +637,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
         b = pserial.closeSerialPort(1);
       pserial.openclose_b.setText("Open");
     }
+*/
     else if(cmd.equals("Detail..."))
       mdf.setVisible(true);
     else if(cmd.equals("Select")) {
