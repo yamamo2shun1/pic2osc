@@ -3,10 +3,14 @@
   <target name="clean">
     <delete>
       <fileset dir="." includes="PicnomeSerial-macosx.jar"/>
+      <fileset dir="class" includes="*.class"/>
     </delete>
+    <delete dir="PICnomeSerial.app"/>
   </target>
   <target name="compile" depends="clean">
-    <javac srcdir="src" destdir="class" extdirs="/Library/Java/Extensions:~/Library/Java/Extensions:lib" source="1.5" target="1.5"/>
+    <javac srcdir="src" destdir="class" extdirs="/Library/Java/Extensions:~/Library/Java/Extensions:lib" source="1.5" target="1.5">
+      <compilerarg value="-Xlint:unchecked" />
+    </javac>
   </target>
   <target name="jar" depends="compile">
     <tstamp/>
@@ -25,12 +29,21 @@
     <taskdef name="jarbundler" classname="net.sourceforge.jarbundler.JarBundler" />
     <jarbundler dir="."
                 name="PICnomeSerial"
-                mainclass="PicnomeSerial" />
-    <resourcefileset dir="lib" includes="librxtxSerial.jnilib"/>
-    <jarfileset dir="lib">
-      <include name="*.jar" />
-    </jarfileset>
-    <jarfilelist dir="lib" file="javaosc.jar, RXTXcomm.jar" />
+                mainclass="PicnomeSerial"
+                build="117"
+                version="1.4.09"
+                icon="icon/PICnomeSerial-v1.0.icns"
+                screenmenu="true">
+      <jarfileset dir="lib">
+        <include name="librxtxSerial.jnilib" />
+      </jarfileset>
+      <jarfileset dir="lib">
+        <include name="*.jar" />
+      </jarfileset>
+      <jarfileset dir=".">
+        <include name="PicnomeSerial-macosx.jar" />
+      </jarfileset>
+    </jarbundler>
   </target>
   <target name="clean-win">
     <delete>

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.4.05(111) 2010/07/08
+ * PicnomeSerial.java,v.1.4.10(118) 2010/09/25
  */
 
 import java.io.*;
@@ -25,6 +25,7 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
+import com.apple.eawt.*;
 
 public class PicnomeSerial extends JFrame implements ActionListener, ChangeListener {
   PicnomeCommunication pserial = new PicnomeCommunication();
@@ -42,26 +43,53 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
   private int prev_index;
   private boolean para_change_flag;
 
-  public static void main(String[] args) {
-    PicnomeSerial psgui = new PicnomeSerial();
-    psgui.init();
-    if(System.getProperty("os.name").startsWith("Mac OS X"))
-      psgui.setSize(450, 695);
+  final static int MENU_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+
+  PicnomeSerial() {
+    super("PICnome Serial ver. / f/w ver.");
+
+    init();
+    if(System.getProperty("os.name").startsWith("Mac OS X")) {
+      setSize(450, 695);
+      Application app = Application.getApplication();
+      app.addApplicationListener(new ApplicationAdapter() {
+          public void handleQuit(ApplicationEvent arg0) {
+
+            for(int i = 0; i < 6; i++) {
+              String str =new String("ae " + i + " " + 0 + (char)0x0D);
+              if(pserial.getCurrentNum() == 1) {
+                pserial.setAdcEnable(0, i, false);
+                pserial.sendDataToSerial(0, str);
+              }
+              if(pserial.getCurrentNum() == 2) {
+                pserial.setAdcEnable(1, i, false);
+                pserial.sendDataToSerial(1, str);
+              }
+            }
+            System.exit(0);
+          }
+        });
+    }
     else if(System.getProperty("os.name").startsWith("Windows"))
-      psgui.setSize(470, 740);
-    psgui.addWindowListener(
+      setSize(470, 740);
+    addWindowListener(
       new WindowAdapter() {
         public void windowClosing(WindowEvent e) {
+          System.out.println("app closed.");
           System.exit(0);
         }
       }
       );
-
-    psgui.mdf.init();
+    mdf.init();
     if(System.getProperty("os.name").startsWith("Mac OS X"))
-      psgui.mdf.setBounds(450, 0, 890, 620);// mac
+      mdf.setBounds(450, 0, 890, 620);// mac
     else if(System.getProperty("os.name").startsWith("Windows"))
-      psgui.mdf.setBounds(470, 40, 990, 665);// win
+      mdf.setBounds(470, 40, 990, 665);// win
+  }
+
+  public static void main(String[] args) {
+    PicnomeSerial psgui = new PicnomeSerial();
+
     psgui.setVisible(true);
 
     for(int i = 0; i < psgui.pserial.getCurrentNum(); i++) {
@@ -75,7 +103,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       timeout_count++;
       if(timeout_count > 65536)
         break;
-    };
+    }
     psgui.setTitle("PICnomeSerial " + psgui.pserial.psver + " /  " + psgui.pserial.fwver);
   }
 
@@ -111,7 +139,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     ps_sl.putConstraint(SpringLayout.NORTH, ioprotocol_l, 10, SpringLayout.NORTH, ps_p);
     ps_sl.putConstraint(SpringLayout.WEST, ioprotocol_l, 38, SpringLayout.WEST, ps_p);
     ps_p.add(ioprotocol_l);
-    String[] protocol_str = {"Open Sound Control", "MIDI"};
+    String[] protocol_str = {"Open Sound Control", "MIDI", "OSC/MIDI(ext.)", "OSC(LEDs)/MIDI(Pads)"};
     pserial.protocol_cb = new JComboBox(protocol_str);
     pserial.protocol_cb.setActionCommand("ProtocolChanged");
     pserial.protocol_cb.addActionListener(this);
@@ -229,6 +257,82 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     midi_sl.putConstraint(SpringLayout.NORTH, pserial.mididetail_b, 60, SpringLayout.NORTH, midi_p);
     midi_sl.putConstraint(SpringLayout.WEST, pserial.mididetail_b, 300, SpringLayout.WEST, midi_p);
     midi_p.add(pserial.mididetail_b);
+
+    //OSC/MIDI(ext.) Setting
+    JPanel osc_ext_midi_p = new JPanel();
+    SpringLayout osc_ext_midi_sl = new SpringLayout();
+    osc_ext_midi_p.setLayout(osc_ext_midi_sl);
+    osc_ext_midi_p.setPreferredSize(new Dimension(400, 90));
+    psd_p.add(osc_ext_midi_p, "osc-ext-midi");
+
+    JLabel hostaddress_ext_midi_l = new JLabel("Host Address :");
+    osc_ext_midi_sl.putConstraint(SpringLayout.NORTH, hostaddress_ext_midi_l, 5, SpringLayout.NORTH, osc_ext_midi_p);
+    if(System.getProperty("os.name").startsWith("Mac OS X"))
+      osc_ext_midi_sl.putConstraint(SpringLayout.WEST, hostaddress_ext_midi_l, 20, SpringLayout.WEST, osc_ext_midi_p);
+    else if(System.getProperty("os.name").startsWith("Windows"))
+      osc_ext_midi_sl.putConstraint(SpringLayout.WEST, hostaddress_ext_midi_l, 17, SpringLayout.WEST, osc_ext_midi_p);
+    osc_ext_midi_p.add(hostaddress_ext_midi_l);
+
+    pserial.hostaddress_tf = new JTextField("127.0.0.1", 10);
+    pserial.hostaddress_tf.addActionListener(this);
+    if(System.getProperty("os.name").startsWith("Mac OS X"))
+      osc_ext_midi_sl.putConstraint(SpringLayout.NORTH, pserial.hostaddress_tf, -6, SpringLayout.NORTH, hostaddress_ext_midi_l);
+    else if(System.getProperty("os.name").startsWith("Windows"))
+      osc_ext_midi_sl.putConstraint(SpringLayout.NORTH, pserial.hostaddress_tf, -1, SpringLayout.NORTH, hostaddress_ext_midi_l);
+    osc_ext_midi_sl.putConstraint(SpringLayout.WEST, pserial.hostaddress_tf, 10, SpringLayout.EAST, hostaddress_ext_midi_l);
+    osc_ext_midi_p.add(pserial.hostaddress_tf);
+
+    JLabel hostport_ext_midi_l = new JLabel("Host Port :");
+    osc_ext_midi_sl.putConstraint(SpringLayout.NORTH, hostport_ext_midi_l, 35, SpringLayout.NORTH, osc_ext_midi_p);
+    if(System.getProperty("os.name").startsWith("Mac OS X"))
+      osc_ext_midi_sl.putConstraint(SpringLayout.WEST, hostport_ext_midi_l, 46, SpringLayout.WEST, osc_ext_midi_p);
+    else if(System.getProperty("os.name").startsWith("Windows"))
+      osc_ext_midi_sl.putConstraint(SpringLayout.WEST, hostport_ext_midi_l, 41, SpringLayout.WEST, osc_ext_midi_p);
+    osc_ext_midi_p.add(hostport_ext_midi_l);
+
+    pserial.hostport_tf = new JTextField("8000", 3);
+    pserial.hostport_tf.addActionListener(this);
+    if(System.getProperty("os.name").startsWith("Mac OS X"))
+      osc_ext_midi_sl.putConstraint(SpringLayout.NORTH, pserial.hostport_tf, -6, SpringLayout.NORTH, hostport_ext_midi_l);
+    else if(System.getProperty("os.name").startsWith("Windows"))
+      osc_ext_midi_sl.putConstraint(SpringLayout.NORTH, pserial.hostport_tf, -1, SpringLayout.NORTH, hostport_ext_midi_l);
+    osc_ext_midi_sl.putConstraint(SpringLayout.WEST, pserial.hostport_tf, 10, SpringLayout.EAST, hostport_ext_midi_l);
+    osc_ext_midi_p.add(pserial.hostport_tf);
+
+    JLabel listenport_ext_midi_l = new JLabel("Listen Port :");
+    osc_ext_midi_sl.putConstraint(SpringLayout.NORTH, listenport_ext_midi_l, 65, SpringLayout.NORTH, osc_ext_midi_p);
+    if(System.getProperty("os.name").startsWith("Mac OS X"))
+      osc_ext_midi_sl.putConstraint(SpringLayout.WEST, listenport_ext_midi_l, 38, SpringLayout.WEST, osc_ext_midi_p);
+    else if(System.getProperty("os.name").startsWith("Windows"))
+      osc_ext_midi_sl.putConstraint(SpringLayout.WEST, listenport_ext_midi_l, 32, SpringLayout.WEST, osc_ext_midi_p);
+    osc_ext_midi_p.add(listenport_ext_midi_l);
+
+    pserial.listenport_tf = new JTextField("8080", 3);
+    if(System.getProperty("os.name").startsWith("Mac OS X"))
+      osc_ext_midi_sl.putConstraint(SpringLayout.NORTH, pserial.listenport_tf, -6, SpringLayout.NORTH, listenport_ext_midi_l);
+    else if(System.getProperty("os.name").startsWith("Windows"))
+      osc_ext_midi_sl.putConstraint(SpringLayout.NORTH, pserial.listenport_tf, -1, SpringLayout.NORTH, listenport_ext_midi_l);
+    osc_ext_midi_sl.putConstraint(SpringLayout.WEST, pserial.listenport_tf, 10, SpringLayout.EAST, listenport_ext_midi_l);
+    osc_ext_midi_p.add(pserial.listenport_tf);
+
+    JLabel midioutput_ext_midi_l = new JLabel("MIDI Output :");
+    osc_ext_midi_sl.putConstraint(SpringLayout.NORTH, midioutput_ext_midi_l, 35, SpringLayout.NORTH, osc_ext_midi_p);
+    if(System.getProperty("os.name").startsWith("Mac OS X"))
+      osc_ext_midi_sl.putConstraint(SpringLayout.WEST, midioutput_ext_midi_l, 197, SpringLayout.WEST, osc_ext_midi_p);
+    else if(System.getProperty("os.name").startsWith("Windows"))
+      osc_ext_midi_sl.putConstraint(SpringLayout.WEST, midioutput_ext_midi_l, 179, SpringLayout.WEST, osc_ext_midi_p);
+    osc_ext_midi_p.add(midioutput_ext_midi_l);
+    pserial.midioutput_cb = new JComboBox(pserial.midioutput_list);
+    pserial.midioutput_cb.setActionCommand("MidiOutChanged");
+    pserial.midioutput_cb.addActionListener(this);
+    if(System.getProperty("os.name").startsWith("Mac OS X"))
+      pserial.midioutput_cb.setPreferredSize(new Dimension(200, 30));
+    osc_ext_midi_sl.putConstraint(SpringLayout.NORTH, pserial.midioutput_cb, 20, SpringLayout.NORTH, midioutput_ext_midi_l);
+    if(System.getProperty("os.name").startsWith("Mac OS X"))
+      osc_ext_midi_sl.putConstraint(SpringLayout.WEST, pserial.midioutput_cb, -90, SpringLayout.EAST, midioutput_ext_midi_l);
+    else if(System.getProperty("os.name").startsWith("Windows"))
+      osc_ext_midi_sl.putConstraint(SpringLayout.WEST, pserial.midioutput_cb, -70, SpringLayout.EAST, midioutput_ext_midi_l);
+    osc_ext_midi_p.add(pserial.midioutput_cb);
 
     //Device Settings
     JPanel ds_p = new JPanel();
@@ -405,52 +509,76 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     dsps_sl.putConstraint(SpringLayout.WEST, pserial.startrow_s, 10, SpringLayout.EAST, startrow_l);
     dsps_p.add(pserial.startrow_s);
 
-    JPanel ais_p = new JPanel();
-    SpringLayout ais_sl = new SpringLayout();
-    ais_p.setLayout(ais_sl);
-    SoftBevelBorder ais_inborder = new SoftBevelBorder(SoftBevelBorder.LOWERED);
-    TitledBorder ais_outborder = new TitledBorder(ais_inborder, "Analog Input Enable Settings", TitledBorder.LEFT, TitledBorder.ABOVE_TOP);
-    ais_p.setPreferredSize(new Dimension(395, 100));
-    ais_p.setBorder(ais_outborder);
-    ds_sl.putConstraint(SpringLayout.NORTH, ais_p, 240, SpringLayout.NORTH, ds_p);
-    ds_sl.putConstraint(SpringLayout.WEST, ais_p, 10, SpringLayout.WEST, ds_p);
-    ds_p.add(ais_p);
+    JTabbedPane ais_tab = new JTabbedPane();
+    ais_tab.setPreferredSize(new Dimension(395, 115));
+    ds_sl.putConstraint(SpringLayout.NORTH, ais_tab, 240, SpringLayout.NORTH, ds_p);
+    ds_sl.putConstraint(SpringLayout.WEST, ais_tab, 10, SpringLayout.WEST, ds_p);
+    ds_p.add(ais_tab);
 
-    pserial.adc_ck[0] = new JCheckBox(" adc 0");
-    pserial.adc_ck[0].addActionListener(this);
-    ais_sl.putConstraint(SpringLayout.NORTH, pserial.adc_ck[0], 10, SpringLayout.NORTH, ais_p);
-    ais_sl.putConstraint(SpringLayout.WEST, pserial.adc_ck[0], 10, SpringLayout.WEST, ais_p);
-    ais_p.add(pserial.adc_ck[0]);
-    pserial.adc_ck[1] = new JCheckBox(" adc 1");
-    pserial.adc_ck[1].addActionListener(this);
-    ais_sl.putConstraint(SpringLayout.NORTH, pserial.adc_ck[1], 10, SpringLayout.NORTH, ais_p);
-    ais_sl.putConstraint(SpringLayout.WEST, pserial.adc_ck[1], 100, SpringLayout.WEST, ais_p);
-    ais_p.add(pserial.adc_ck[1]);
-    pserial.adc_ck[2] = new JCheckBox(" adc 2");
-    pserial.adc_ck[2].addActionListener(this);
-    ais_sl.putConstraint(SpringLayout.NORTH, pserial.adc_ck[2], 10, SpringLayout.NORTH, ais_p);
-    ais_sl.putConstraint(SpringLayout.WEST, pserial.adc_ck[2], 190, SpringLayout.WEST, ais_p);
-    ais_p.add(pserial.adc_ck[2]);
-    pserial.adc_ck[3] = new JCheckBox(" adc 3");
-    pserial.adc_ck[3].addActionListener(this);
-    ais_sl.putConstraint(SpringLayout.NORTH, pserial.adc_ck[3], 10, SpringLayout.NORTH, ais_p);
-    ais_sl.putConstraint(SpringLayout.WEST, pserial.adc_ck[3], 280, SpringLayout.WEST, ais_p);
-    ais_p.add(pserial.adc_ck[3]);
-    pserial.adc_ck[4] = new JCheckBox(" adc 4");
-    pserial.adc_ck[4].addActionListener(this);
-    ais_sl.putConstraint(SpringLayout.NORTH, pserial.adc_ck[4], 40, SpringLayout.NORTH, ais_p);
-    ais_sl.putConstraint(SpringLayout.WEST, pserial.adc_ck[4], 10, SpringLayout.WEST, ais_p);
-    ais_p.add(pserial.adc_ck[4]);
-    pserial.adc_ck[5] = new JCheckBox(" adc 5");
-    pserial.adc_ck[5].addActionListener(this);
-    ais_sl.putConstraint(SpringLayout.NORTH, pserial.adc_ck[5], 40, SpringLayout.NORTH, ais_p);
-    ais_sl.putConstraint(SpringLayout.WEST, pserial.adc_ck[5], 100, SpringLayout.WEST, ais_p);
-    ais_p.add(pserial.adc_ck[5]);
-    pserial.adc_ck[6] = new JCheckBox(" adc 6");
-    pserial.adc_ck[6].addActionListener(this);
-    ais_sl.putConstraint(SpringLayout.NORTH, pserial.adc_ck[6], 40, SpringLayout.NORTH, ais_p);
-    ais_sl.putConstraint(SpringLayout.WEST, pserial.adc_ck[6], 190, SpringLayout.WEST, ais_p);
-    ais_p.add(pserial.adc_ck[6]);
+    JPanel aie_p = new JPanel();
+    SpringLayout aie_sl = new SpringLayout();
+    aie_p.setLayout(aie_sl);
+    aie_p.setPreferredSize(new Dimension(395, 40));
+    aie_sl.putConstraint(SpringLayout.NORTH, aie_p, 0, SpringLayout.NORTH, ais_tab);
+    aie_sl.putConstraint(SpringLayout.WEST, aie_p, 0, SpringLayout.WEST, ais_tab);
+    for(int i = 0; i < 7; i++) {
+      pserial.adc_ck[i] = new JCheckBox(" adc " + i);
+      pserial.adc_ck[i].addActionListener(this);
+      if(i < 4) {
+        aie_sl.putConstraint(SpringLayout.NORTH, pserial.adc_ck[i], 10, SpringLayout.NORTH, aie_p);
+        aie_sl.putConstraint(SpringLayout.WEST, pserial.adc_ck[i], 10 + (90 * i), SpringLayout.WEST, aie_p);
+      }
+      else {
+        aie_sl.putConstraint(SpringLayout.NORTH, pserial.adc_ck[i], 40, SpringLayout.NORTH, aie_p);
+        aie_sl.putConstraint(SpringLayout.WEST, pserial.adc_ck[i], 10 + (90 * (i - 4)), SpringLayout.WEST, aie_p);
+      }
+      aie_p.add(pserial.adc_ck[i]);
+    }
+    ais_tab.addTab("Analog In. Enable", aie_p);
+
+    JPanel ait_p = new JPanel();
+    SpringLayout ait_sl = new SpringLayout();
+    ait_p.setLayout(ait_sl);
+    ait_p.setPreferredSize(new Dimension(395, 80));
+    ait_sl.putConstraint(SpringLayout.NORTH, ait_p, 0, SpringLayout.NORTH, ais_tab);
+    ait_sl.putConstraint(SpringLayout.WEST, ait_p, 0, SpringLayout.WEST, ais_tab);
+    for(int i = 0; i < 7; i++) {
+      String[] type_name = {"I/F", "C/F", "M/A"};
+      pserial.adc_cmb0[i] = new JComboBox(type_name);
+      pserial.adc_cmb0[i].addActionListener(this);
+      if(i < 4) {
+        ait_sl.putConstraint(SpringLayout.NORTH, pserial.adc_cmb0[i], 10, SpringLayout.NORTH, ait_p);
+        ait_sl.putConstraint(SpringLayout.WEST, pserial.adc_cmb0[i], 10 + (90 * i), SpringLayout.WEST, ait_p);
+      }
+      else {
+        ait_sl.putConstraint(SpringLayout.NORTH, pserial.adc_cmb0[i], 40, SpringLayout.NORTH, ait_p);
+        ait_sl.putConstraint(SpringLayout.WEST, pserial.adc_cmb0[i], 10 + (90 * (i - 4)), SpringLayout.WEST, ait_p);
+      }
+      ait_p.add(pserial.adc_cmb0[i]);
+    }
+    ais_tab.addTab("Input Type", ait_p);
+
+    JPanel aic_p = new JPanel();
+    SpringLayout aic_sl = new SpringLayout();
+    aic_p.setLayout(aic_sl);
+    aic_p.setPreferredSize(new Dimension(395, 80));
+    aic_sl.putConstraint(SpringLayout.NORTH, aic_p, 0, SpringLayout.NORTH, ais_tab);
+    aic_sl.putConstraint(SpringLayout.WEST, aic_p, 0, SpringLayout.WEST, ais_tab);
+    for(int i = 0; i < 7; i++) {
+      String[] curve_name = {"C.1", "C.2", "C.3", "C.4", "C.5"};
+      pserial.adc_cmb1[i] = new JComboBox(curve_name);
+      pserial.adc_cmb1[i].addActionListener(this);
+      if(i < 4) {
+        aic_sl.putConstraint(SpringLayout.NORTH, pserial.adc_cmb1[i], 10, SpringLayout.NORTH, aic_p);
+        aic_sl.putConstraint(SpringLayout.WEST, pserial.adc_cmb1[i], 10 + (90 * i), SpringLayout.WEST, aic_p);
+      }
+      else {
+        aic_sl.putConstraint(SpringLayout.NORTH, pserial.adc_cmb1[i], 40, SpringLayout.NORTH, aic_p);
+        aic_sl.putConstraint(SpringLayout.WEST, pserial.adc_cmb1[i], 10 + (90 * (i - 4)), SpringLayout.WEST, aic_p);
+      }
+      aic_p.add(pserial.adc_cmb1[i]);
+    }
+    ais_tab.addTab("Fader Curve", aic_p);
 
     //Firmware Update
     JPanel fu_p = new JPanel();
@@ -491,13 +619,8 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     timer = new Timer(1, this);
   }
 
-  PicnomeSerial() {
-    super("PICnome Serial ver. / f/w ver.");
-  }
-
   public void actionPerformed(ActionEvent e) {
     String cmd = e.getActionCommand();
-
     if(cmd == null)
       cmd = "timer";
     else if(cmd.equals(pserial.prefix_tf.getText()))
@@ -519,18 +642,32 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     }
     else if(cmd.equals("ProtocolChanged")) {
       if(((String)pserial.protocol_cb.getSelectedItem()).equals("Open Sound Control")) {
-        psd_cl.first(psd_p);
+        psd_cl.show(psd_p, "osc");
         if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0)))
           pserial.setCurrentProtocol(0, "Open Sound Control");
         else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1)))
           pserial.setCurrentProtocol(1, "Open Sound Control");
       }
       else if(((String)pserial.protocol_cb.getSelectedItem()).equals("MIDI")) {
-        psd_cl.last(psd_p);
+        psd_cl.show(psd_p, "midi");
         if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0)))
           pserial.setCurrentProtocol(0, "MIDI");
         else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1)))
           pserial.setCurrentProtocol(1, "MIDI");
+      }
+      else if(((String)pserial.protocol_cb.getSelectedItem()).equals("OSC/MIDI(ext.)")) {
+        psd_cl.show(psd_p, "osc-ext-midi");
+        if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0)))
+          pserial.setCurrentProtocol(0, "OSC/MIDI(ext.)");
+        else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1)))
+          pserial.setCurrentProtocol(1, "OSC/MIDI(ext.)");
+      }
+      else if(((String)pserial.protocol_cb.getSelectedItem()).equals("OSC(LEDs)/MIDI(Pads)")) {
+        psd_cl.show(psd_p, "midi");
+        if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0)))
+          pserial.setCurrentProtocol(0, "OSC(LEDs)/MIDI(Pads)");
+        else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1)))
+          pserial.setCurrentProtocol(1, "OSC(LEDs)/MIDI(Pads)");
       }
     }
     else if(cmd.equals("MidiInChanged")) {
@@ -597,47 +734,8 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
         if(pserial.checkPortState(1))
           pserial.sendDataToSerial(1, str);
       }
-/*
-      if(pserial.checkPortState(idx))
-        pserial.sendDataToSerial(idx, str);
-*/
       pserial.led_test_b.setText("LED Test On");
     }
-/*
-    else if(cmd.equals("Open")) {
-      boolean b;
-
-      if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0))) {
-        b = pserial.openSerialPort(0);
-        b = pserial.setSerialPort(0);
-        if(pserial.getCurrentMaxColumn(0) == 7)
-          mdf.setHalfVisible();
-      }
-      else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1))) {
-        b = pserial.openSerialPort(1);
-        b = pserial.setSerialPort(1);
-        if(pserial.getCurrentMaxColumn(1) == 7)
-          mdf.setHalfVisible();
-      }
-      pserial.openclose_b.setText("Close");
-      int timeout_count = 0;
-      while(!pserial.fwver_flag) {
-        timeout_count++;
-        if(timeout_count > 65536)
-          break;
-      };
-      setTitle("PICnomeSerial " + pserial.psver + " /  " + pserial.fwver);
-    }
-    else if(cmd.equals("Close")) {
-      boolean b;
-
-      if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0)))
-        b = pserial.closeSerialPort(0);
-      else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1)))
-        b = pserial.closeSerialPort(1);
-      pserial.openclose_b.setText("Open");
-    }
-*/
     else if(cmd.equals("Detail..."))
       mdf.setVisible(true);
     else if(cmd.equals("Select")) {
@@ -826,7 +924,10 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
         if(index != prev_index)
           for(int j = 0; j < mpcp[0].length; j++)
             for(int i = 0; i < mpcp.length; i++)
-              pserial.midi_parameter[i][j][prev_index] = (Integer)mpcp[i][j].value.getValue();
+              if(prev_index == 0)
+                pserial.midi_parameter[i][j][prev_index] = (Integer)mpcp[i][j].value.getValue() - 1;
+              else
+                pserial.midi_parameter[i][j][prev_index] = (Integer)mpcp[i][j].value.getValue();
 
         for(int j = 0; j < mpcp[0].length; j++) {
           for(int i = 0; i < mpcp.length; i++) {
@@ -921,7 +1022,10 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
               java.util.StringTokenizer st = new java.util.StringTokenizer(line);
               x = 0;
               while(st.hasMoreTokens()) {
-                pserial.midi_parameter[x][y][index] = Integer.valueOf(st.nextToken());
+                if(index == 0)
+                  pserial.midi_parameter[x][y][index] = Integer.valueOf(st.nextToken()) - 1;
+                else
+                  pserial.midi_parameter[x][y][index] = Integer.valueOf(st.nextToken());
                 x++;
               }
               y++;
@@ -990,7 +1094,10 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
         value.setValue(slider.getValue());
       if(para_change_flag == false) {
         int index = pserial.midiparameter_cb.getSelectedIndex(); 
-        pserial.midi_parameter[lattice_x][lattice_y][index] = (Integer)value.getValue();
+        if(index == 0)
+          pserial.midi_parameter[lattice_x][lattice_y][index] = (Integer)value.getValue() - 1;
+        else
+          pserial.midi_parameter[lattice_x][lattice_y][index] = (Integer)value.getValue();
 /*midi
         if(index == 0)
           pserial.midiout[lattice_x + (lattice_y * 8)] = pserial.midiio.getMidiOut(
