@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.4.10(118) 2010/09/25
+ * PicnomeCommunication.java,v.1.4.11(123) 2010/10/02
  */
 
 // RXTX
@@ -35,18 +35,16 @@ import java.util.*;
 import java.io.*;
 import java.net.*;
 
-public class PicnomeCommunication {
-  public String psver = "1.4.10";
-  public String fwver = "";
-  public boolean fwver_flag = false;
+public class PicnomeCommunication implements PicnomeSystems {
+  private String fwver = "";
+  private boolean fwver_flag = false;
 
-  public Vector<String> device_list = new Vector<String>();
-  public Vector<String> midiinput_list = new Vector<String>();
-  public Vector<String> midioutput_list = new Vector<String>();
+  private Vector<String> device_list = new Vector<String>();
+  private Vector<String> midiinput_list = new Vector<String>();
+  private Vector<String> midioutput_list = new Vector<String>();
   private List<MidiDevice.Info> midiinputdevices = new ArrayList<MidiDevice.Info>();
   private List<MidiDevice.Info> midioutputdevices = new ArrayList<MidiDevice.Info>();
 
-  public JButton openclose_b;
   public JButton mididetail_b;
   public JButton led_clear_b;
   public JButton led_test_b;
@@ -70,62 +68,61 @@ public class PicnomeCommunication {
   public JComboBox[] adc_cmb0 = new JComboBox[7];
   public JComboBox[] adc_cmb1 = new JComboBox[7];
   public JProgressBar update_pb;
-/* for DEBUG
-  private JTextField debug_tf;
-  private JTextField debug2_tf;
-*/
 
-  private final int max_picnome_num = 2;
   private int current_picnome_num;
   private int msg_index = 0;
-  private CommPortIdentifier[] portId = new CommPortIdentifier[max_picnome_num];
-  private SerialPort[] port = new SerialPort[max_picnome_num];
-  private InputStream[] in = new InputStream[max_picnome_num];
-  private OutputStream[] out = new OutputStream[max_picnome_num];
+  private CommPortIdentifier[] portId = new CommPortIdentifier[MAX_CONNECTABLE_NUM];
+  private SerialPort[] port = new SerialPort[MAX_CONNECTABLE_NUM];
+  private InputStream[] in = new InputStream[MAX_CONNECTABLE_NUM];
+  private OutputStream[] out = new OutputStream[MAX_CONNECTABLE_NUM];
 
   private OSCPortIn oscpin;
   private OSCPortOut oscpout;
 
-  //for Mac OS X
-  private MidiDevice[] midiin = new MidiDevice[max_picnome_num];
-  private MidiDevice[] midiout = new MidiDevice[max_picnome_num];
-  private Receiver[] midi_r = new Receiver[max_picnome_num];
-  private Transmitter[] midi_t = new Transmitter[max_picnome_num];
+  private MidiDevice[] midiin = new MidiDevice[MAX_CONNECTABLE_NUM];
+  private MidiDevice[] midiout = new MidiDevice[MAX_CONNECTABLE_NUM];
+  private Receiver[] midi_r = new Receiver[MAX_CONNECTABLE_NUM];
+  private Transmitter[] midi_t = new Transmitter[MAX_CONNECTABLE_NUM];
   private int midi_pgm_number;
 
-  private String[] device = new String[max_picnome_num];
-  private String[] device2 = new String[max_picnome_num];
-  private String[] protocol_type = new String[max_picnome_num];
-  private int[] midi_in = new int[max_picnome_num];
-  private int[] midi_out = new int[max_picnome_num];
-  private String[] host_address = new String[max_picnome_num];
-  private int[] host_port = new int[max_picnome_num];
-  private int[] listen_port = new int[max_picnome_num];
-  private String[] connect_state = new String[max_picnome_num];
-  private String[] ledtest_state = new String[max_picnome_num];
-  private String[] cable_orientation = new String[max_picnome_num];
-  private String[] address_pattern_prefix = new String[max_picnome_num];
-  private int[] intensity = new int[max_picnome_num];
-  private int[] starting_column = new int[max_picnome_num];
-  private int[] starting_row = new int[max_picnome_num];
-  private int[] co_max_num = new int[max_picnome_num];
-  private boolean[][] adc_enable = new boolean[max_picnome_num][7];
-  public int[][][] midi_parameter = new int[16][8][3];
+  private String[] device = new String[MAX_CONNECTABLE_NUM];
+  private String[] device2 = new String[MAX_CONNECTABLE_NUM];
+  private String[] protocol_type = new String[MAX_CONNECTABLE_NUM];
+  private int[] midi_in = new int[MAX_CONNECTABLE_NUM];
+  private int[] midi_out = new int[MAX_CONNECTABLE_NUM];
+  private String[] host_address = new String[MAX_CONNECTABLE_NUM];
+  private String[] host_port = new String[MAX_CONNECTABLE_NUM];
+  private String[] listen_port = new String[MAX_CONNECTABLE_NUM];
+  private String[] connect_state = new String[MAX_CONNECTABLE_NUM];
+  private String[] ledtest_state = new String[MAX_CONNECTABLE_NUM];
+  private String[] cable_orientation = new String[MAX_CONNECTABLE_NUM];
+  private String[] address_pattern_prefix = new String[MAX_CONNECTABLE_NUM];
+  private int[] intensity = new int[MAX_CONNECTABLE_NUM];
+  private int[] starting_column = new int[MAX_CONNECTABLE_NUM];
+  private int[] starting_row = new int[MAX_CONNECTABLE_NUM];
+  private int[] co_max_num = new int[MAX_CONNECTABLE_NUM];
+  private boolean[][] adc_enable = new boolean[MAX_CONNECTABLE_NUM][7];
+  private int[][] adc_type = new int[MAX_CONNECTABLE_NUM][7];
+  private int[][] adc_curve = new int[MAX_CONNECTABLE_NUM][7];
+  private int[][][] midi_parameter = new int[16][8][3];
 
-  private double[] adc_old = new double[6];
+  private int count_ma = 0;
+  private double[] atb = new double[7];
+  private double[] atb_old = new double[7];
+  private double[][] atb_box = new double[7][32];
 
   public PicnomeCommunication() {
     current_picnome_num = 0;
     initDeviceList();
-    for(int i = 0; i < max_picnome_num; i++) {
+    for(int i = 0; i < MAX_CONNECTABLE_NUM; i++) {
       in[i] = null;
       out[i] = null;
       protocol_type[i] = "Open Sound Control";
       midi_in[i] = 0;
       midi_out[i] = 0;
       host_address[i] = "127.0.0.1";
-      host_port[i] = 8000;
-      listen_port[i] = 8080;
+      host_port[i] = "8000";
+      listen_port[i] = "8080";
       connect_state[i] = "Open";
       ledtest_state[i] = "LED Test On";
       cable_orientation[i] = "left";
@@ -240,7 +237,7 @@ public class PicnomeCommunication {
       List<String> suffix2 = getUsbInfo("PICnome128");
       Enumeration e = CommPortIdentifier.getPortIdentifiers();
 
-      for(int i = 0; i < max_picnome_num; i++) {
+      for(int i = 0; i < MAX_CONNECTABLE_NUM; i++) {
         device[i] = "";
         device2[i] = "";
       }
@@ -251,7 +248,7 @@ public class PicnomeCommunication {
         if(device_name.indexOf("/dev/cu.usbmodem") != -1) {
           for(String s0str: suffix0) {
             if(device_name.indexOf(s0str) != -1) {
-              if(current_picnome_num >= max_picnome_num)
+              if(current_picnome_num >= MAX_CONNECTABLE_NUM)
                 break;
               device[current_picnome_num] = "tkrworks-PICnome-" + s0str;
               device2[current_picnome_num] = device_name;
@@ -261,7 +258,7 @@ public class PicnomeCommunication {
           }
           for(String s2str: suffix2) {//for one twenty eight
             if(device_name.indexOf(s2str) != -1) {
-              if(current_picnome_num >= max_picnome_num)
+              if(current_picnome_num >= MAX_CONNECTABLE_NUM)
                 break;
               device[current_picnome_num] = "tkrworks-PICnome128-" + s2str;
               device2[current_picnome_num] = device_name;
@@ -271,7 +268,7 @@ public class PicnomeCommunication {
           }
           for(String s1str: suffix1) {//for sixty four
             if(device_name.indexOf(s1str) != -1) {
-              if(current_picnome_num >= max_picnome_num)
+              if(current_picnome_num >= MAX_CONNECTABLE_NUM)
                 break;
               device[current_picnome_num] = "tkrworks-PICnome-" + s1str;
               device2[current_picnome_num] = device_name;
@@ -290,7 +287,7 @@ public class PicnomeCommunication {
       Enumeration e = CommPortIdentifier.getPortIdentifiers();
       
 
-      for(int i = 0; i < max_picnome_num; i++) {
+      for(int i = 0; i < MAX_CONNECTABLE_NUM; i++) {
         device[i] = "";
         device2[i] = "";
       }
@@ -300,7 +297,7 @@ public class PicnomeCommunication {
         
         for(String c0str: comport0) {
           if(device_name.indexOf(c0str) != -1) {
-            if(current_picnome_num >= max_picnome_num)
+            if(current_picnome_num >= MAX_CONNECTABLE_NUM)
               break;
             device[current_picnome_num] = "tkrworks-PICnome-" + c0str;
             device2[current_picnome_num] = device_name;
@@ -310,7 +307,7 @@ public class PicnomeCommunication {
         }
         for(String c1str: comport1) {
           if(device_name.indexOf(c1str) != -1) {
-            if(current_picnome_num >= max_picnome_num)
+            if(current_picnome_num >= MAX_CONNECTABLE_NUM)
               break;
             device[current_picnome_num] = "tkrworks-PICnome128-" + c1str;
             device2[current_picnome_num] = device_name;
@@ -327,22 +324,40 @@ public class PicnomeCommunication {
     midi_in[1 - index] = midiinput_cb.getSelectedIndex();
     midi_out[1 - index] = midioutput_cb.getSelectedIndex();
     host_address[1 - index] = hostaddress_tf.getText();
-    host_port[1 - index] = Integer.parseInt(hostport_tf.getText());
-    listen_port[1 - index] = Integer.parseInt(listenport_tf.getText());
+    host_port[1 - index] = hostport_tf.getText();
+    listen_port[1 - index] = listenport_tf.getText();
     ledtest_state[1 - index] = led_test_b.getText();
+    for(int i = 0; i < 6; i++) {
+      adc_enable[1 - index][i] = adc_ck[i].isSelected();
+      adc_type[1 - index][i] = adc_cmb0[i].getSelectedIndex();
+      adc_curve[1 - index][i] = adc_cmb1[i].getSelectedIndex();
+    }
 
     protocol_cb.setSelectedItem(protocol_type[index]);
     midiinput_cb.setSelectedIndex(midi_in[index]);
     midioutput_cb.setSelectedIndex(midi_out[index]);
     hostaddress_tf.setText(host_address[index]);
-    hostport_tf.setText(Integer.toString(host_port[index]));
-    listenport_tf.setText(Integer.toString(listen_port[index]));
+    hostport_tf.setText(host_port[index]);
+    listenport_tf.setText(listen_port[index]);
     led_test_b.setText(ledtest_state[index]);
     cable_cb.setSelectedItem(cable_orientation[index]);
     prefix_tf.setText(address_pattern_prefix[index]);
     intensity_s.setValue(intensity[index]);
     startcolumn_s.setValue(starting_column[index]);
     startrow_s.setValue(starting_row[index]);
+    for(int i = 0; i < 6; i++) {
+      adc_ck[i].setSelected(adc_enable[index][i]);
+      if(adc_ck[i].isSelected())
+        adc_cmb0[i].setEnabled(true);
+      else
+        adc_cmb0[i].setEnabled(false);
+      adc_cmb0[i].setSelectedIndex(adc_type[index][i]);
+      if(adc_cmb0[i].getSelectedIndex() < 2)
+        adc_cmb1[i].setEnabled(true);
+      else
+        adc_cmb1[i].setEnabled(false);
+      adc_cmb1[i].setSelectedIndex(adc_curve[index][i]);
+    }
 
     for(int i = 0; i < 7; i++)
       adc_ck[i].setSelected(adc_enable[index][i]);
@@ -415,15 +430,10 @@ public class PicnomeCommunication {
 
   public boolean closeSerialPort(int index) {
     try {
-      if(((String)protocol_cb.getSelectedItem()).equals("MIDI")) {
-        //sy midiio.closeInput(midi_in_port);
-      }
-
       in[index].close();
       out[index].flush();
       out[index].close();
       port[index].close();
-
     }
     catch(Exception e) {
       e.printStackTrace();
@@ -445,8 +455,8 @@ public class PicnomeCommunication {
     hostaddress[3] = Byte.parseByte(ha_str.substring(idx, ha_str.length()));
 
     try {
-      (new Thread(new OSCReader(listen_port[index]))).start();
-      oscpout = new OSCPortOut(InetAddress.getByAddress(hostaddress), host_port[index]);
+      (new Thread(new OSCReader(Integer.valueOf(listen_port[index])))).start();
+      oscpout = new OSCPortOut(InetAddress.getByAddress(hostaddress), Integer.valueOf(host_port[index]));
     }
     catch(IOException ioe){}
   }
@@ -520,6 +530,10 @@ public class PicnomeCommunication {
     catch(MidiUnavailableException mue){}
   }
 
+  public Vector<String> getDeviceList() {
+    return device_list;
+  }
+
   public int getCurrentNum() {
     return current_picnome_num;
   }
@@ -540,12 +554,44 @@ public class PicnomeCommunication {
     midi_out[index] = id;
   }
 
+  public Vector<String> getMidiInputList() {
+    return midiinput_list;
+  }
+
+  public Vector<String> getMidiOutputList() {
+    return midioutput_list;
+  }
+
   public int getCurrentMidiIn(int index) {
     return midi_in[index];
   }
 
   public int getCurrentMidiOut(int index) {
     return midi_out[index];
+  }
+
+  public int getMidiNoteChannel(int nx, int ny) {
+    return midi_parameter[nx][ny][0];
+  }
+
+  public int getMidiNoteOnVelocity(int nx, int ny) {
+    return midi_parameter[nx][ny][1];
+  }
+
+  public int getMidiNoteOffVelocity(int nx, int ny) {
+    return midi_parameter[nx][ny][2];
+  }
+
+  public void setMidiNoteChannel(int nx, int ny, int ch) {
+    midi_parameter[nx][ny][0] = ch;
+  }
+
+  public void setMidiNoteOnVelocity(int nx, int ny, int vel) {
+    midi_parameter[nx][ny][1] = vel;
+  }
+
+  public void setMidiNoteOffVelocity(int nx, int ny, int vel) {
+    midi_parameter[nx][ny][2] = vel;
   }
 
   public void setCurrentCable(int index, String orientation) {
@@ -576,6 +622,14 @@ public class PicnomeCommunication {
     adc_enable[index0][index1] = b;
   }
 
+  public boolean isFirmwareVersion() {
+    return fwver_flag;
+  }
+
+  public String getFirmwareVersion() {
+    return fwver;
+  }
+
   public boolean checkPortState(int index) {
     if(portId[index] != null && portId[index].isCurrentlyOwned())
       return true;
@@ -593,6 +647,14 @@ public class PicnomeCommunication {
   public void sendDataToSerial(int index, String str) {
     try {
       out[index].write(str.getBytes());
+    }
+    catch(IOException e) {}
+  }
+
+  public void sendDataToSerial(int index, String[] str) {
+    try {
+      for(String str0 : str)
+        out[index].write(str0.getBytes());
     }
     catch(IOException e) {}
   }
@@ -619,8 +681,6 @@ public class PicnomeCommunication {
         x0 = chs[1] & 0x0F;
         y0 = (chs[1] >> 4) & 0x0F;
 
-        //debug System.out.println("test " + x0 + " " + y0 + " " + state0);
-
         int sc = starting_column[index];
         int sr = starting_row[index];
 
@@ -645,7 +705,6 @@ public class PicnomeCommunication {
         else if((char)chs[0] == 'r')
           args[2] = 0; // State
 
-        //debug debug_tf.setText(args[0] + " " + args[1] + " " + args[2]);
         msg = new OSCMessage(address_pattern_prefix[index] + "/press", args);
         try {
           oscpout.send(msg);
@@ -656,38 +715,60 @@ public class PicnomeCommunication {
         int notex = chs[1] & 0x0F;
         int notey = (chs[1] >> 4) & 0x0F;
         int note_number = notex + (notey * (co_max_num[index] + 1));
-        //sy debug_tf.setText(Integer.toString(note_number));
 
         try {
           ShortMessage sm = new ShortMessage();
           if((char)chs[0] == 'p')
-            sm.setMessage(ShortMessage.NOTE_ON, midi_parameter[notex][notey][0], (byte)note_number, midi_parameter[notex][notey][1]);
+            sm.setMessage(ShortMessage.NOTE_ON, getMidiNoteChannel(notex, notey),
+                          (byte)note_number, getMidiNoteOnVelocity(notex, notey));
           else if((char)chs[0] == 'r')
-            sm.setMessage(ShortMessage.NOTE_OFF, midi_parameter[notex][notey][0], (byte)note_number, midi_parameter[notex][notey][2]);
+            sm.setMessage(ShortMessage.NOTE_OFF, getMidiNoteChannel(notex, notey),
+                          (byte)note_number, getMidiNoteOffVelocity(notex, notey));
           midi_r[index].send(sm, 1);
         } catch(InvalidMidiDataException imde) {}
       }
     }
     else if((char)chs[0] == 'a') {
       int adc_id = chs[1] >> 4;
-      double f = (((chs[1] & 0x03) << 8) + chs[2]) / 1000.0;
-      float f2;
-      if(f > 1.0) f = 1.0;
-/*
-      if(Math.abs(f - adc_old[adc_id]) <= 0.0078125 ) //128steps
-        f = adc_old[adc_id];
-*/
-      adc_old[adc_id] = f;
+      atb[adc_id] = (((chs[1] & 0x03) << 8) + chs[2]);
+      float f = 0.0f;
+      int ac0 = adc_cmb0[adc_id].getSelectedIndex();
+      double ac1 = adc_cmb1[adc_id].getSelectedIndex();
 
-      if(f < 0.5)
-        f2 = (float)(0.5 * Math.pow(2.0 * f, 0.1));
-      else
-        f2 = (float)(1.0 - (0.5 * Math.pow(2.0 - (2.0 * f), 0.1)));
+      if(atb[adc_id] > 1000.0) atb[adc_id] = 1023.0;
+      else if(atb[adc_id] < 16) atb[adc_id] = 0.0;
+
+      if(ac0 == 0) {
+        if(Math.abs(atb[adc_id] - atb_old[adc_id]) < 12)
+          atb[adc_id] = atb_old[adc_id];
+        f = (float)(Math.pow(atb[adc_id] / 1024.0, Math.pow(2.0, (2.0 * ac1) - 4.0)));
+        atb_old[adc_id] = atb[adc_id];
+      }
+      else if(ac0 == 1) {
+        if(Math.abs(atb[adc_id] - atb_old[adc_id]) < 12)
+          atb[adc_id] = atb_old[adc_id];
+        if(atb[adc_id] < 512)
+          f = (float)(0.5 * Math.pow(atb[adc_id] / 512.0, Math.pow(2.0, (2.0 * ac1) - 4.0)));
+        else
+          f = (float)(1.0 - (0.5 * Math.pow((1023.0 - atb[adc_id]) / 512.0, Math.pow(2.0, (2.0 * ac1) - 4.0))));
+        atb_old[adc_id] = atb[adc_id];
+      }
+      else {
+        atb_box[adc_id][count_ma] = atb[adc_id];
+        double sum = 0;
+        for(int i = 0; i < 32; i++)
+          sum += atb_box[adc_id][i];
+        f = (float)((sum / 32.0) / 1023.0);
+        count_ma++;
+        if(count_ma > 31)
+          count_ma = 0;
+      }
+      //sy System.out.println(atb + " " + f);
 
       if(protocol_type[index].equals("Open Sound Control")) {
         args = new Object[2];
         args[0] = adc_id;
-        args[1] = (float)(((int)(f2 * 250.0)) / 250.0);
+        args[1] = f;//sy (float)(((int)(f * 250.0)) / 250.0);
         msg = new OSCMessage(address_pattern_prefix[index] + "/adc", args);
 
         try {
@@ -697,7 +778,7 @@ public class PicnomeCommunication {
       else {// for MIDI
         try {
           ShortMessage sm = new ShortMessage();
-          sm.setMessage(ShortMessage.CONTROL_CHANGE, 0, adc_id, (int)(f2 * 127));
+          sm.setMessage(ShortMessage.CONTROL_CHANGE, 0, adc_id, (int)(f * 127));
           midi_r[index].send(sm, 1);
         } catch(InvalidMidiDataException imde){}
       }
@@ -757,7 +838,6 @@ public class PicnomeCommunication {
         }
         args[2] = state0; // State
 
-        //debug debug_tf.setText(args[0] + " " + args[1] + " " + args[2]);
         msg = new OSCMessage(address_pattern_prefix[index] + "/press", args);
         try {
           oscpout.send(msg);
@@ -774,14 +854,15 @@ public class PicnomeCommunication {
           state = 0;
 
         int note_number = notex + (notey * (co_max_num[index] + 1));
-        //sy debug_tf.setText(Integer.toString(note_number));
 
         try {
           ShortMessage sm = new ShortMessage();
           if(state == 1)
-            sm.setMessage(ShortMessage.NOTE_ON, midi_parameter[notex][notey][0], (byte)note_number, midi_parameter[notex][notey][1]);
+            sm.setMessage(ShortMessage.NOTE_ON, getMidiNoteChannel(notex, notey),
+                          (byte)note_number, getMidiNoteOnVelocity(notex, notey));
           else
-            sm.setMessage(ShortMessage.NOTE_OFF, midi_parameter[notex][notey][0], (byte)note_number, midi_parameter[notex][notey][2]);
+            sm.setMessage(ShortMessage.NOTE_OFF, getMidiNoteChannel(notex, notey),
+                          (byte)note_number, getMidiNoteOffVelocity(notex, notey));
           midi_r[index].send(sm, 1);
         }
         catch(InvalidMidiDataException imde) {}
@@ -827,75 +908,56 @@ public class PicnomeCommunication {
     }
   }
 
-  private void controlMsgLed(int index, OSCMessage message) {
-    try {
-      if(protocol_type[index].equals("MIDI"))
-        return ;
+  private String controlMsgLed(int index, OSCMessage message) {
+    String address = message.getAddress();
+    Object[] args = message.getArguments();
 
-      String address = message.getAddress();
-      Object[] args = message.getArguments();
-
-      int args0 = (int)Float.parseFloat(args[0].toString());
-      int args1 = (int)Float.parseFloat(args[1].toString());
-      int args2 = (int)Float.parseFloat(args[2].toString());
+    int args0 = (int)Float.parseFloat(args[0].toString());
+    int args1 = (int)Float.parseFloat(args[1].toString());
+    int args2 = (int)Float.parseFloat(args[2].toString());
       
-      int sc, sr;
+    int sc, sr;
         
-      sc = starting_column[index];
-      sr = starting_row[index];
+    sc = starting_column[index];
+    sr = starting_row[index];
                 
-      if(cable_orientation[index].equals("left")) {
-        sc = args0 - sc;
-        sr = args1 - sr;
-      }
-      else if(cable_orientation[index].equals("right")) {
-        sc = co_max_num[index] - args0 + sc;
-        sr = 7 - args1 + sr;
-      }
-      else if(cable_orientation[index].equals("up")) {
-        int sc1 = co_max_num[index] - args1 + sr;
-        int sr1 = args0 - sc;
-        sc = sc1;
-        sr = sr1;
-      }
-      else if(cable_orientation[index].equals("down")) {
-        int sc1 = args1 - sr;
-        int sr1 = 7 - args0 + sc;
-        sc = sc1;
-        sr = sr1;
-      }
-
-      if(sc < 0 || sr < 0) return ;
-        
-      String ssc, ssr;
-      if(sc >= 10)
-        ssc = String.valueOf((char)('A' + (sc - 10)));
-      else
-        ssc = String.valueOf(sc);
-
-      if(sr >= 10)
-        ssr = String.valueOf((char)('A' + (sr - 10)));
-      else
-        ssr = String.valueOf(sr);
-
-      String str =new String("l" + args2 + ssc + ssr + (char)0x0D);
-      //debug debug_tf.setText(str);
-      if(checkPortState(index))
-        sendDataToSerial(index, str);
-
-    } catch(NullPointerException e) {
-      System.err.println("/led");
-      System.err.println(message.getAddress());
-      System.err.println(message.getArguments().length);
-      System.err.println("NullPointerException: " + e.getMessage());
-      e.printStackTrace();
-    } catch(ArrayIndexOutOfBoundsException e) {
-      System.err.println("/led");
-      System.err.println(message.getAddress());
-      System.err.println(message.getArguments());
-      System.err.println("ArrayIndexOutOfBoundsException: " + e.getMessage());
-      e.printStackTrace();
+    if(cable_orientation[index].equals("left")) {
+      sc = args0 - sc;
+      sr = args1 - sr;
     }
+    else if(cable_orientation[index].equals("right")) {
+      sc = co_max_num[index] - args0 + sc;
+      sr = 7 - args1 + sr;
+    }
+    else if(cable_orientation[index].equals("up")) {
+      int sc1 = co_max_num[index] - args1 + sr;
+      int sr1 = args0 - sc;
+      sc = sc1;
+      sr = sr1;
+    }
+    else if(cable_orientation[index].equals("down")) {
+      int sc1 = args1 - sr;
+      int sr1 = 7 - args0 + sc;
+      sc = sc1;
+      sr = sr1;
+    }
+
+    if(sc < 0 || sr < 0)
+      return null;
+        
+    String ssc, ssr;
+    if(sc >= 10)
+      ssc = String.valueOf((char)('A' + (sc - 10)));
+    else
+      ssc = String.valueOf(sc);
+    
+    if(sr >= 10)
+      ssr = String.valueOf((char)('A' + (sr - 10)));
+    else
+      ssr = String.valueOf(sr);
+
+    String str =new String("l" + args2 + ssc + ssr + (char)0x0D);
+    return str;
   }
 
   private void enableMidiLed(int index) {
@@ -934,7 +996,6 @@ public class PicnomeCommunication {
             else if((data[0] + 256) == 128 || data[2] == 0)
               str =new String("l0" + ssc + ssr + (char)0x0D);
 
-            //debug debug_tf.setText(str);
             if(checkPortState(index))
               sendDataToSerial(index, str);
           }
@@ -943,10 +1004,7 @@ public class PicnomeCommunication {
     midi_t[index].setReceiver(rcv);
   }
 
-  private void controlMsgLedCol(int index, OSCMessage message) {
-    if(protocol_type[index].equals("MIDI"))
-      return ;
-
+  private String controlMsgLedCol(int index, OSCMessage message) {
     Object[] args = message.getArguments();
 
     int args0 = (int)Float.parseFloat(args[0].toString());
@@ -963,7 +1021,7 @@ public class PicnomeCommunication {
     else if(cable_orientation[index].equals("down"))
       sc= 7 - args0 + starting_column[index];
         
-    if(sc < 0) return;
+    if(sc < 0) return null;
         
     int shift = starting_row[index] % (co_max_num[index] + 1);
         
@@ -995,16 +1053,10 @@ public class PicnomeCommunication {
       str =new String("lc " + sc + " " + sr + (char)0x0D); // (l)ed_(c)ol
     else
       str =new String("lr " + sc + " " + sr + (char)0x0D); // (l)ed_(r)ow
-    //debug debug_tf.setText(str);
-    if(checkPortState(index)) {
-      sendDataToSerial(index, str);
-    }
+    return str;
   }
 
-  private void controlMsgLedRow(int index, OSCMessage message) {
-    if(protocol_type[index].equals("MIDI"))
-      return ;
-
+  private String controlMsgLedRow(int index, OSCMessage message) {
     Object[] args = message.getArguments();
 
     int args0 = (int)Float.parseFloat(args[0].toString());
@@ -1021,7 +1073,7 @@ public class PicnomeCommunication {
     else if(cable_orientation[index].equals("down"))
       sr = args0 - starting_row[index];
     
-    if(sr < 0) return;
+    if(sr < 0) return null;
         
     int shift = starting_column[index] % (co_max_num[index] + 1);
         
@@ -1053,18 +1105,12 @@ public class PicnomeCommunication {
       str =new String("lr " + sr + " " + sc + (char)0x0D); // (l)ed_(r)ow
     else
       str =new String("lc " + sr + " " + sc + (char)0x0D); // (l)ed_(c)o0
-    
-    //debug debug_tf.setText(str);
-    if(checkPortState(index)) {
-      sendDataToSerial(index, str);
-      }
+    return str;
   }
 
-  private void controlMsgFrame(int index, OSCMessage message) {
-    if(protocol_type[index].equals("MIDI"))
-      return ;
-
+  private String[] controlMsgFrame(int index, OSCMessage message) {
     Object[] args0 = message.getArguments();
+    String[] str = new String[co_max_num[index] + 1];
     int sc = 0, sr = 0;
     int[] args = new int[16];
     int shift;
@@ -1133,21 +1179,18 @@ public class PicnomeCommunication {
         sc = (char)(sc1 << shift);
       }
           
-      String str;
       if(cable_orientation[index].equals("left") || cable_orientation[index].equals("right"))
-        str =new String("lr " + sr + " " + sc + (char)0x0D); // (l)ed_(r)ow
+        str[i] = new String("lr " + sr + " " + sc + (char)0x0D); // (l)ed_(r)ow
       else
-        str =new String("lc " + sr + " " + sc + (char)0x0D); // (l)ed_(c)ol
-        
-      //debug debug_tf.setText(str);
-      if(checkPortState(index))
-        sendDataToSerial(index, str);
+        str[i] = new String("lc " + sr + " " + sc + (char)0x0D); // (l)ed_(c)ol
     }//end for i
+    return str;
   }
 
-  private void controlMsgClear(int index, OSCMessage message) {
+  private String[] controlMsgClear(int index, OSCMessage message) {
     Object[] args = message.getArguments();
-    
+    String[] str = new String[8];
+
     int args0 = 0;
     if(args.length == 1)
       args0 = (int)Float.parseFloat(args[0].toString());
@@ -1167,14 +1210,12 @@ public class PicnomeCommunication {
           state = 65535;
       }
         
-      String str =new String("lr " + i + " " + state + (char)0x0D);
-      //debug debug_tf.setText(str);
-      if(checkPortState(index))
-        sendDataToSerial(index, str);
+      str[i] = new String("lr " + i + " " + state + (char)0x0D);
     }
+    return str;
   }
 
-  private void controlMsgAdcEnable(int index, OSCMessage message) {
+  private String controlMsgAdcEnable(int index, OSCMessage message) {
     Object[] args0 = message.getArguments();
     
     int[] args = new int[args0.length];
@@ -1187,59 +1228,8 @@ public class PicnomeCommunication {
       adc_ck[(Integer)args[0]].setSelected(true);
     else
       adc_ck[(Integer)args[0]].setSelected(false);
-    //debug debug_tf.setText(str);
-    if(checkPortState(index))
-      sendDataToSerial(index, str);
+    return str;
   }
-
-/*
-  private void enableMsgPwm() {
-    OSCListener listener = new OSCListener() {
-        public void acceptMessage(java.util.Date time, OSCMessage message) {
-          Object[] args0 = message.getArguments();
-
-          int[] args = new int[2];
-          for(int i = 0; i < 2; i++)
-            args[i] = (int)Float.parseFloat(args0[i].toString());
-          float args_f = Float.parseFloat(args0[2].toString());
-
-          try {
-            //sy String str =new String("pwm " + (Integer)args[0] + " " + (Integer)args[1] + " " + (Float)args[2] + (char)0x0D);
-            String str =new String("pwm " + args[0] + " " + args[1] + " " + args_f + (char)0x0D);
-            //debug debug_tf.setText(str);
-            if(portId[0] != null && portId[0].isCurrentlyOwned())
-              out[0].write(str.getBytes());
-            if(portId[1] != null && portId[1].isCurrentlyOwned())
-              out[1].write(str.getBytes());
-          }
-          catch(IOException e) {}
-        }
-      };
-    //sy oscpin.addListener(prefix_tf.getText() + "/pwm", listener);
-  }
-*/
-
-/*sy
-  private void enableMsgOutput()
-  {
-    OSCListener listener = new OSCListener()
-      {
-        public void acceptMessage(java.util.Date time, OSCMessage message)
-        {
-          Object[] args = message.getArguments();
-
-          try
-          {
-            String str =new String("output " + (Integer)args[0] + " " + (Integer)args[1] + (char)0x0D);
-            //debug debug_tf.setText(str);
-            out.write(str.getBytes());
-          }
-          catch(IOException e){}
-        }
-      };
-    //sy oscpin.addListener(prefix_tf.getText() + "/output", listener);
-  }
-*/
 
   private void controlMsgDevice(OSCMessage message) {
     Object[] args = message.getArguments();
@@ -1253,7 +1243,7 @@ public class PicnomeCommunication {
   private void controlMsgOscconfig(OSCMessage message) {
     Object[] args = message.getArguments();
     address_pattern_prefix[(Integer)args[2]] = (String)args[0];
-    host_port[(Integer)args[2]] = (Integer)args[1];
+    host_port[(Integer)args[2]] = (String)args[1];
     if(device_cb.getSelectedIndex() == (Integer)args[2]) {
       prefix_tf.setText((String)args[0]);
       hostport_tf.setText(((Integer)args[1]).toString());
@@ -1295,62 +1285,43 @@ public class PicnomeCommunication {
     }
   }
 
-  private void controlMsgIntensity(OSCMessage message) {
+  private String controlMsgIntensity(int index, OSCMessage message) {
     Object[] args = message.getArguments();
+    String str = null;
 
-    for(int i = 0; i < current_picnome_num; i++) {
-      if(args.length == 1) {
-        String str =new String("i " + (Integer)args[0] + (char)0x0D);
-        //debug debug_tf.setText(str);
-        if(checkPortState(i))
-          sendDataToSerial(i, str);
-      }
-      else if(args.length == 2 && (Integer)args[0] == i) {
-        String str =new String("i " + (Integer)args[1] + (char)0x0D);
-        //debug debug_tf.setText(str);
-        if(checkPortState(i))
-          sendDataToSerial(i, str);
-      }
-    }
+    if(args.length == 1)
+      str = new String("i " + (Integer)args[0] + (char)0x0D);
+    else if(args.length == 2 && (Integer)args[0] == index)
+      str = new String("i " + (Integer)args[1] + (char)0x0D);
+    return str;
   }
 
-  private void controlMsgTest(OSCMessage message) {
+  private String controlMsgTest(int index, OSCMessage message) {
     Object[] args = message.getArguments();
+    String str = null;
 
-    for(int i = 0; i < current_picnome_num; i++) {
-      if(args.length == 1) {
-        String str =new String("t " + (Integer)args[0] + (char)0x0D);
-        if(checkPortState(i))
-          sendDataToSerial(i, str);
-      }
-      else if(args.length == 2 && (Integer)args[0] == i) {
-        String str =new String("t " + (Integer)args[1] + (char)0x0D);
-        if(checkPortState(i))
-          sendDataToSerial(i, str);
-      }
-    }
+    if(args.length == 1)
+      str = new String("t " + (Integer)args[0] + (char)0x0D);
+    else if(args.length == 2 && (Integer)args[0] == index)
+      str = new String("t " + (Integer)args[1] + (char)0x0D);
+    return str;
   }
 
-  private void controlMsgShutdown(OSCMessage message) {
+  private String controlMsgShutdown(int index, OSCMessage message) {
     Object[] args = message.getArguments();
+    String str = null;
 
-    for(int i = 0; i < current_picnome_num; i++) {
-      String str =new String("s " + (Integer)args[0] + (char)0x0D);
-      //debug debug_tf.setText(str);
-      if(checkPortState(i))
-        sendDataToSerial(i, str);
-    }
+    if(args.length == 1)
+      str = new String("s " + (Integer)args[0] + (char)0x0D);
+    else if(args.length == 2 && (Integer)args[0] == index)
+      str = new String("s " + (Integer)args[1] + (char)0x0D);
+
+    return str;
   }
 
-  private void controlMsgVersion(OSCMessage message) {
-    //sy Object[] args = message.getArguments();
-
-    for(int i = 0; i < current_picnome_num; i++) {
-      String str =new String("f" + (char)0x0D);
-      //debug debug_tf.setText(str);
-      if(checkPortState(i))
-        sendDataToSerial(i, str);
-    }
+  private String controlMsgVersion(int index, OSCMessage message) {
+    String str = new String("f" + (char)0x0D);
+    return str;
   }
 
   private void controlMsgReport(OSCMessage message) {
@@ -1358,8 +1329,6 @@ public class PicnomeCommunication {
     Object[] args0;
     String str;
     OSCMessage msg;
-
-    //debug debug_tf.setText(String.valueOf(args.length));
 
     try {
       if(args.length == 0) {
@@ -1403,14 +1372,6 @@ public class PicnomeCommunication {
           msg = new OSCMessage("/sys/offset", args0);
           oscpout.send(msg);
         }
-      }
-      else {
-        str = new String("r " + (Integer)args[0] + (char)0x0D);
-        //debug debug_tf.setText(str);
-        if(checkPortState(0))
-          sendDataToSerial(0, str);
-        if(checkPortState(1))
-          sendDataToSerial(1, str);
       }
     }
     catch(IOException e) {}
@@ -1502,7 +1463,7 @@ public class PicnomeCommunication {
       address_pattern_prefix[1] = prefix_tf.getText();
   }
 
-  public class OSCReader implements Runnable {
+  private class OSCReader implements Runnable {
     private DatagramSocket ds;
     private OSCByteArrayToJavaConverter converter = new OSCByteArrayToJavaConverter();
     private OSCPacketDispatcher dispatcher = new OSCPacketDispatcher();
@@ -1516,6 +1477,8 @@ public class PicnomeCommunication {
     @Override
     public synchronized void run() {
       try {
+        String sermsg;
+        String[] sermsgs;
         byte[] buffer = new byte[1536];
         DatagramPacket dp = new DatagramPacket(buffer, buffer.length);
         while(true) {
@@ -1525,18 +1488,38 @@ public class PicnomeCommunication {
 
           //Prefix Messages
           for(int i = 0; i < current_picnome_num; i++) {
+            sermsg = null;
+            sermsgs = null;
+
+            if(protocol_type[i].equals("MIDI"))
+              continue;
+
             if(address.equals(address_pattern_prefix[i] + "/led"))
-              controlMsgLed(i, om);
+              sermsg = controlMsgLed(i, om);
             else if(address.equals(address_pattern_prefix[i] + "/led_col"))
-              controlMsgLedCol(i, om);
+              sermsg = controlMsgLedCol(i, om);
             else if(address.equals(address_pattern_prefix[i] + "/led_row"))
-              controlMsgLedRow(i, om);
+              sermsg = controlMsgLedRow(i, om);
             else if(address.equals(address_pattern_prefix[i] + "/frame"))
-              controlMsgFrame(i, om);
+              sermsgs = controlMsgFrame(i, om);
             else if(address.equals(address_pattern_prefix[i] + "/clear"))
-              controlMsgClear(i, om);
+              sermsgs = controlMsgClear(i, om);
             else if(address.equals(address_pattern_prefix[i] + "/adc_enable"))
-              controlMsgAdcEnable(i, om);
+              sermsg = controlMsgAdcEnable(i, om);
+
+            if(address.equals("/sys/intensity"))
+              sermsg = controlMsgIntensity(i, om);
+            else if(address.equals("/sys/test"))
+              sermsg = controlMsgTest(i, om);
+            else if(address.equals("/sys/shutdown"))
+              sermsg = controlMsgShutdown(i, om);
+            else if(address.equals("/sys/version"))
+              sermsg = controlMsgVersion(i, om);
+
+            if(sermsg != null && checkPortState(i))
+              sendDataToSerial(i, sermsg);
+            else if(sermsgs != null && checkPortState(i))
+              sendDataToSerial(i, sermsgs);
           }
 
           //System Messages
@@ -1546,14 +1529,6 @@ public class PicnomeCommunication {
             controlMsgOscconfig(om);
           else if(address.equals("/sys/prefix"))
             controlMsgPrefix(om);
-          else if(address.equals("/sys/intensity"))
-            controlMsgIntensity(om);
-          else if(address.equals("/sys/test"))
-            controlMsgTest(om);
-          else if(address.equals("/sys/shutdown"))
-            controlMsgShutdown(om);
-          else if(address.equals("/sys/version"))
-            controlMsgVersion(om);
           else if(address.equals("/sys/report"))
             controlMsgReport(om);
           else if(address.equals("/sys/type"))
@@ -1571,7 +1546,7 @@ public class PicnomeCommunication {
     }
   }
 
-  public class SerialReader implements Runnable {
+  private class SerialReader implements Runnable {
     private int index;
     private BufferedInputStream bis;
 
@@ -1598,7 +1573,6 @@ public class PicnomeCommunication {
           }
         }
         catch(IOException e) {
-          //debug debug_tf.setText("ioe: " + e.getMessage());
           continue;
         }
         if(((char)chs[0] == 'p' || (char)chs[0] == 'r') && msg_index == 2) {
