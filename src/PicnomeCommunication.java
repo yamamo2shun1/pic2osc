@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.4.11(123) 2010/10/02
+ * PicnomeCommunication.java,v.1.4.11(124) 2010/10/08
  */
 
 // RXTX
@@ -36,6 +36,9 @@ import java.io.*;
 import java.net.*;
 
 public class PicnomeCommunication implements PicnomeSystems {
+  private static final String APP_VERSION = "1.4.11";
+  private static final int MAX_CONNECTABLE_NUM = 2;
+
   private String fwver = "";
   private boolean fwver_flag = false;
 
@@ -88,8 +91,6 @@ public class PicnomeCommunication implements PicnomeSystems {
   private String[] device = new String[MAX_CONNECTABLE_NUM];
   private String[] device2 = new String[MAX_CONNECTABLE_NUM];
   private String[] protocol_type = new String[MAX_CONNECTABLE_NUM];
-  private int[] midi_in = new int[MAX_CONNECTABLE_NUM];
-  private int[] midi_out = new int[MAX_CONNECTABLE_NUM];
   private String[] host_address = new String[MAX_CONNECTABLE_NUM];
   private String[] host_port = new String[MAX_CONNECTABLE_NUM];
   private String[] listen_port = new String[MAX_CONNECTABLE_NUM];
@@ -97,6 +98,8 @@ public class PicnomeCommunication implements PicnomeSystems {
   private String[] ledtest_state = new String[MAX_CONNECTABLE_NUM];
   private String[] cable_orientation = new String[MAX_CONNECTABLE_NUM];
   private String[] address_pattern_prefix = new String[MAX_CONNECTABLE_NUM];
+  private int[] midi_in = new int[MAX_CONNECTABLE_NUM];
+  private int[] midi_out = new int[MAX_CONNECTABLE_NUM];
   private int[] intensity = new int[MAX_CONNECTABLE_NUM];
   private int[] starting_column = new int[MAX_CONNECTABLE_NUM];
   private int[] starting_row = new int[MAX_CONNECTABLE_NUM];
@@ -107,8 +110,7 @@ public class PicnomeCommunication implements PicnomeSystems {
   private int[][][] midi_parameter = new int[16][8][3];
 
   private int count_ma = 0;
-  private double[] atb = new double[7];
-  private double[] atb_old = new double[7];
+  private int[] atb = new int[7];
   private double[][] atb_box = new double[7][32];
 
   public PicnomeCommunication() {
@@ -622,6 +624,10 @@ public class PicnomeCommunication implements PicnomeSystems {
     adc_enable[index0][index1] = b;
   }
 
+  public String getAppVersion() {
+    return APP_VERSION;
+  }
+
   public boolean isFirmwareVersion() {
     return fwver_flag;
   }
@@ -729,29 +735,25 @@ public class PicnomeCommunication implements PicnomeSystems {
       }
     }
     else if((char)chs[0] == 'a') {
-      int adc_id = chs[1] >> 4;
-      atb[adc_id] = (((chs[1] & 0x03) << 8) + chs[2]);
       float f = 0.0f;
+      int adc_id = chs[1] >> 4;
       int ac0 = adc_cmb0[adc_id].getSelectedIndex();
       double ac1 = adc_cmb1[adc_id].getSelectedIndex();
+      atb[adc_id] = (((chs[1] & 0x03) << 8) + chs[2]);
 
-      if(atb[adc_id] > 1000.0) atb[adc_id] = 1023.0;
-      else if(atb[adc_id] < 16) atb[adc_id] = 0.0;
+      if(atb[adc_id] > 1000) atb[adc_id] = 1023;
+      else if(atb[adc_id] < 9) atb[adc_id] = 0;
 
-      if(ac0 == 0) {
-        if(Math.abs(atb[adc_id] - atb_old[adc_id]) < 12)
-          atb[adc_id] = atb_old[adc_id];
-        f = (float)(Math.pow(atb[adc_id] / 1024.0, Math.pow(2.0, (2.0 * ac1) - 4.0)));
-        atb_old[adc_id] = atb[adc_id];
+      if(ac0 == 0) {//IF
+        atb[adc_id] = atb[adc_id] >> 3;
+        f = (float)(Math.pow(atb[adc_id] / 127.0, Math.pow(2.0, (2.0 * ac1) - 4.0)));
       }
-      else if(ac0 == 1) {
-        if(Math.abs(atb[adc_id] - atb_old[adc_id]) < 12)
-          atb[adc_id] = atb_old[adc_id];
-        if(atb[adc_id] < 512)
-          f = (float)(0.5 * Math.pow(atb[adc_id] / 512.0, Math.pow(2.0, (2.0 * ac1) - 4.0)));
+      else if(ac0 == 1) {//CF
+        atb[adc_id] = atb[adc_id] >> 3;
+        if(atb[adc_id] < 64)
+          f = (float)(0.5 * Math.pow(atb[adc_id] / 64.0, Math.pow(2.0, (2.0 * ac1) - 4.0)));
         else
-          f = (float)(1.0 - (0.5 * Math.pow((1023.0 - atb[adc_id]) / 512.0, Math.pow(2.0, (2.0 * ac1) - 4.0))));
-        atb_old[adc_id] = atb[adc_id];
+          f = (float)(1.0 - (0.5 * Math.pow((127.0 - atb[adc_id]) / 64.0, Math.pow(2.0, (2.0 * ac1) - 4.0))));
       }
       else {
         atb_box[adc_id][count_ma] = atb[adc_id];
@@ -763,7 +765,6 @@ public class PicnomeCommunication implements PicnomeSystems {
         if(count_ma > 31)
           count_ma = 0;
       }
-      //sy System.out.println(atb + " " + f);
 
       if(protocol_type[index].equals("Open Sound Control")) {
         args = new Object[2];
@@ -783,20 +784,6 @@ public class PicnomeCommunication implements PicnomeSystems {
         } catch(InvalidMidiDataException imde){}
       }
     }
-/*
-    else if(token.equals("report")) {
-      int v1,v2;
-
-      v1 = Integer.parseInt(st.nextToken());
-      v2 = Integer.parseInt(st.nextToken());
-
-      if(v2 == 1) {
-        hex_tf.setEnabled(false);
-        hex_b.setEnabled(false);
-        update_b.setEnabled(false);
-      }
-    }
-*/
   }
 
   private void sendOSCMessageFromHw(int index, String str) {
@@ -1319,7 +1306,7 @@ public class PicnomeCommunication implements PicnomeSystems {
     return str;
   }
 
-  private String controlMsgVersion(int index, OSCMessage message) {
+  private String controlMsgVersion(OSCMessage message) {
     String str = new String("f" + (char)0x0D);
     return str;
   }
@@ -1463,6 +1450,7 @@ public class PicnomeCommunication implements PicnomeSystems {
       address_pattern_prefix[1] = prefix_tf.getText();
   }
 
+
   private class OSCReader implements Runnable {
     private DatagramSocket ds;
     private OSCByteArrayToJavaConverter converter = new OSCByteArrayToJavaConverter();
@@ -1514,7 +1502,7 @@ public class PicnomeCommunication implements PicnomeSystems {
             else if(address.equals("/sys/shutdown"))
               sermsg = controlMsgShutdown(i, om);
             else if(address.equals("/sys/version"))
-              sermsg = controlMsgVersion(i, om);
+              sermsg = controlMsgVersion(om);
 
             if(sermsg != null && checkPortState(i))
               sendDataToSerial(i, sermsg);

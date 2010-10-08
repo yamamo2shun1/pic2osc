@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.4.11(122) 2010/10/02
+ * PicnomeSerial.java,v.1.4.11(124) 2010/10/08
  */
 
 import java.io.*;
@@ -28,6 +28,8 @@ import javax.swing.event.*;
 import com.apple.eawt.*;
 
 public class PicnomeSerial extends JFrame implements ActionListener, ChangeListener {
+  final static int MENU_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+
   PicnomeCommunication pserial = new PicnomeCommunication();
   private MidiDetailFrame mdf = new MidiDetailFrame();
 
@@ -43,18 +45,16 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
   private int prev_index;
   private boolean para_change_flag;
 
-  final static int MENU_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-
-  PicnomeSerial() {
+  public PicnomeSerial() {
     super("PICnome Serial ver. / f/w ver.");
 
     init();
     if(System.getProperty("os.name").startsWith("Mac OS X")) {
       setSize(450, 695);
+
       Application app = Application.getApplication();
       app.addApplicationListener(new ApplicationAdapter() {
           public void handleQuit(ApplicationEvent arg0) {
-
             for(int i = 0; i < 6; i++) {
               String str =new String("ae " + i + " " + 0 + (char)0x0D);
               if(pserial.getCurrentNum() == 1) {
@@ -69,13 +69,24 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
             System.exit(0);
           }
         });
+
     }
     else if(System.getProperty("os.name").startsWith("Windows"))
       setSize(470, 740);
     addWindowListener(
       new WindowAdapter() {
         public void windowClosing(WindowEvent e) {
-          System.out.println("app closed.");
+          for(int i = 0; i < 6; i++) {
+            String str =new String("ae " + i + " " + 0 + (char)0x0D);
+            if(pserial.getCurrentNum() == 1) {
+              pserial.setAdcEnable(0, i, false);
+              pserial.sendDataToSerial(0, str);
+            }
+            if(pserial.getCurrentNum() == 2) {
+              pserial.setAdcEnable(1, i, false);
+              pserial.sendDataToSerial(1, str);
+            }
+          }
           System.exit(0);
         }
       }
@@ -104,10 +115,10 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       if(timeout_count > 65536)
         break;
     }
-    psgui.setTitle("PICnomeSerial " + psgui.pserial.APP_VERSION + " /  " + psgui.pserial.getFirmwareVersion());
+    psgui.setTitle("PICnomeSerial " + psgui.pserial.getAppVersion() + " /  " + psgui.pserial.getFirmwareVersion());
   }
 
-  public void init() {
+  private void init() {
     SpringLayout sl = new SpringLayout();
     Container c = getContentPane();
     c.setLayout(sl);
@@ -403,18 +414,6 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     ds_sl.putConstraint(SpringLayout.WEST, pserial.led_test_b, 10, SpringLayout.EAST, pserial.led_clear_b);
     ds_p.add(pserial.led_test_b);
 
-/* for DEBUG
-    pserial.debug_tf = new JTextField("", 8);
-    ds_sl.putConstraint(SpringLayout.NORTH, pserial.debug_tf, 35, SpringLayout.NORTH, ds_p);
-    ds_sl.putConstraint(SpringLayout.WEST, pserial.debug_tf, 250, SpringLayout.WEST, ds_p);
-    ds_p.add(pserial.debug_tf);
-
-    pserial.debug2_tf = new JTextField("", 8);
-    ds_sl.putConstraint(SpringLayout.NORTH, pserial.debug2_tf, 35, SpringLayout.NORTH, ds_p);
-    ds_sl.putConstraint(SpringLayout.WEST, pserial.debug2_tf, 270, SpringLayout.WEST, ds_p);
-    ds_p.add(pserial.debug2_tf);
-*/
-
     JPanel dsps_p = new JPanel();
     SpringLayout dsps_sl = new SpringLayout();
     dsps_p.setLayout(dsps_sl);
@@ -629,8 +628,6 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       cmd = "ListenPort";
     else if(cmd.equals(pserial.hostport_tf.getText()))
       cmd = "HostPort";
-
-    //DEBUG pserial.debug_tf.setText(cmd);
 
     if(cmd.equals("DeviceChanged")) {
       if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0)))
@@ -1064,7 +1061,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     }
   }
 
-  public class MidiPadConfPanel extends JPanel implements ChangeListener
+  private class MidiPadConfPanel extends JPanel implements ChangeListener
   {
     SpinnerNumberModel snm;
     JSpinner value;
