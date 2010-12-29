@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.4.11(124) 2010/10/08
+ * PicnomeSerial.java,v.1.4.12(127) 2010/12/29
  */
 
 import java.io.*;
@@ -25,6 +25,7 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
+//You have to comment out if you compile win version.
 import com.apple.eawt.*;
 
 public class PicnomeSerial extends JFrame implements ActionListener, ChangeListener {
@@ -51,7 +52,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     init();
     if(System.getProperty("os.name").startsWith("Mac OS X")) {
       setSize(450, 695);
-
+      //You have to comment out if you compile win version.
       Application app = Application.getApplication();
       app.addApplicationListener(new ApplicationAdapter() {
           public void handleQuit(ApplicationEvent arg0) {

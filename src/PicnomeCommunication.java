@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.4.11(124) 2010/10/08
+ * PicnomeCommunication.java,v.1.4.12(127) 2010/12/29
  */
 
 // RXTX
@@ -36,7 +36,7 @@ import java.io.*;
 import java.net.*;
 
 public class PicnomeCommunication implements PicnomeSystems {
-  private static final String APP_VERSION = "1.4.11";
+  private static final String APP_VERSION = "1.4.12";
   private static final int MAX_CONNECTABLE_NUM = 2;
 
   private String fwver = "";
@@ -112,6 +112,8 @@ public class PicnomeCommunication implements PicnomeSystems {
   private int count_ma = 0;
   private int[] atb = new int[7];
   private double[][] atb_box = new double[7][32];
+
+  private StringBuilder msgled_buf = new StringBuilder("l" + 0 + (char)0 + (char)0 + (char)0x0D);
 
   public PicnomeCommunication() {
     current_picnome_num = 0;
@@ -416,7 +418,7 @@ public class PicnomeCommunication implements PicnomeSystems {
         port[index].setSerialPortParams(460800, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
       else if(System.getProperty("os.name").startsWith("Windows"))
         //sy port[index].setSerialPortParams(115200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
-        port[index].setSerialPortParams(230400, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
+        port[index].setSerialPortParams(256000, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
       port[index].setFlowControlMode(SerialPort.FLOWCONTROL_NONE);
     }
     catch (UnsupportedCommOperationException e) {
@@ -652,6 +654,9 @@ public class PicnomeCommunication implements PicnomeSystems {
 
   public void sendDataToSerial(int index, String str) {
     try {
+      if(str == null )
+        return;
+
       out[index].write(str.getBytes());
     }
     catch(IOException e) {}
@@ -659,6 +664,9 @@ public class PicnomeCommunication implements PicnomeSystems {
 
   public void sendDataToSerial(int index, String[] str) {
     try {
+      if(str == null )
+        return;
+
       for(String str0 : str)
         out[index].write(str0.getBytes());
     }
@@ -683,9 +691,9 @@ public class PicnomeCommunication implements PicnomeSystems {
       if(protocol_type[index].equals("Open Sound Control") || protocol_type[index].equals("OSC/MIDI(ext.)")) {
         args = new Object[3];
 
-        int x0, y0;
-        x0 = chs[1] & 0x0F;
-        y0 = (chs[1] >> 4) & 0x0F;
+        //test int x0, y0;
+        int x0 = chs[1] & 0x0F;
+        int y0 = (chs[1] >> 4) & 0x0F;
 
         int sc = starting_column[index];
         int sr = starting_row[index];
@@ -903,10 +911,8 @@ public class PicnomeCommunication implements PicnomeSystems {
     int args1 = (int)Float.parseFloat(args[1].toString());
     int args2 = (int)Float.parseFloat(args[2].toString());
       
-    int sc, sr;
-        
-    sc = starting_column[index];
-    sr = starting_row[index];
+    int sc = starting_column[index];
+    int sr = starting_row[index];
                 
     if(cable_orientation[index].equals("left")) {
       sc = args0 - sc;
@@ -931,20 +937,17 @@ public class PicnomeCommunication implements PicnomeSystems {
 
     if(sc < 0 || sr < 0)
       return null;
-        
-    String ssc, ssr;
-    if(sc >= 10)
-      ssc = String.valueOf((char)('A' + (sc - 10)));
-    else
-      ssc = String.valueOf(sc);
-    
-    if(sr >= 10)
-      ssr = String.valueOf((char)('A' + (sr - 10)));
-    else
-      ssr = String.valueOf(sr);
 
-    String str =new String("l" + args2 + ssc + ssr + (char)0x0D);
-    return str;
+    sc = (sc >= 10)?('A' + (sc - 10)):(sc + '0');
+    sr = (sr >= 10)?('A' + (sr - 10)):(sr + '0');
+
+    msgled_buf.setCharAt(1, (char)(args2 + '0'));
+    msgled_buf.setCharAt(2, (char)sc);
+    msgled_buf.setCharAt(3, (char)sr);
+    msgled_buf.setCharAt(4, (char)0x0D);
+    return msgled_buf.toString();
+
+    //sy return "l" + args2 + (char)sc + (char)sr + (char)0x0D;
   }
 
   private void enableMidiLed(int index) {
@@ -1469,6 +1472,7 @@ public class PicnomeCommunication implements PicnomeSystems {
         String[] sermsgs;
         byte[] buffer = new byte[1536];
         DatagramPacket dp = new DatagramPacket(buffer, buffer.length);
+
         while(true) {
           ds.receive(dp);
           om = (OSCMessage)converter.convert(buffer, dp.getLength());
@@ -1476,38 +1480,49 @@ public class PicnomeCommunication implements PicnomeSystems {
 
           //Prefix Messages
           for(int i = 0; i < current_picnome_num; i++) {
-            sermsg = null;
-            sermsgs = null;
-
-            if(protocol_type[i].equals("MIDI"))
+            if(protocol_type[i].equals("MIDI") || !checkPortState(i))
               continue;
 
-            if(address.equals(address_pattern_prefix[i] + "/led"))
+            if(address.equals(address_pattern_prefix[i] + "/led")) {
               sermsg = controlMsgLed(i, om);
-            else if(address.equals(address_pattern_prefix[i] + "/led_col"))
-              sermsg = controlMsgLedCol(i, om);
-            else if(address.equals(address_pattern_prefix[i] + "/led_row"))
-              sermsg = controlMsgLedRow(i, om);
-            else if(address.equals(address_pattern_prefix[i] + "/frame"))
-              sermsgs = controlMsgFrame(i, om);
-            else if(address.equals(address_pattern_prefix[i] + "/clear"))
-              sermsgs = controlMsgClear(i, om);
-            else if(address.equals(address_pattern_prefix[i] + "/adc_enable"))
-              sermsg = controlMsgAdcEnable(i, om);
-
-            if(address.equals("/sys/intensity"))
-              sermsg = controlMsgIntensity(i, om);
-            else if(address.equals("/sys/test"))
-              sermsg = controlMsgTest(i, om);
-            else if(address.equals("/sys/shutdown"))
-              sermsg = controlMsgShutdown(i, om);
-            else if(address.equals("/sys/version"))
-              sermsg = controlMsgVersion(om);
-
-            if(sermsg != null && checkPortState(i))
               sendDataToSerial(i, sermsg);
-            else if(sermsgs != null && checkPortState(i))
+            }
+            else if(address.equals(address_pattern_prefix[i] + "/led_col")) {
+              sermsg = controlMsgLedCol(i, om);
+              sendDataToSerial(i, sermsg);
+            }
+            else if(address.equals(address_pattern_prefix[i] + "/led_row")) {
+              sermsg = controlMsgLedRow(i, om);
+              sendDataToSerial(i, sermsg);
+            }
+            else if(address.equals(address_pattern_prefix[i] + "/frame")) {
+              sermsgs = controlMsgFrame(i, om);
               sendDataToSerial(i, sermsgs);
+            }
+            else if(address.equals(address_pattern_prefix[i] + "/clear")) {
+              sermsgs = controlMsgClear(i, om);
+              sendDataToSerial(i, sermsgs);
+            }
+            else if(address.equals(address_pattern_prefix[i] + "/adc_enable")) {
+              sermsg = controlMsgAdcEnable(i, om);
+              sendDataToSerial(i, sermsg);
+            }
+            else if(address.equals("/sys/intensity")) {
+              sermsg = controlMsgIntensity(i, om);
+              sendDataToSerial(i, sermsg);
+            }
+            else if(address.equals("/sys/test")) {
+              sermsg = controlMsgTest(i, om);
+              sendDataToSerial(i, sermsg);
+            }
+            else if(address.equals("/sys/shutdown")) {
+              sermsg = controlMsgShutdown(i, om);
+              sendDataToSerial(i, sermsg);
+            }
+            else if(address.equals("/sys/version")) {
+              sermsg = controlMsgVersion(om);
+              sendDataToSerial(i, sermsg);
+            }
           }
 
           //System Messages
@@ -1526,10 +1541,12 @@ public class PicnomeCommunication implements PicnomeSystems {
           else if(address.equals("/sys/cable"))
             controlMsgCable(om);
 
+          //You have to comment out if you compile win version.
           wait(0, 1);
         }
       }
       catch(IOException ioe) {}
+      //You have to comment out if you compile win version.
       catch(InterruptedException ioe) {}
     }
   }
@@ -1548,7 +1565,7 @@ public class PicnomeCommunication implements PicnomeSystems {
       int buffer = 0;
       int msg_index = 0;
       int[] chs = new int[10];
-      StringBuilder sb = new StringBuilder(10);//macke
+      //sy StringBuilder sb = new StringBuilder(10);//macke
 
       while(true) {
         try {
@@ -1573,7 +1590,7 @@ public class PicnomeCommunication implements PicnomeSystems {
         }
         else if((char)chs[0] == 'f' && msg_index == 3) {
           fwver = String.valueOf(((float)chs[1] / 10.0) + ((float)chs[2] / 1000.0));
-          System.out.println(chs[0] + " " + chs[1] + " " + chs[2] + " " + fwver);
+          //debug System.out.println(chs[0] + " " + chs[1] + " " + chs[2] + " " + fwver);
           fwver_flag = true;
           msg_index = 0;
         }

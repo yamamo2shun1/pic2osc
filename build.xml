@@ -8,7 +8,7 @@
     <delete dir="PICnomeSerial.app"/>
   </target>
   <target name="compile" depends="clean">
-    <javac srcdir="src" destdir="class" extdirs="/Library/Java/Extensions:~/Library/Java/Extensions:lib" source="1.5" target="1.5">
+    <javac srcdir="src" destdir="class" extdirs="/Library/Java/Extensions:~/Library/Java/Extensions:lib" source="1.6" target="1.6">
       <compilerarg value="-Xlint:unchecked" />
     </javac>
   </target>
@@ -31,7 +31,7 @@
                 name="PICnomeSerial"
                 mainclass="PicnomeSerial"
                 build="124"
-                version="1.4.11"
+                version="1.4.12"
                 icon="icon/PICnomeSerial-v1.0.icns"
                 screenmenu="true">
       <jarfileset dir="lib">
@@ -53,7 +53,7 @@
   <target name="compile-win" depends="clean-win">
     <javac srcdir="src"
            destdir="class"
-           extdirs="C:\Program Files\Java\jdk1.6.0_17:lib" />
+           extdirs="C:\Program Files\Java\jdk1.6.0_23:lib" />
   </target>
   <target name="jar-win" depends="compile-win">
     <tstamp/>
