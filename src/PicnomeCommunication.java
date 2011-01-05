@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.4.12(127) 2010/12/29
+ * PicnomeCommunication.java,v.1.4.13(129) 2011/01/05
  */
 
 // RXTX
@@ -36,7 +36,7 @@ import java.io.*;
 import java.net.*;
 
 public class PicnomeCommunication implements PicnomeSystems {
-  private static final String APP_VERSION = "1.4.12";
+  private static final String APP_VERSION = "1.4.13";
   private static final int MAX_CONNECTABLE_NUM = 2;
 
   private String fwver = "";
@@ -907,6 +907,10 @@ public class PicnomeCommunication implements PicnomeSystems {
     String address = message.getAddress();
     Object[] args = message.getArguments();
 
+    //sy0 if(args.length < 3)
+    if(message.getArgumentsLength() < 3)
+      return null;
+
     int args0 = (int)Float.parseFloat(args[0].toString());
     int args1 = (int)Float.parseFloat(args[1].toString());
     int args2 = (int)Float.parseFloat(args[2].toString());
@@ -1000,6 +1004,10 @@ public class PicnomeCommunication implements PicnomeSystems {
     int args0 = (int)Float.parseFloat(args[0].toString());
     int args1 = (int)Float.parseFloat(args[1].toString());
 
+    //sy0 if(args.length < 2)
+    if(message.getArgumentsLength() < 2)
+      return null;
+
     int sc = 0, sr = 0;
       
     if(cable_orientation[index].equals("left"))
@@ -1051,6 +1059,10 @@ public class PicnomeCommunication implements PicnomeSystems {
 
     int args0 = (int)Float.parseFloat(args[0].toString());
     int args1 = (int)Float.parseFloat(args[1].toString());
+
+    //sy0 if(args.length < 2)
+    if(message.getArgumentsLength() < 2)
+      return null;
 
     int sc = 0, sr = 0;
         
@@ -1109,7 +1121,12 @@ public class PicnomeCommunication implements PicnomeSystems {
     else
       shift = starting_column[index] % (7 + 1);
 
-    for(int i = 0; i < args0.length; i++) {
+    //sy0 if(args.length < 16)
+    if(message.getArgumentsLength() < 16)
+      return null;
+
+    //sy0 for(int i = 0; i < args0.length; i++) {
+    for(int i = 0; i < message.getArgumentsLength(); i++) {
       args[i] = (int)Float.parseFloat(args0[i].toString());
     }
       
@@ -1182,19 +1199,22 @@ public class PicnomeCommunication implements PicnomeSystems {
     String[] str = new String[8];
 
     int args0 = 0;
-    if(args.length == 1)
+    //sy0 if(args.length == 1)
+    if(message.getArgumentsLength() == 1)
       args0 = (int)Float.parseFloat(args[0].toString());
     
     for(int i = 0; i < 8; i++) {
       int state;
       if(co_max_num[index] == 7) {//sixty four
-        if(args.length == 0 || args0 == 0)
+        //sy0 if(args.length == 0 || args0 == 0)
+        if(message.getArgumentsLength() == 0 || args0 == 0)
           state = 0;
         else
           state = 255;
       }
       else {//one twenty eight
-        if(args.length == 0 || args0 == 0)
+        //sy0 if(args.length == 0 || args0 == 0)
+        if(message.getArgumentsLength() == 0 || args0 == 0)
           state = 0;
         else
           state = 65535;
@@ -1208,8 +1228,10 @@ public class PicnomeCommunication implements PicnomeSystems {
   private String controlMsgAdcEnable(int index, OSCMessage message) {
     Object[] args0 = message.getArguments();
     
-    int[] args = new int[args0.length];
-    for(int i = 0; i < args.length; i++) {
+    //sy0 int[] args = new int[args0.length];
+    int[] args = new int[message.getArgumentsLength()];
+    //sy0 for(int i = 0; i < args.length; i++) {
+    for(int i = 0; i < message.getArgumentsLength(); i++) {
       args[i] = (int)Float.parseFloat(args0[i].toString());
     }
     
@@ -1239,7 +1261,8 @@ public class PicnomeCommunication implements PicnomeSystems {
       hostport_tf.setText(((Integer)args[1]).toString());
     }
 
-    if(args.length == 4) {
+    //sy0 if(args.length == 4) {
+    if(message.getArgumentsLength() == 4) {
       host_address[(Integer)args[2]] = Integer.toString((Integer)args[3]);
       if(device_cb.getSelectedIndex() == (Integer)args[2])
         hostaddress_tf.setText(Integer.toString((Integer)args[3]));
@@ -1250,7 +1273,8 @@ public class PicnomeCommunication implements PicnomeSystems {
 
   private void controlMsgPrefix(OSCMessage message) {
     Object[] args = message.getArguments();
-    if(args.length == 0) {
+    //sy0 if(args.length == 0) {
+    if(message.getArgumentsLength() == 0) {
       for(int i = 0; i < device_list.size(); i++) {
         OSCMessage msg;
         Object[] args0 = new Object[2];
@@ -1263,7 +1287,8 @@ public class PicnomeCommunication implements PicnomeSystems {
         catch(IOException e) {}
       }
     }
-    else if(args.length == 2) {
+    //sy0 else if(args.length == 2) {
+    else if(message.getArgumentsLength() == 2) {
       address_pattern_prefix[(Integer)args[0]] = (String)args[1];
       if(device_cb.getSelectedIndex() == (Integer)args[0])
         prefix_tf.setText((String)args[1]);
@@ -1279,9 +1304,11 @@ public class PicnomeCommunication implements PicnomeSystems {
     Object[] args = message.getArguments();
     String str = null;
 
-    if(args.length == 1)
+    //sy0 if(args.length == 1)
+    if(message.getArgumentsLength() == 1)
       str = new String("i " + (Integer)args[0] + (char)0x0D);
-    else if(args.length == 2 && (Integer)args[0] == index)
+    //sy0 else if(args.length == 2 && (Integer)args[0] == index)
+    else if(message.getArgumentsLength() == 2 && (Integer)args[0] == index)
       str = new String("i " + (Integer)args[1] + (char)0x0D);
     return str;
   }
@@ -1290,9 +1317,11 @@ public class PicnomeCommunication implements PicnomeSystems {
     Object[] args = message.getArguments();
     String str = null;
 
-    if(args.length == 1)
+    //sy0 if(args.length == 1)
+    if(message.getArgumentsLength() == 1)
       str = new String("t " + (Integer)args[0] + (char)0x0D);
-    else if(args.length == 2 && (Integer)args[0] == index)
+    //sy0 else if(args.length == 2 && (Integer)args[0] == index)
+    else if(message.getArgumentsLength() == 2 && (Integer)args[0] == index)
       str = new String("t " + (Integer)args[1] + (char)0x0D);
     return str;
   }
@@ -1301,9 +1330,11 @@ public class PicnomeCommunication implements PicnomeSystems {
     Object[] args = message.getArguments();
     String str = null;
 
-    if(args.length == 1)
+    //sy0 if(args.length == 1)
+    if(message.getArgumentsLength() == 1)
       str = new String("s " + (Integer)args[0] + (char)0x0D);
-    else if(args.length == 2 && (Integer)args[0] == index)
+    //sy0 else if(args.length == 2 && (Integer)args[0] == index)
+    else if(message.getArgumentsLength() == 2 && (Integer)args[0] == index)
       str = new String("s " + (Integer)args[1] + (char)0x0D);
 
     return str;
@@ -1321,7 +1352,8 @@ public class PicnomeCommunication implements PicnomeSystems {
     OSCMessage msg;
 
     try {
-      if(args.length == 0) {
+      //sy0 if(args.length == 0) {
+      if(message.getArgumentsLength() == 0) {
         args0 = new Object[1];
         args0[0] = String.valueOf(device_list.size());
         msg = new OSCMessage("/sys/devices", args0);
@@ -1374,7 +1406,8 @@ public class PicnomeCommunication implements PicnomeSystems {
     OSCMessage msg;
 
     try {
-      if(args.length == 0) {
+      //sy0 if(args.length == 0) {
+      if(message.getArgumentsLength() == 0) {
         for(int i = 0; i < device_list.size(); i++) {
           args0 = new Object[2];
           args0[0] = String.valueOf(i);
@@ -1392,11 +1425,13 @@ public class PicnomeCommunication implements PicnomeSystems {
 
   private void controlMsgOffset(OSCMessage message) {
     Object[] args = message.getArguments();
-    if(args.length == 2) {
+    //sy0 if(args.length == 2) {
+    if(message.getArgumentsLength() == 2) {
       startcolumn_s.setValue((Integer)args[0]);
       startrow_s.setValue((Integer)args[1]);
     }
-    else if(args.length == 3) {
+    //sy0 else if(args.length == 3) {
+    else if(message.getArgumentsLength() == 3) {
       starting_column[(Integer)args[0]] = (Integer)args[1];
       starting_row[(Integer)args[0]] = (Integer)args[2];
       if(device_cb.getSelectedIndex() == (Integer)args[0]) {
@@ -1408,7 +1443,8 @@ public class PicnomeCommunication implements PicnomeSystems {
 
   private void controlMsgCable(OSCMessage message) {
     Object[] args = message.getArguments();
-    if(args.length == 0) {
+    //sy0 if(args.length == 0) {
+    if(message.getArgumentsLength() == 0) {
       for(int i = 0; i < device_list.size(); i++) {
         OSCMessage msg;
         Object[] args0 = new Object[2];
@@ -1421,7 +1457,8 @@ public class PicnomeCommunication implements PicnomeSystems {
         catch(IOException e){}
       }
     }
-    else if(args.length == 2) {
+    //sy0 else if(args.length == 2) {
+    else if(message.getArgumentsLength() == 2) {
       String costr = "";
       switch((Integer)args[1]) {
       case 0:

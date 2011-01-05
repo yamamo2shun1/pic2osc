@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.4.12(127) 2010/12/29
+ * PicnomeSerial.java,v.1.4.13(129) 2011/01/05
  */
 
 import java.io.*;
@@ -26,7 +26,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
 //You have to comment out if you compile win version.
-import com.apple.eawt.*;
+//mac import com.apple.eawt.*;
 
 public class PicnomeSerial extends JFrame implements ActionListener, ChangeListener {
   final static int MENU_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
@@ -53,6 +53,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     if(System.getProperty("os.name").startsWith("Mac OS X")) {
       setSize(450, 695);
       //You have to comment out if you compile win version.
+/*mac
       Application app = Application.getApplication();
       app.addApplicationListener(new ApplicationAdapter() {
           public void handleQuit(ApplicationEvent arg0) {
@@ -70,7 +71,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
             System.exit(0);
           }
         });
-
+mac*/
     }
     else if(System.getProperty("os.name").startsWith("Windows"))
       setSize(470, 740);

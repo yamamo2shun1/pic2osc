@@ -30,8 +30,8 @@
     <jarbundler dir="."
                 name="PICnomeSerial"
                 mainclass="PicnomeSerial"
-                build="124"
-                version="1.4.12"
+                build="129"
+                version="1.4.13"
                 icon="icon/PICnomeSerial-v1.0.icns"
                 screenmenu="true">
       <jarfileset dir="lib">
