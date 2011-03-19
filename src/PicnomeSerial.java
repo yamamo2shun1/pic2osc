@@ -16,17 +16,18 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.4.13(129) 2011/01/05
+ * PicnomeSerial.java,v.1.4.16(135) 2011/03/19
  */
 
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.text.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
 //You have to comment out if you compile win version.
-import com.apple.eawt.*;
+//mac import com.apple.eawt.*;//mac
 
 public class PicnomeSerial extends JFrame implements ActionListener, ChangeListener {
   final static int MENU_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
@@ -51,9 +52,10 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
 
     init();
     if(System.getProperty("os.name").startsWith("Mac OS X")) {
-      setSize(450, 695);
+      setSize(450, 625);
       //You have to comment out if you compile win version.
-
+      //mac
+/*mac
       Application app = Application.getApplication();
       app.addApplicationListener(new ApplicationAdapter() {
           public void handleQuit(ApplicationEvent arg0) {
@@ -71,10 +73,10 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
             System.exit(0);
           }
         });
-
+mac*/
     }
     else if(System.getProperty("os.name").startsWith("Windows"))
-      setSize(470, 740);
+      setSize(470, 770);
     addWindowListener(
       new WindowAdapter() {
         public void windowClosing(WindowEvent e) {
@@ -106,11 +108,12 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     psgui.setVisible(true);
 
     for(int i = 0; i < psgui.pserial.getCurrentNum(); i++) {
-        psgui.pserial.openSerialPort(i);
-        psgui.pserial.setSerialPort(i);
-        if(psgui.pserial.getCurrentMaxColumn(i) == 7)
-          psgui.mdf.setHalfVisible();
+      psgui.pserial.openSerialPort(i);
+      psgui.pserial.setSerialPort(i);
+      if(psgui.pserial.getCurrentMaxColumn(i) == 7)
+        psgui.mdf.setHalfVisible();
     }
+
     int timeout_count = 0;
     while(!psgui.pserial.isFirmwareVersion()) {
       timeout_count++;
@@ -118,6 +121,18 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
         break;
     }
     psgui.setTitle("PICnomeSerial " + psgui.pserial.getAppVersion() + " /  " + psgui.pserial.getFirmwareVersion());
+
+    //for DORAnome
+    //dora psgui.changeDORAnome();//dora
+  }
+
+  private void changeDORAnome() {
+    pserial.protocol_cb.setSelectedItem("DORAnome");
+    pserial.midioutput_cb.setSelectedItem("IAC BUS 2");
+    for(int i = 0; i < 3; i++) {
+      pserial.adc_cmb0[i].setSelectedIndex(1);
+      pserial.adc_cmb1[i].setSelectedIndex(3);
+    }
   }
 
   private void init() {
@@ -152,7 +167,9 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     ps_sl.putConstraint(SpringLayout.NORTH, ioprotocol_l, 10, SpringLayout.NORTH, ps_p);
     ps_sl.putConstraint(SpringLayout.WEST, ioprotocol_l, 38, SpringLayout.WEST, ps_p);
     ps_p.add(ioprotocol_l);
-    String[] protocol_str = {"Open Sound Control", "MIDI", "OSC/MIDI(ext.)", "OSC(LEDs)/MIDI(Pads)"};
+    //sy String[] protocol_str = {"Open Sound Control", "MIDI", "OSC/MIDI(ext.)", "OSC(LEDs)/MIDI(Pads)"};
+    //sy String[] protocol_str = {"Open Sound Control", "MIDI", "OSC/MIDI(ext.)"};
+    String[] protocol_str = {"Open Sound Control", "MIDI", "OSC/MIDI(ext.)", "DORAnome"};//dora
     pserial.protocol_cb = new JComboBox(protocol_str);
     pserial.protocol_cb.setActionCommand("ProtocolChanged");
     pserial.protocol_cb.addActionListener(this);
@@ -202,7 +219,8 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     osc_p.add(hostport_l);
 
     pserial.hostport_tf = new JTextField("8000", 3);
-    pserial.hostport_tf.addActionListener(this);
+    //sy pserial.hostport_tf.addActionListener(this);
+    ((AbstractDocument)pserial.hostport_tf.getDocument()).setDocumentFilter(new HostPortFilter());
     if(System.getProperty("os.name").startsWith("Mac OS X"))
       osc_sl.putConstraint(SpringLayout.NORTH, pserial.hostport_tf, -6, SpringLayout.NORTH, hostport_l);
     else if(System.getProperty("os.name").startsWith("Windows"))
@@ -219,6 +237,8 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     osc_p.add(listenport_l);
 
     pserial.listenport_tf = new JTextField("8080", 3);
+    //sy pserial.listenport_tf.addActionListener(this);
+    ((AbstractDocument)pserial.listenport_tf.getDocument()).setDocumentFilter(new ListenPortFilter());
     if(System.getProperty("os.name").startsWith("Mac OS X"))
       osc_sl.putConstraint(SpringLayout.NORTH, pserial.listenport_tf, -6, SpringLayout.NORTH, listenport_l);
     else if(System.getProperty("os.name").startsWith("Windows"))
@@ -353,7 +373,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     ds_p.setLayout(ds_sl);
     SoftBevelBorder ds_inborder = new SoftBevelBorder(SoftBevelBorder.LOWERED);
     TitledBorder ds_outborder = new TitledBorder(ds_inborder, "Device Settings", TitledBorder.LEFT, TitledBorder.ABOVE_TOP);
-    ds_p.setPreferredSize(new Dimension(430, 380));
+    ds_p.setPreferredSize(new Dimension(430, 410));
     ds_p.setBorder(ds_outborder);
     sl.putConstraint(SpringLayout.NORTH, ds_p, 180, SpringLayout.NORTH, c);
     sl.putConstraint(SpringLayout.WEST, ds_p, 10, SpringLayout.WEST, c);
@@ -503,9 +523,9 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
 
     JTabbedPane ais_tab = new JTabbedPane();
     if(System.getProperty("os.name").startsWith("Mac OS X"))
-      ais_tab.setPreferredSize(new Dimension(395, 115));
+      ais_tab.setPreferredSize(new Dimension(395, 145));
     else if(System.getProperty("os.name").startsWith("Windows"))
-      ais_tab.setPreferredSize(new Dimension(395, 105));
+      ais_tab.setPreferredSize(new Dimension(395, 135));
     ds_sl.putConstraint(SpringLayout.NORTH, ais_tab, 240, SpringLayout.NORTH, ds_p);
     ds_sl.putConstraint(SpringLayout.WEST, ais_tab, 10, SpringLayout.WEST, ds_p);
     ds_p.add(ais_tab);
@@ -513,19 +533,23 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     JPanel aie_p = new JPanel();
     SpringLayout aie_sl = new SpringLayout();
     aie_p.setLayout(aie_sl);
-    aie_p.setPreferredSize(new Dimension(395, 40));
+    aie_p.setPreferredSize(new Dimension(395, 60));
     aie_sl.putConstraint(SpringLayout.NORTH, aie_p, 0, SpringLayout.NORTH, ais_tab);
     aie_sl.putConstraint(SpringLayout.WEST, aie_p, 0, SpringLayout.WEST, ais_tab);
-    for(int i = 0; i < 7; i++) {
+    for(int i = 0; i < pserial.getMaxAnalogNum(); i++) {
       pserial.adc_ck[i] = new JCheckBox(" adc " + i);
       pserial.adc_ck[i].addActionListener(this);
       if(i < 4) {
         aie_sl.putConstraint(SpringLayout.NORTH, pserial.adc_ck[i], 10, SpringLayout.NORTH, aie_p);
         aie_sl.putConstraint(SpringLayout.WEST, pserial.adc_ck[i], 10 + (90 * i), SpringLayout.WEST, aie_p);
       }
-      else {
+      else if(i < 8) {
         aie_sl.putConstraint(SpringLayout.NORTH, pserial.adc_ck[i], 40, SpringLayout.NORTH, aie_p);
         aie_sl.putConstraint(SpringLayout.WEST, pserial.adc_ck[i], 10 + (90 * (i - 4)), SpringLayout.WEST, aie_p);
+      }
+      else {
+        aie_sl.putConstraint(SpringLayout.NORTH, pserial.adc_ck[i], 70, SpringLayout.NORTH, aie_p);
+        aie_sl.putConstraint(SpringLayout.WEST, pserial.adc_ck[i], 10 + (90 * (i - 8)), SpringLayout.WEST, aie_p);
       }
       aie_p.add(pserial.adc_ck[i]);
     }
@@ -537,7 +561,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     ait_p.setPreferredSize(new Dimension(395, 80));
     ait_sl.putConstraint(SpringLayout.NORTH, ait_p, 0, SpringLayout.NORTH, ais_tab);
     ait_sl.putConstraint(SpringLayout.WEST, ait_p, 0, SpringLayout.WEST, ais_tab);
-    for(int i = 0; i < 7; i++) {
+    for(int i = 0; i < pserial.getMaxAnalogNum(); i++) {
       String[] type_name = {"I/F", "C/F", "M/A"};
       pserial.adc_cmb0[i] = new JComboBox(type_name);
       pserial.adc_cmb0[i].setActionCommand("InputType" + i);
@@ -547,9 +571,13 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
         ait_sl.putConstraint(SpringLayout.NORTH, pserial.adc_cmb0[i], 10, SpringLayout.NORTH, ait_p);
         ait_sl.putConstraint(SpringLayout.WEST, pserial.adc_cmb0[i], 10 + (90 * i), SpringLayout.WEST, ait_p);
       }
-      else {
+      else if(i < 8) {
         ait_sl.putConstraint(SpringLayout.NORTH, pserial.adc_cmb0[i], 40, SpringLayout.NORTH, ait_p);
         ait_sl.putConstraint(SpringLayout.WEST, pserial.adc_cmb0[i], 10 + (90 * (i - 4)), SpringLayout.WEST, ait_p);
+      }
+      else {
+        ait_sl.putConstraint(SpringLayout.NORTH, pserial.adc_cmb0[i], 70, SpringLayout.NORTH, ait_p);
+        ait_sl.putConstraint(SpringLayout.WEST, pserial.adc_cmb0[i], 10 + (90 * (i - 8)), SpringLayout.WEST, ait_p);
       }
       ait_p.add(pserial.adc_cmb0[i]);
     }
@@ -561,7 +589,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     aic_p.setPreferredSize(new Dimension(395, 80));
     aic_sl.putConstraint(SpringLayout.NORTH, aic_p, 0, SpringLayout.NORTH, ais_tab);
     aic_sl.putConstraint(SpringLayout.WEST, aic_p, 0, SpringLayout.WEST, ais_tab);
-    for(int i = 0; i < 7; i++) {
+    for(int i = 0; i < pserial.getMaxAnalogNum(); i++) {
       String[] curve_name = {"C.1", "C.2", "C.3", "C.4", "C.5"};
       pserial.adc_cmb1[i] = new JComboBox(curve_name);
       pserial.adc_cmb1[i].setEnabled(false);
@@ -571,9 +599,13 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
         aic_sl.putConstraint(SpringLayout.NORTH, pserial.adc_cmb1[i], 10, SpringLayout.NORTH, aic_p);
         aic_sl.putConstraint(SpringLayout.WEST, pserial.adc_cmb1[i], 10 + (90 * i), SpringLayout.WEST, aic_p);
       }
-      else {
+      else if(i < 8) {
         aic_sl.putConstraint(SpringLayout.NORTH, pserial.adc_cmb1[i], 40, SpringLayout.NORTH, aic_p);
         aic_sl.putConstraint(SpringLayout.WEST, pserial.adc_cmb1[i], 10 + (90 * (i - 4)), SpringLayout.WEST, aic_p);
+      }
+      else {
+        aic_sl.putConstraint(SpringLayout.NORTH, pserial.adc_cmb1[i], 70, SpringLayout.NORTH, aic_p);
+        aic_sl.putConstraint(SpringLayout.WEST, pserial.adc_cmb1[i], 10 + (90 * (i - 8)), SpringLayout.WEST, aic_p);
       }
       aic_p.add(pserial.adc_cmb1[i]);
     }
@@ -587,7 +619,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     TitledBorder fu_outborder = new TitledBorder(fu_inborder, "Firmware Update", TitledBorder.LEFT, TitledBorder.ABOVE_TOP);
     fu_p.setPreferredSize(new Dimension(430, 95));
     fu_p.setBorder(fu_outborder);
-    sl.putConstraint(SpringLayout.NORTH, fu_p, 570, SpringLayout.NORTH, c);
+    sl.putConstraint(SpringLayout.NORTH, fu_p, 600, SpringLayout.NORTH, c);
     sl.putConstraint(SpringLayout.WEST, fu_p, 10, SpringLayout.WEST, c);
     c.add(fu_p);
 
@@ -626,10 +658,6 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       cmd = "Prefix";
     else if(cmd.equals(pserial.hostaddress_tf.getText()))
       cmd = "HostAddress";
-    else if(cmd.equals(pserial.listenport_tf.getText()))
-      cmd = "ListenPort";
-    else if(cmd.equals(pserial.hostport_tf.getText()))
-      cmd = "HostPort";
 
     if(cmd.equals("DeviceChanged")) {
       if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0)))
@@ -659,6 +687,31 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
         else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1)))
           pserial.setCurrentProtocol(1, "OSC/MIDI(ext.)");
       }
+      else if(((String)pserial.protocol_cb.getSelectedItem()).equals("DORAnome")) {
+        psd_cl.show(psd_p, "osc-ext-midi");
+        if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0)))
+          pserial.setCurrentProtocol(0, "DORAnome");
+        else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1)))
+          pserial.setCurrentProtocol(1, "DORAnome");
+
+        for(int i = 3; i < 9; i++) {
+          String str =new String("ae " + i + " " + 1 + (char)0x0D);
+          pserial.adc_ck[i].setSelected(true);
+          pserial.adc_cmb0[i].setEnabled(true);
+          if(pserial.adc_cmb0[i].getSelectedIndex() < 2)
+            pserial.adc_cmb1[i].setEnabled(true);
+
+          if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0))) {
+            pserial.setAdcEnable(0, i, true);
+            pserial.sendDataToSerial(0, str);
+          }
+          else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1))) {
+            pserial.setAdcEnable(1, i, true);
+            pserial.sendDataToSerial(1, str);
+          }
+        }
+      }
+/*sy
       else if(((String)pserial.protocol_cb.getSelectedItem()).equals("OSC(LEDs)/MIDI(Pads)")) {
         psd_cl.show(psd_p, "midi");
         if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0)))
@@ -666,6 +719,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
         else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1)))
           pserial.setCurrentProtocol(1, "OSC(LEDs)/MIDI(Pads)");
       }
+*/
     }
     else if(cmd.equals("MidiInChanged")) {
       if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0))) {
@@ -760,11 +814,14 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     }
     else if(cmd.equals("Prefix"))
       pserial.initOSCListener();
+/*
     else if(cmd.equals("HostAddress") || cmd.equals("HostPort")) {
       pserial.setOSCHostInfo();
     }
+*/
     else if(cmd.equals(" adc 0") || cmd.equals(" adc 1") || cmd.equals(" adc 2") || cmd.equals(" adc 3") ||
-            cmd.equals(" adc 4") || cmd.equals(" adc 5") || cmd.equals(" adc 6")) {
+            cmd.equals(" adc 4") || cmd.equals(" adc 5") || cmd.equals(" adc 6") || cmd.equals(" adc 7") ||
+            cmd.equals(" adc 8") || cmd.equals(" adc 9") || cmd.equals(" adc 10")) {
       int adc_id = Integer.parseInt(cmd.substring(5, 6));
       boolean b = pserial.adc_ck[adc_id].isSelected();
       String str;
@@ -790,7 +847,8 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       }
     }
     else if(cmd.equals("InputType0") || cmd.equals("InputType1") || cmd.equals("InputType2") || cmd.equals("InputType3") ||
-            cmd.equals("InputType4") || cmd.equals("InputType5") || cmd.equals("InputType6")) {
+            cmd.equals("InputType4") || cmd.equals("InputType5") || cmd.equals("InputType6") || cmd.equals("InputType7") ||
+            cmd.equals("InputType8") || cmd.equals("InputType9") || cmd.equals("InputType10")) {
       int adc_id = Integer.parseInt(cmd.substring(9, 10));
       int idx = pserial.adc_cmb0[adc_id].getSelectedIndex();
       if(idx < 2) {
@@ -841,6 +899,111 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       }
       //sy pserial.starting_column[1] = (Integer)pserial.startcolumn_s.getValue();
       //sy pserial.starting_row[1] = (Integer)pserial.startrow_s.getValue();
+    }
+  }
+
+  public void changedUpdate(DocumentEvent e) {
+    System.out.println("text");
+  }
+
+  public class HostPortFilter extends DocumentFilter {
+    @Override
+    public void insertString(DocumentFilter.FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
+      System.out.println("insert");
+      if(string == null)
+        return;
+      else
+        replace(fb, offset, 0, string, attr);
+    }
+
+    @Override
+    public void remove(DocumentFilter.FilterBypass fb, int offset, int length) throws BadLocationException {
+      System.out.println("remove");
+      replace(fb, offset, length, "", null);
+    }
+
+    @Override
+    public void replace(DocumentFilter.FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+      System.out.println("replace");
+      Document doc = fb.getDocument();
+      int currentLength = doc.getLength();
+      String currentContent = doc.getText(0, currentLength);
+      String before = currentContent.substring(0, offset);
+      String after = currentContent.substring(length+offset, currentLength);
+      String newValue = before + (text == null ? "" : text) + after;
+      //currentValue =
+      checkInput(newValue, offset);
+      fb.replace(offset, length, text, attrs);
+
+      if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0))) {
+        pserial.setOSCHostInfo(0, newValue, pserial.listenport_tf.getText());
+      }
+      else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1))) {
+        pserial.setOSCHostInfo(1, newValue, pserial.listenport_tf.getText());
+      }
+    }
+
+    private int checkInput(String proposedValue, int offset) throws BadLocationException {
+      int newValue = 0;
+      if(proposedValue.length() > 0) {
+        try {
+          newValue = Integer.parseInt(proposedValue);
+        }catch(NumberFormatException e) {
+          throw new BadLocationException(proposedValue, offset);
+        }
+      }
+      return newValue;
+    }
+  }
+
+  public class ListenPortFilter extends DocumentFilter {
+    @Override
+    public void insertString(DocumentFilter.FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
+      System.out.println("insert");
+      if(string == null)
+        return;
+      else
+        replace(fb, offset, 0, string, attr);
+    }
+
+    @Override
+    public void remove(DocumentFilter.FilterBypass fb, int offset, int length) throws BadLocationException {
+      System.out.println("remove");
+      replace(fb, offset, length, "", null);
+    }
+
+    @Override
+    public void replace(DocumentFilter.FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+      System.out.println("replace");
+      Document doc = fb.getDocument();
+      int currentLength = doc.getLength();
+      String currentContent = doc.getText(0, currentLength);
+      String before = currentContent.substring(0, offset);
+      String after = currentContent.substring(length+offset, currentLength);
+      String newValue = before + (text == null ? "" : text) + after;
+      //currentValue =
+      checkInput(newValue, offset);
+      fb.replace(offset, length, text, attrs);
+
+      System.out.println("listen replace");
+      if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(0))) {
+        pserial.setOSCHostInfo(0, pserial.hostport_tf.getText(), newValue);
+      }
+      else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1))) {
+        pserial.setOSCHostInfo(1, pserial.hostport_tf.getText(), newValue);
+      }
+    }
+
+    private int checkInput(String proposedValue, int offset) throws BadLocationException {
+      int newValue = 0;
+      if(proposedValue.length() > 0) {
+        try {
+          newValue = Integer.parseInt(proposedValue);
+        }catch(NumberFormatException e) {
+          throw new BadLocationException(proposedValue, offset);
+        }
+      }
+      return newValue;
     }
   }
 
@@ -1063,8 +1226,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     }
   }
 
-  private class MidiPadConfPanel extends JPanel implements ChangeListener
-  {
+  private class MidiPadConfPanel extends JPanel implements ChangeListener {
     SpinnerNumberModel snm;
     JSpinner value;
     JSlider slider;
