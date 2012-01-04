@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<project name="PicnomeSerial" default="compile">
+<project name="pic2osc" default="compile">
   <target name="clean">
     <delete>
       <fileset dir="." includes="PicnomeSerial-macosx.jar"/>
@@ -14,7 +14,7 @@
   </target>
   <target name="jar" depends="compile">
     <tstamp/>
-    <jar destfile="PicnomeSerial-macosx.jar" basedir="class" includes="*.class">
+    <jar destfile="pic2osc-macosx.jar" basedir="class" includes="*.class">
       <manifest>
 	<attribute name="Main-Class" value="PicnomeSerial"/>
 	<attribute name="Build-Date" value="${TODAY}"/>
@@ -28,11 +28,11 @@
   <target name="bundle" depends="jar">
     <taskdef name="jarbundler" classname="net.sourceforge.jarbundler.JarBundler" />
     <jarbundler dir="."
-                name="PICnomeSerial"
+                name="pic2osc"
                 mainclass="PicnomeSerial"
-                build="135"
-                version="1.4.16"
-                icon="icon/PICnomeSerial-v1.0.icns"
+                build="140"
+                version="1.5.0"
+                icon="icon/pic2osc-v1.5.icns"
                 screenmenu="true">
       <jarfileset dir="lib">
         <include name="librxtxSerial.jnilib" />
@@ -41,7 +41,7 @@
         <include name="*.jar" />
       </jarfileset>
       <jarfileset dir=".">
-        <include name="PicnomeSerial-macosx.jar" />
+        <include name="pic2osc-macosx.jar" />
       </jarfileset>
     </jarbundler>
   </target>
@@ -57,7 +57,7 @@
   </target>
   <target name="jar-win" depends="compile-win">
     <tstamp/>
-    <jar destfile="PicnomeSerial-windows.jar" basedir="class" includes="*.class">
+    <jar destfile="pic2osc-windows.jar" basedir="class" includes="*.class">
       <manifest>
 	<attribute name="Main-Class" value="PicnomeSerial"/>
 	<attribute name="Build-Date" value="${TODAY}"/>
@@ -73,13 +73,13 @@
       <arg line="-t 1.6"/>
       <arg value="-g"/>
       <arg value="-i"/>
-      <arg file="icon\PICnomeSerial-v1.0.ico"/>
+      <arg file="icon\pic2osc-v1.5.ico"/>
       <arg line="-v ${version}"/>
       <arg value="-c 'Shunichi Yamamoto by tkrworks'"/>
       <arg value="-j"/>
-      <arg file="PicnomeSerial-windows.jar"/>
+      <arg file="pic2osc-windows.jar"/>
       <arg value="-o"/>
-      <arg file="PICnomeSerial.exe"/>
+      <arg file="pic2osc.exe"/>
     </exec>
   </target>
 </project>

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.4.16(135) 2011/03/19
+ * PicnomeSerial.java,v.1.5.0(140) 2012/01/02
  */
 
 import java.io.*;
@@ -55,7 +55,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       setSize(450, 625);
       //You have to comment out if you compile win version.
       //mac
-/*mac
+/*
       Application app = Application.getApplication();
       app.addApplicationListener(new ApplicationAdapter() {
           public void handleQuit(ApplicationEvent arg0) {
@@ -73,10 +73,11 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
             System.exit(0);
           }
         });
-mac*/
+*/
+      //mac end
     }
     else if(System.getProperty("os.name").startsWith("Windows"))
-      setSize(470, 770);
+      setSize(470, 670);
     addWindowListener(
       new WindowAdapter() {
         public void windowClosing(WindowEvent e) {
@@ -109,6 +110,9 @@ mac*/
 
     for(int i = 0; i < psgui.pserial.getCurrentNum(); i++) {
       psgui.pserial.openSerialPort(i);
+      try {
+        Thread.sleep(100);
+      } catch(InterruptedException ioe) {}
       psgui.pserial.setSerialPort(i);
       if(psgui.pserial.getCurrentMaxColumn(i) == 7)
         psgui.mdf.setHalfVisible();
@@ -117,19 +121,23 @@ mac*/
     int timeout_count = 0;
     while(!psgui.pserial.isFirmwareVersion()) {
       timeout_count++;
-      if(timeout_count > 65536)
+      if(timeout_count > 65536 * 20)
         break;
     }
-    psgui.setTitle("PICnomeSerial " + psgui.pserial.getAppVersion() + " /  " + psgui.pserial.getFirmwareVersion());
+    psgui.setTitle("pic2osc " + psgui.pserial.getAppVersion() + " /  " + psgui.pserial.getFirmwareVersion());
 
     //for DORAnome
     //dora psgui.changeDORAnome();//dora
+
+    //for PICratchBOX
+    if(psgui.pserial.getIsPrB())
+      psgui.pserial.enableAllAdcPorts();
   }
 
   private void changeDORAnome() {
     pserial.protocol_cb.setSelectedItem("DORAnome");
     pserial.midioutput_cb.setSelectedItem("IAC BUS 2");
-    for(int i = 0; i < 3; i++) {
+    for(int i = 0; i < 6; i++) {
       pserial.adc_cmb0[i].setSelectedIndex(1);
       pserial.adc_cmb1[i].setSelectedIndex(3);
     }
@@ -694,7 +702,7 @@ mac*/
         else if(((String)pserial.device_cb.getSelectedItem()).equals(pserial.getCurrentDevice(1)))
           pserial.setCurrentProtocol(1, "DORAnome");
 
-        for(int i = 3; i < 9; i++) {
+        for(int i = 3; i < 6; i++) {
           String str =new String("ae " + i + " " + 1 + (char)0x0D);
           pserial.adc_ck[i].setSelected(true);
           pserial.adc_cmb0[i].setEnabled(true);
@@ -822,7 +830,11 @@ mac*/
     else if(cmd.equals(" adc 0") || cmd.equals(" adc 1") || cmd.equals(" adc 2") || cmd.equals(" adc 3") ||
             cmd.equals(" adc 4") || cmd.equals(" adc 5") || cmd.equals(" adc 6") || cmd.equals(" adc 7") ||
             cmd.equals(" adc 8") || cmd.equals(" adc 9") || cmd.equals(" adc 10")) {
-      int adc_id = Integer.parseInt(cmd.substring(5, 6));
+      int adc_id = -1;
+      if(cmd.length() == 6)
+        adc_id = Integer.parseInt(cmd.substring(5, 6));
+      else
+        adc_id = Integer.parseInt(cmd.substring(5, 7));
       boolean b = pserial.adc_ck[adc_id].isSelected();
       String str;
       if(b) {

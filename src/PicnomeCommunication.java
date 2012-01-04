@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.4.16(135) 2011/03/19
+ * PicnomeCommunication.java,v.1.5.0(140) 2012/01/02
  */
 
 // RXTX
@@ -36,7 +36,7 @@ import java.io.*;
 import java.net.*;
 
 public class PicnomeCommunication implements PicnomeSystems {
-  private static final String APP_VERSION = "1.4.16";
+  private static final String APP_VERSION = "1.5.0";
   private static final int MAX_CONNECTABLE_NUM = 2;
   private static final int MAX_ADCON_NUM = 11;
 
@@ -118,6 +118,8 @@ public class PicnomeCommunication implements PicnomeSystems {
 
   private StringBuilder msgled_buf = new StringBuilder("l" + 0 + (char)0 + (char)0 + (char)0x0D);
 
+  private boolean isPrB = false;
+
   public PicnomeCommunication() {
     current_picnome_num = 0;
     initDeviceList();
@@ -145,6 +147,33 @@ public class PicnomeCommunication implements PicnomeSystems {
     initMIDIPort();
   }
 
+  public boolean getIsPrB() {
+    return isPrB;
+  }
+
+  public void enableAllAdcPorts() {
+    for(int i = 0; i < 11; i++) {
+      String str =new String("ae " + i + " " + 1 + (char)0x0D);
+      adc_ck[i].setSelected(true);
+      adc_cmb0[i].setEnabled(true);
+      if(adc_cmb0[i].getSelectedIndex() < 2)
+        adc_cmb1[i].setEnabled(true);
+      
+      if(((String)device_cb.getSelectedItem()).equals(getCurrentDevice(0))) {
+        setAdcEnable(0, i, true);
+        sendDataToSerial(0, str);
+      }
+      else if(((String)device_cb.getSelectedItem()).equals(getCurrentDevice(1))) {
+        setAdcEnable(1, i, true);
+        sendDataToSerial(1, str);
+      }
+
+      if(i != 1)
+        adc_cmb0[i].setSelectedIndex(1);
+      adc_cmb1[i].setSelectedIndex(2);
+    }
+  }
+
   private List<String> getUsbInfo(String name) {
     String id = "none";
     String iousbdevices = new String();
@@ -164,6 +193,7 @@ public class PicnomeCommunication implements PicnomeSystems {
       
       List<String> vid = new ArrayList<String>();
       List<String> pid = new ArrayList<String>();
+
       while(iousbdevices.indexOf(name) != -1) {
         int pos_start = iousbdevices.indexOf(name);
         int pos_end = iousbdevices.indexOf(" }");
@@ -197,7 +227,7 @@ public class PicnomeCommunication implements PicnomeSystems {
         }
         iousbdevices = iousbdevices.substring(iousbdevices.indexOf(" }") + 2, iousbdevices.length());
         
-        if(!(vid.get(vid.size() - 1).equals("1240") && (pid.get(pid.size() - 1).equals("65477") || pid.get(pid.size() - 1).equals("64768")))) {
+        if(!(vid.get(vid.size() - 1).equals("1240") && (pid.get(pid.size() - 1).equals("65477") || pid.get(pid.size() - 1).equals("64768") || pid.get(pid.size() - 1).equals("63865")))) {
           sfx.remove(sfx.size() - 1);
           vid.remove(vid.size() - 1);
           pid.remove(pid.size() - 1);
@@ -242,25 +272,35 @@ public class PicnomeCommunication implements PicnomeSystems {
       List<String> suffix0 = getUsbInfo("IOUSBDevice");
       List<String> suffix1 = getUsbInfo("PICnome");
       List<String> suffix2 = getUsbInfo("PICnome128");
+      List<String> suffix3 = getUsbInfo("PICratchBOX");
       Enumeration e = CommPortIdentifier.getPortIdentifiers();
 
       for(int i = 0; i < MAX_CONNECTABLE_NUM; i++) {
         device[i] = "";
         device2[i] = "";
       }
-
       while(e.hasMoreElements()) {
         device_name = ((CommPortIdentifier)e.nextElement()).getName();
-
         if(device_name.indexOf("/dev/cu.usbmodem") != -1) {
           for(String s0str: suffix0) {
             if(device_name.indexOf(s0str) != -1) {
               if(current_picnome_num >= MAX_CONNECTABLE_NUM)
                 break;
-              device[current_picnome_num] = "tkrworks-PICnome-" + s0str;
+              device[current_picnome_num] = "tkrworks-PICnome64-" + s0str;
               device2[current_picnome_num] = device_name;
               current_picnome_num++;
-              device_list.add("tkrworks-PICnome-" + s0str);
+              device_list.add("tkrworks-PICnome64-" + s0str);
+            }
+          }
+          for(String s3str: suffix3) {//for picratchbox
+            if(device_name.indexOf(s3str) != -1) {
+              if(current_picnome_num >= MAX_CONNECTABLE_NUM)
+                break;
+              device[current_picnome_num] = "tkrworks-PICratchBOX-" + s3str;
+              device2[current_picnome_num] = device_name;
+              current_picnome_num++;
+              device_list.add("tkrworks-PICratchBOX-" + s3str);
+              isPrB = true;
             }
           }
           for(String s2str: suffix2) {//for one twenty eight
@@ -277,10 +317,10 @@ public class PicnomeCommunication implements PicnomeSystems {
             if(device_name.indexOf(s1str) != -1) {
               if(current_picnome_num >= MAX_CONNECTABLE_NUM)
                 break;
-              device[current_picnome_num] = "tkrworks-PICnome-" + s1str;
+              device[current_picnome_num] = "tkrworks-PICnome64-" + s1str;
               device2[current_picnome_num] = device_name;
               current_picnome_num++;
-              device_list.add("tkrworks-PICnome-" + s1str);
+              device_list.add("tkrworks-PICnome64-" + s1str);
             }
           }
         }
@@ -291,8 +331,8 @@ public class PicnomeCommunication implements PicnomeSystems {
       String device_name;
       List<String> comport0 = this.getUsbInfo("tkrworks PICnome");
       List<String> comport1 = this.getUsbInfo("tkrworks PICnome128");
+      List<String> comport2 = this.getUsbInfo("tkrworks PICratchBOX");
       Enumeration e = CommPortIdentifier.getPortIdentifiers();
-      
 
       for(int i = 0; i < MAX_CONNECTABLE_NUM; i++) {
         device[i] = "";
@@ -306,10 +346,10 @@ public class PicnomeCommunication implements PicnomeSystems {
           if(device_name.indexOf(c0str) != -1) {
             if(current_picnome_num >= MAX_CONNECTABLE_NUM)
               break;
-            device[current_picnome_num] = "tkrworks-PICnome-" + c0str;
+            device[current_picnome_num] = "tkrworks-PICnome64-" + c0str;
             device2[current_picnome_num] = device_name;
             current_picnome_num++;
-            device_list.add("tkrworks-PICnome-" + c0str);
+            device_list.add("tkrworks-PICnome64-" + c0str);
           }
         }
         for(String c1str: comport1) {
@@ -320,6 +360,16 @@ public class PicnomeCommunication implements PicnomeSystems {
             device2[current_picnome_num] = device_name;
             current_picnome_num++;
             device_list.add("tkrworks-PICnome128-" + c1str);
+          }
+        }
+        for(String c2str: comport2) {
+          if(device_name.indexOf(c2str) != -1) {
+            if(current_picnome_num >= MAX_CONNECTABLE_NUM)
+              break;
+            device[current_picnome_num] = "tkrworks-PICratchBOX-" + c2str;
+            device2[current_picnome_num] = device_name;
+            current_picnome_num++;
+            device_list.add("tkrworks-PICratchBOX-" + c2str);
           }
         }
       }
@@ -432,6 +482,7 @@ public class PicnomeCommunication implements PicnomeSystems {
       port[index].setDTR(true);
       port[index].setRTS(false);
       
+      //check firmware version
       sendDataToSerial(index, new String("f" + (char)0x0D));
     }
     catch (UnsupportedCommOperationException e) {
@@ -495,10 +546,10 @@ public class PicnomeCommunication implements PicnomeSystems {
     try {
       host_port[index] = newHostPort;
       listen_port[index] = newListenPort;
-      System.out.println(host_port[index] + " " + listen_port[index]);
+      //debug System.out.println(host_port[index] + " " + listen_port[index]);
       hostport_tf.setText(host_port[index]);
       listenport_tf.setText(listen_port[index]);
-System.out.println("oscr.setPort");
+      //debug System.out.println("oscr.setPort");
       oscr.setPort(Integer.valueOf(listen_port[index]));
       oscpout = new OSCPortOut(InetAddress.getByAddress(hostaddress), Integer.valueOf(host_port[index]));
     }
@@ -779,6 +830,19 @@ System.out.println("oscr.setPort");
             midi_r[index].send(sm, 1);
           } catch(InvalidMidiDataException imde) {}
         }
+        else if(x0 == 10) {
+          int note_number = y0 + 1;
+          try {
+            ShortMessage sm = new ShortMessage();
+            if((char)chs[0] == 'p')
+              sm.setMessage(ShortMessage.NOTE_ON, 2,// MIDI ch.3
+                            (byte)note_number, 127);
+            else if((char)chs[0] == 'r')
+              sm.setMessage(ShortMessage.NOTE_OFF, 2,// MIDI ch.3
+                            (byte)note_number, 0);
+            midi_r[index].send(sm, 1);
+          } catch(InvalidMidiDataException imde) {}
+        }
         else if((x0 == 12 && y0 == 2) || (x0 == 13 && y0 == 2) || (x0 == 12 && y0 == 3) || (x0 == 13 && y0 == 3)) {
           int note_number = (y0 + 7) + 2 * (x0 - 12);
           try {
@@ -851,6 +915,7 @@ System.out.println("oscr.setPort");
     }
     else if((char)chs[0] == 'a') {
       float f = 0.0f;
+      double f1 = 0.0;
       int adc_id = chs[1] >> 4;
       int ac0 = adc_cmb0[adc_id].getSelectedIndex();
       double ac1 = adc_cmb1[adc_id].getSelectedIndex();
@@ -863,16 +928,25 @@ System.out.println("oscr.setPort");
       if(atb[adc_id] > 1000) atb[adc_id] = 1023;
       else if(atb[adc_id] < 9) atb[adc_id] = 0;
 
+      //debug System.out.printf("%d = %d%n", adc_id, atb[adc_id]);
+
       if(ac0 == 0) {//IF
         atb[adc_id] = atb[adc_id] >> 3;
         f = (float)(Math.pow(atb[adc_id] / 127.0, Math.pow(2.0, (2.0 * ac1) - 4.0)));
       }
       else if(ac0 == 1) {//CF
         atb[adc_id] = atb[adc_id] >> 3;
+        f1 = atb[adc_id] * 1.008;
+        if(f1 < 2.0)
+          f1 = 0.0;
+        else if(f1 > 127.0)
+          f1 = 127.0;
         if(atb[adc_id] < 64)
-          f = (float)(0.5 * Math.pow(atb[adc_id] / 64.0, Math.pow(2.0, (2.0 * ac1) - 4.0)));
+          //test f = (float)(0.5 * Math.pow(atb[adc_id] / 64.0, Math.pow(2.0, (2.0 * ac1) - 8.0)));
+          f = (float)(0.5 * Math.pow(f1 / 64.0, Math.pow(2.0, (2.0 * ac1) - 8.0)));
         else
-          f = (float)(1.0 - (0.5 * Math.pow((127.0 - atb[adc_id]) / 64.0, Math.pow(2.0, (2.0 * ac1) - 4.0))));
+          //test f = (float)(1.0 - (0.5 * Math.pow((127.0 - atb[adc_id]) / 64.0, Math.pow(2.0, (2.0 * ac1) - 8.0))));
+          f = (float)(1.0 - (0.5 * Math.pow((127.0 - f1) / 64.0, Math.pow(2.0, (2.0 * ac1) - 8.0))));
       }
       else {
         atb_box[adc_id][count_ma] = atb[adc_id];
@@ -888,7 +962,30 @@ System.out.println("oscr.setPort");
         args = new Object[2];
         args[0] = adc_id;
         args[1] = f;//sy (float)(((int)(f * 250.0)) / 250.0);
-        msg = new OSCMessage(address_pattern_prefix[index] + "/adc", args);
+        if(getIsPrB()) {
+          if(adc_id < 3) {
+            if(adc_id == 1)
+              args[0] = 2;
+            else if(adc_id == 2)
+              args[0] = 1;
+            msg = new OSCMessage(address_pattern_prefix[index] + "/fader", args);
+          }
+          else {
+            Object[] argsv = new Object[3];
+            if(adc_id < 7) {
+              argsv[0] = 1;
+              argsv[1] = 3 - (adc_id - 3);
+            }
+            else {
+              argsv[0] = 0;
+              argsv[1] = 3 - (adc_id - 7);
+            }
+            argsv[2] = 1.0f - f;
+            msg = new OSCMessage(address_pattern_prefix[index] + "/vol", argsv);
+          }
+        }
+        else
+          msg = new OSCMessage(address_pattern_prefix[index] + "/adc", args);
         try {
           oscpout.send(msg);
         }
@@ -902,7 +999,7 @@ System.out.println("oscr.setPort");
         }
       }
       else if(protocol_type[index].equals("DORAnome")) {// for DORAnome
-        if(adc_id == 1) {
+        if(adc_id < 3) {
           args = new Object[2];
           args[0] = adc_id;
           args[1] = f;//sy (float)(((int)(f * 250.0)) / 250.0);
@@ -1067,6 +1164,9 @@ System.out.println("oscr.setPort");
     int sc = starting_column[index];
     int sr = starting_row[index];
                 
+    //debug System.out.printf("%d %d %d %d", args0, args1, args2, message.getArgumentsLength());
+    //debug System.out.println(args0 + " " + args1 + " " + args2);
+
     if(cable_orientation[index].equals("left")) {
       sc = args0 - sc;
       sr = args1 - sr;
@@ -1153,6 +1253,8 @@ System.out.println("oscr.setPort");
     int args0 = (int)Float.parseFloat(args[0].toString());
     int args1 = (int)Float.parseFloat(args[1].toString());
 
+    //debug System.out.println("led_col " + args0 + " " + args1);
+
     //sy0 if(args.length < 2)
     if(message.getArgumentsLength() < 2)
       return null;
@@ -1213,6 +1315,8 @@ System.out.println("oscr.setPort");
     int args0 = (int)Float.parseFloat(args[0].toString());
     int args1 = (int)Float.parseFloat(args[1].toString());
 
+    //debug System.out.println("led_row " + args0 + " " + args1);
+
     //sy0 if(args.length < 2)
     if(message.getArgumentsLength() < 2)
       return null;
@@ -1236,7 +1340,8 @@ System.out.println("oscr.setPort");
     
     if(sr < 0) return null;
         
-    int shift = starting_column[index] % (co_max_num[index] + 1);
+    //sy int shift = starting_column[index] % (co_max_num[index] + 1);
+    int shift = starting_column[index];
         
     if(cable_orientation[index].equals("left")) {
       sc = (char)(args1 >> shift);
@@ -1407,6 +1512,26 @@ System.out.println("oscr.setPort");
       adc_cmb1[(Integer)args[0]].setEnabled(false);
     }
     return str;
+  }
+
+  private void controlMsgAdcType(int index, OSCMessage message) {
+    Object[] args0 = message.getArguments();
+    
+    int[] args = new int[message.getArgumentsLength()];
+    for(int i = 0; i < message.getArgumentsLength(); i++) {
+      args[i] = (int)Float.parseFloat(args0[i].toString());
+    }
+    adc_cmb0[args[0]].setSelectedIndex(args[1]);
+  }
+
+  private void controlMsgAdcCurve(int index, OSCMessage message) {
+    Object[] args0 = message.getArguments();
+    
+    int[] args = new int[message.getArgumentsLength()];
+    for(int i = 0; i < message.getArgumentsLength(); i++) {
+      args[i] = (int)Float.parseFloat(args0[i].toString());
+    }
+    adc_cmb1[args[0]].setSelectedIndex(args[1]);
   }
 
   private void controlMsgDevice(OSCMessage message) {
@@ -1694,7 +1819,7 @@ System.out.println("oscr.setPort");
           }
 
           ds.receive(dp);
-          om = (OSCMessage)converter.convert(buffer, dp.getLength());
+          om = converter.convert(buffer, dp.getLength());
           address = om.getAddress();
       
           //Prefix Messages
@@ -1725,6 +1850,16 @@ System.out.println("oscr.setPort");
             else if(address.equals(address_pattern_prefix[i] + "/adc_enable")) {
               sermsg = controlMsgAdcEnable(i, om);
               sendDataToSerial(i, sermsg);
+            }
+            else if(address.equals(address_pattern_prefix[i] + "/adc/enable")) {
+              sermsg = controlMsgAdcEnable(i, om);
+              sendDataToSerial(i, sermsg);
+            }
+            else if(address.equals(address_pattern_prefix[i] + "/adc/type")) {
+              controlMsgAdcType(i, om);
+            }
+            else if(address.equals(address_pattern_prefix[i] + "/adc/curve")) {
+              controlMsgAdcCurve(i, om);
             }
             else if(address.equals("/sys/intensity")) {
               sermsg = controlMsgIntensity(i, om);
@@ -1801,6 +1936,7 @@ System.out.println("oscr.setPort");
           }
         }
         catch(IOException e) {
+          e.printStackTrace();
           continue;
         }
 
@@ -1817,20 +1953,10 @@ System.out.println("oscr.setPort");
           fwver_flag = true;
           msg_index = 0;
         }
-
-        //for old picnome
-/*
-        if(buffer == 0x0A || buffer == 0x0D) {
-           //debug System.out.println(sb.toString());
-           sendOSCMessageFromHw(this.index, sb.toString());
-           sb = new StringBuilder(10);
-           //sy sb = sb.delete(0, sb.length());
-         }
-         else {
-           sb.append((char)buffer);
-           //debug System.out.println(sb.toString());
-         }
-*/
+        else if(msg_index > 3){
+          //debug System.out.println("error : too long message");
+          msg_index = 0;
+        }
       }
     }
   }
