@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.5.0(140) 2012/01/02
+ * PicnomeCommunication.java,v.1.5.04(144) 2012/01/07
  */
 
 // RXTX
@@ -36,7 +36,7 @@ import java.io.*;
 import java.net.*;
 
 public class PicnomeCommunication implements PicnomeSystems {
-  private static final String APP_VERSION = "1.5.0";
+  private static final String APP_VERSION = "1.5.04";
   private static final int MAX_CONNECTABLE_NUM = 2;
   private static final int MAX_ADCON_NUM = 11;
 
@@ -168,9 +168,14 @@ public class PicnomeCommunication implements PicnomeSystems {
         sendDataToSerial(1, str);
       }
 
-      if(i != 1)
+      if(i == 1 || i == 2)
+        adc_cmb0[i].setSelectedIndex(0);
+      else
         adc_cmb0[i].setSelectedIndex(1);
-      adc_cmb1[i].setSelectedIndex(2);
+      if(i > 2)
+        adc_cmb1[i].setSelectedIndex(4);
+      else
+        adc_cmb1[i].setSelectedIndex(2);
     }
   }
 
@@ -1038,6 +1043,29 @@ public class PicnomeCommunication implements PicnomeSystems {
         } catch(InvalidMidiDataException imde){}
       }
     }
+    else if((char)chs[0] == 'c' && (char)chs[1] == 'g') {
+      if(protocol_type[index].equals("Open Sound Control")) {
+        args = new Object[2];
+        args[0] = chs[2];
+        args[1] = chs[3];
+        msg = new OSCMessage(address_pattern_prefix[index] + "/adc/curve", args);
+/*
+        if(!getIsPrB())
+          return;
+*/
+        try {
+          oscpout.send(msg);
+        }
+        catch(IOException e) {
+          e.printStackTrace();
+          return;
+        }
+        catch(NullPointerException e) {
+          e.printStackTrace();
+          return;
+        }
+      }
+    }
   }
 
   private void sendOSCMessageFromHw(int index, String str) {
@@ -1524,14 +1552,33 @@ public class PicnomeCommunication implements PicnomeSystems {
     adc_cmb0[args[0]].setSelectedIndex(args[1]);
   }
 
-  private void controlMsgAdcCurve(int index, OSCMessage message) {
+  private String controlMsgAdcCurve(int index, OSCMessage message) {
+    String str;
     Object[] args0 = message.getArguments();
-    
-    int[] args = new int[message.getArgumentsLength()];
-    for(int i = 0; i < message.getArgumentsLength(); i++) {
-      args[i] = (int)Float.parseFloat(args0[i].toString());
+    int[] args;
+
+    if(message.getArgumentsLength() > 1) {
+      args = new int[message.getArgumentsLength()];
+      for(int i = 0; i < message.getArgumentsLength(); i++) {
+        args[i] = (int)Float.parseFloat(args0[i].toString());
+      }
+      if(args[1] < 0)
+        args[1] = 0;
+      else if(args[1] > 8)
+        args[1] = 8;
+      adc_cmb1[args[0]].setSelectedIndex(args[1]);
+      
+      str = new String("cs " + args[0] + " " + args[1] + (char)0x0D);
     }
-    adc_cmb1[args[0]].setSelectedIndex(args[1]);
+    else {
+      args = new int[message.getArgumentsLength()];
+      for(int i = 0; i < message.getArgumentsLength(); i++) {
+        args[i] = (int)Float.parseFloat(args0[i].toString());
+      }
+
+      str = new String("cg " + args[0] + (char)0x0D);
+    }
+    return str;
   }
 
   private void controlMsgDevice(OSCMessage message) {
@@ -1859,7 +1906,8 @@ public class PicnomeCommunication implements PicnomeSystems {
               controlMsgAdcType(i, om);
             }
             else if(address.equals(address_pattern_prefix[i] + "/adc/curve")) {
-              controlMsgAdcCurve(i, om);
+              sermsg = controlMsgAdcCurve(i, om);
+              sendDataToSerial(i, sermsg);
             }
             else if(address.equals("/sys/intensity")) {
               sermsg = controlMsgIntensity(i, om);
@@ -1930,7 +1978,8 @@ public class PicnomeCommunication implements PicnomeSystems {
             continue;
           else {
             chs[msg_index] = buffer;
-            if(msg_index == 0 && (chs[msg_index] != 'p' && chs[msg_index] != 'r' && chs[msg_index] != 'a' && chs[msg_index] != 'f'))
+            if(msg_index == 0 &&
+               (chs[msg_index] != 'p' && chs[msg_index] != 'r' && chs[msg_index] != 'a' && chs[msg_index] != 'f' && chs[msg_index] != 'c'))
               continue;
             msg_index++;
           }
@@ -1951,6 +2000,10 @@ public class PicnomeCommunication implements PicnomeSystems {
         else if((char)chs[0] == 'f' && msg_index == 3) {
           fwver = String.valueOf(((float)chs[1] / 10.0) + ((float)chs[2] / 1000.0));
           fwver_flag = true;
+          msg_index = 0;
+        }
+        else if((char)chs[0] == 'c' && (char)chs[1] == 'g' && msg_index == 4) {
+          sendOSCMessageFromHw(this.index, chs);
           msg_index = 0;
         }
         else if(msg_index > 3){

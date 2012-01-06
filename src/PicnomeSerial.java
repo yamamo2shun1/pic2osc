@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.5.0(140) 2012/01/02
+ * PicnomeSerial.java,v.1.5.04(144) 2012/01/07
  */
 
 import java.io.*;
@@ -598,7 +598,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     aic_sl.putConstraint(SpringLayout.NORTH, aic_p, 0, SpringLayout.NORTH, ais_tab);
     aic_sl.putConstraint(SpringLayout.WEST, aic_p, 0, SpringLayout.WEST, ais_tab);
     for(int i = 0; i < pserial.getMaxAnalogNum(); i++) {
-      String[] curve_name = {"C.1", "C.2", "C.3", "C.4", "C.5"};
+      String[] curve_name = {"C.1", "C.2", "C.3", "C.4", "C.5", "C.6", "C.7", "C.8"};
       pserial.adc_cmb1[i] = new JComboBox(curve_name);
       pserial.adc_cmb1[i].setEnabled(false);
       pserial.adc_cmb1[i].setSelectedIndex(2);
