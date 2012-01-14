@@ -4,9 +4,9 @@
     <key>CFBundleName</key>
     <string>pic2osc</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.5.0</string>
+    <string>1.5.05</string>
     <key>CFBundleGetInfoString</key>
-    <string>1.5.0</string>
+    <string>1.5.05</string>
     <key>CFBundleAllowMixedLocalizations</key>
     <string>false</string>
     <key>CFBundleInfoDictionaryVersion</key>
@@ -34,6 +34,7 @@
         <string>$JAVAROOT/librxtxSerial.jnilib</string>
         <string>$JAVAROOT/RXTXcomm.jar</string>
         <string>$JAVAROOT/javaosc.jar</string>
+        <string>$JAVAROOT/swingx-core-1.6.2.jar</string>
         <string>$JAVAROOT/pic2osc-macosx.jar</string>
       </array>
       <key>Properties</key>

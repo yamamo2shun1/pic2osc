@@ -31,7 +31,7 @@
                 name="pic2osc"
                 mainclass="PicnomeSerial"
                 build="140"
-                version="1.5.0"
+                version="1.5.05"
                 icon="icon/pic2osc-v1.5.icns"
                 screenmenu="true">
       <jarfileset dir="lib">
@@ -53,7 +53,7 @@
   <target name="compile-win" depends="clean-win">
     <javac srcdir="src"
            destdir="class"
-           extdirs="C:\Program Files\Java\jdk1.6.0_23:lib" />
+           extdirs="C:\Program Files\Java\jdk1.6.0_29:lib" />
   </target>
   <target name="jar-win" depends="compile-win">
     <tstamp/>

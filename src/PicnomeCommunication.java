@@ -1,14 +1,14 @@
 /*
  * Copylight (C) 2009, Shunichi Yamamoto, tkrworks.net
  *
- * This file is part of PICnomeSerial.
+ * This file is part of pic2osc.
  *
- * PicnomeSerial is free software: you can redistribute it and/or modify
+ * pic2osc is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option ) any later version.
  *
- * PicnomeSerial is distributed in the hope that it will be useful,
+ * pic2osc is distributed in the hope that it will be useful,
  * but WITHIOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.   See the
  * GNU General Public License for more details.
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.5.04(144) 2012/01/07
+ * PicnomeCommunication.java,v.1.6.0(146) 2012/01/12
  */
 
 // RXTX
@@ -36,7 +36,7 @@ import java.io.*;
 import java.net.*;
 
 public class PicnomeCommunication implements PicnomeSystems {
-  private static final String APP_VERSION = "1.5.04";
+  private static final String APP_VERSION = "1.6.0";
   private static final int MAX_CONNECTABLE_NUM = 2;
   private static final int MAX_ADCON_NUM = 11;
 
@@ -385,6 +385,7 @@ public class PicnomeCommunication implements PicnomeSystems {
     protocol_type[1 - index] = (String)protocol_cb.getSelectedItem();
     midi_in[1 - index] = midiinput_cb.getSelectedIndex();
     midi_out[1 - index] = midioutput_cb.getSelectedIndex();
+    //debug System.out.println(index + " " + host_port[index] + " " + host_port[1 - index] + " " + hostport_tf.getText());
     host_address[1 - index] = hostaddress_tf.getText();
     host_port[1 - index] = hostport_tf.getText();
     listen_port[1 - index] = listenport_tf.getText();
@@ -551,7 +552,7 @@ public class PicnomeCommunication implements PicnomeSystems {
     try {
       host_port[index] = newHostPort;
       listen_port[index] = newListenPort;
-      //debug System.out.println(host_port[index] + " " + listen_port[index]);
+      //debug System.out.println(index + " " + host_port[index] + " " + listen_port[index]);
       hostport_tf.setText(host_port[index]);
       listenport_tf.setText(listen_port[index]);
       //debug System.out.println("oscr.setPort");
@@ -947,10 +948,8 @@ public class PicnomeCommunication implements PicnomeSystems {
         else if(f1 > 127.0)
           f1 = 127.0;
         if(atb[adc_id] < 64)
-          //test f = (float)(0.5 * Math.pow(atb[adc_id] / 64.0, Math.pow(2.0, (2.0 * ac1) - 8.0)));
           f = (float)(0.5 * Math.pow(f1 / 64.0, Math.pow(2.0, (2.0 * ac1) - 8.0)));
         else
-          //test f = (float)(1.0 - (0.5 * Math.pow((127.0 - atb[adc_id]) / 64.0, Math.pow(2.0, (2.0 * ac1) - 8.0))));
           f = (float)(1.0 - (0.5 * Math.pow((127.0 - f1) / 64.0, Math.pow(2.0, (2.0 * ac1) - 8.0))));
       }
       else {
@@ -1004,7 +1003,7 @@ public class PicnomeCommunication implements PicnomeSystems {
         }
       }
       else if(protocol_type[index].equals("DORAnome")) {// for DORAnome
-        if(adc_id < 3) {
+        if(adc_id == 2) {
           args = new Object[2];
           args[0] = adc_id;
           args[1] = f;//sy (float)(((int)(f * 250.0)) / 250.0);
@@ -1021,7 +1020,7 @@ public class PicnomeCommunication implements PicnomeSystems {
             return;
           }
         }
-        else {
+        //test else {
           try {
             ShortMessage sm = new ShortMessage();
             if(protocol_type[index].equals("DORAnome"))
@@ -1030,7 +1029,7 @@ public class PicnomeCommunication implements PicnomeSystems {
               sm.setMessage(ShortMessage.CONTROL_CHANGE, 0, adc_id, (int)(f * 127));
             midi_r[index].send(sm, 1);
           } catch(InvalidMidiDataException imde){}
-        }
+        //test }
       }
       else {// for MIDI
         try {
@@ -1944,12 +1943,12 @@ public class PicnomeCommunication implements PicnomeSystems {
             controlMsgCable(om);
           
           //You have to comment out if you compile win version.
-          //mac wait(0, 1);//mac
+          wait(0, 1);//mac
         }
       }
       catch(IOException e) {}
       //You have to comment out if you compile win version.
-      //mac catch(InterruptedException ioe) {}//mac
+      catch(InterruptedException ioe) {}//mac
     }
   }
 
