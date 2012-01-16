@@ -30,7 +30,7 @@ import org.jdesktop.swingx.*;
 import org.jdesktop.swingx.*;
 
 //You have to comment out if you compile win version.
-import com.apple.eawt.*;//mac
+//mac import com.apple.eawt.*;//mac
 
 public class PicnomeSerial extends JFrame implements ActionListener, ChangeListener {
   final static int MENU_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
@@ -59,6 +59,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       setSize(430, 625);
       //You have to comment out if you compile win version.
       //mac
+/*
       Application app = Application.getApplication();
       app.addApplicationListener(new ApplicationAdapter() {
           public void handleQuit(ApplicationEvent arg0) {
@@ -76,6 +77,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
             System.exit(0);
           }
         });
+*/
       //mac end
     }
     else if(System.getProperty("os.name").startsWith("Windows"))

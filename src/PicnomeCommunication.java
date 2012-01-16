@@ -1943,12 +1943,12 @@ public class PicnomeCommunication implements PicnomeSystems {
             controlMsgCable(om);
           
           //You have to comment out if you compile win version.
-          wait(0, 1);//mac
+          //mac wait(0, 1);//mac
         }
       }
       catch(IOException e) {}
       //You have to comment out if you compile win version.
-      catch(InterruptedException ioe) {}//mac
+      //mac catch(InterruptedException ioe) {}//mac
     }
   }
 
