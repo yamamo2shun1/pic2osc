@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.6.0(146) 2012/01/12
+ * PicnomeCommunication.java,v.1.6.01(147) 2012/01/17
  */
 
 // RXTX
@@ -36,7 +36,7 @@ import java.io.*;
 import java.net.*;
 
 public class PicnomeCommunication implements PicnomeSystems {
-  private static final String APP_VERSION = "1.6.0";
+  private static final String APP_VERSION = "1.6.01";
   private static final int MAX_CONNECTABLE_NUM = 2;
   private static final int MAX_ADCON_NUM = 11;
 
@@ -185,14 +185,16 @@ public class PicnomeCommunication implements PicnomeSystems {
     List<String> sfx = new ArrayList<String>();
 
     if(System.getProperty("os.name").startsWith("Mac OS X")) {
+System.out.println("test");
       try {
         ProcessBuilder pb = new ProcessBuilder("ioreg", "-w", "0", "-S", "-p", "IOUSB", "-n", name, "-r");
         Process p = pb.start();
         InputStream is = p.getInputStream();
 
         int c;
-        while((c = is.read()) != -1)
+        while((c = is.read()) != -1) {
           iousbdevices += (new Character((char)c)).toString();
+        }
         is.close();
       }catch(IOException e) {}
       
@@ -200,6 +202,7 @@ public class PicnomeCommunication implements PicnomeSystems {
       List<String> pid = new ArrayList<String>();
 
       while(iousbdevices.indexOf(name) != -1) {
+System.out.println("test0");
         int pos_start = iousbdevices.indexOf(name);
         int pos_end = iousbdevices.indexOf(" }");
         String iousbdevice = iousbdevices.substring(pos_start, pos_end);
@@ -225,6 +228,8 @@ public class PicnomeCommunication implements PicnomeSystems {
         if((pos_start = iousbdevice.indexOf("idProduct")) != -1) {
           pos_end = iousbdevice.length();
           
+//test System.out.println(pid.get(pid.size() - 1));
+
           iousbdevice = iousbdevice.substring(pos_start, pos_end);
           pos_end = iousbdevice.indexOf("\n");
           id = iousbdevice.substring(iousbdevice.indexOf(" = ") + 3, pos_end);
@@ -232,7 +237,7 @@ public class PicnomeCommunication implements PicnomeSystems {
         }
         iousbdevices = iousbdevices.substring(iousbdevices.indexOf(" }") + 2, iousbdevices.length());
         
-        if(!(vid.get(vid.size() - 1).equals("1240") && (pid.get(pid.size() - 1).equals("65477") || pid.get(pid.size() - 1).equals("64768") || pid.get(pid.size() - 1).equals("63865")))) {
+        if(!(vid.get(vid.size() - 1).equals("1240") && (pid.get(pid.size() - 1).equals("65477") || pid.get(pid.size() - 1).equals("64768") || pid.get(pid.size() - 1).equals("63622")))) {
           sfx.remove(sfx.size() - 1);
           vid.remove(vid.size() - 1);
           pid.remove(pid.size() - 1);
@@ -277,7 +282,7 @@ public class PicnomeCommunication implements PicnomeSystems {
       List<String> suffix0 = getUsbInfo("IOUSBDevice");
       List<String> suffix1 = getUsbInfo("PICnome");
       List<String> suffix2 = getUsbInfo("PICnome128");
-      List<String> suffix3 = getUsbInfo("PICratchBOX");
+      List<String> suffix3 = getUsbInfo("PICratchBOX_OSC");
       Enumeration e = CommPortIdentifier.getPortIdentifiers();
 
       for(int i = 0; i < MAX_CONNECTABLE_NUM; i++) {
@@ -336,7 +341,7 @@ public class PicnomeCommunication implements PicnomeSystems {
       String device_name;
       List<String> comport0 = this.getUsbInfo("tkrworks PICnome");
       List<String> comport1 = this.getUsbInfo("tkrworks PICnome128");
-      List<String> comport2 = this.getUsbInfo("tkrworks PICratchBOX");
+      List<String> comport2 = this.getUsbInfo("tkrworks PICratchBOX_OSC");
       Enumeration e = CommPortIdentifier.getPortIdentifiers();
 
       for(int i = 0; i < MAX_CONNECTABLE_NUM; i++) {
@@ -446,7 +451,7 @@ public class PicnomeCommunication implements PicnomeSystems {
           portId[index] = CommPortIdentifier.getPortIdentifier(device2[index]);
         }
       }
-      port[index] = (SerialPort)portId[index].open("PICnomeSerial", 2000);
+      port[index] = (SerialPort)portId[index].open("pic2osc", 2000);
 
       in[index] = port[index].getInputStream();
       out[index] = port[index].getOutputStream();

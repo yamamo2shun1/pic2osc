@@ -5,10 +5,10 @@
       <fileset dir="." includes="PicnomeSerial-macosx.jar"/>
       <fileset dir="class" includes="*.class"/>
     </delete>
-    <delete dir="PICnomeSerial.app"/>
+    <delete dir="pic2osc.app"/>
   </target>
   <target name="compile" depends="clean">
-    <javac srcdir="src" destdir="class" extdirs="/Library/Java/Extensions:./lib" source="1.6" target="1.6">
+    <javac srcdir="src" destdir="class" extdirs="/Library/Java/Extensions:./lib" source="1.6" target="1.6" includeantruntime="false">
       <compilerarg value="-Xlint:unchecked" />
     </javac>
   </target>
@@ -30,8 +30,8 @@
     <jarbundler dir="."
                 name="pic2osc"
                 mainclass="PicnomeSerial"
-                build="140"
-                version="1.5.05"
+                build="147"
+                version="1.6.01"
                 icon="icon/pic2osc-v1.5.icns"
                 screenmenu="true">
       <jarfileset dir="lib">
@@ -47,7 +47,7 @@
   </target>
   <target name="clean-win">
     <delete>
-      <fileset dir="." includes="PicnomeSerial-windows.jar"/>
+      <fileset dir="." includes="pic2osc-windows.jar"/>
     </delete>
   </target>
   <target name="compile-win" depends="clean-win">
