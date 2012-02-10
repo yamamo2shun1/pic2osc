@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.6.01(147) 2012/01/17
+ * PicnomeSerial.java,v.1.6.02(148) 2012/02/10
  */
 
 import java.io.*;
@@ -30,7 +30,7 @@ import org.jdesktop.swingx.*;
 import org.jdesktop.swingx.*;
 
 //You have to comment out if you compile win version.
-//mac import com.apple.eawt.*;//mac
+//win import com.apple.eawt.*;//mac
 
 public class PicnomeSerial extends JFrame implements ActionListener, ChangeListener {
   final static int MENU_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
@@ -59,7 +59,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
       setSize(430, 625);
       //You have to comment out if you compile win version.
       //mac
-      /*
+      /*win
       Application app = Application.getApplication();
       app.addApplicationListener(new ApplicationAdapter() {
           public void handleQuit(ApplicationEvent arg0) {
@@ -77,7 +77,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
             System.exit(0);
           }
         });
-        */
+        win*/
       //mac end
     }
     else if(System.getProperty("os.name").startsWith("Windows"))
@@ -133,11 +133,13 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     psgui.setTitle("pic2osc " + psgui.pserial.getAppVersion() + " /  " + psgui.pserial.getFirmwareVersion());
 
     //for DORAnome
-    //dora psgui.changeDORAnome();//dora
+    //sy psgui.changeDORAnome();//dora
 
     //for PICratchBOX
+    /*
     if(psgui.pserial.getIsPrB())
       psgui.pserial.enableAllAdcPorts();
+      */
   }
 
   private void changeDORAnome() {
@@ -146,7 +148,10 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     for(int i = 0; i < 6; i++) {
       pserial.adc_ck[i].setSelected(false);
       pserial.adc_cmb0[i].setSelectedIndex(1);
-      pserial.adc_cmb1[i].setSelectedIndex(4);
+      if(i < 2)
+        pserial.adc_cmb1[i].setSelectedIndex(6);
+      else
+        pserial.adc_cmb1[i].setSelectedIndex(4);
     }
   }
 

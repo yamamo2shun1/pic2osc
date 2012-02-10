@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeCommunication.java,v.1.6.01(147) 2012/01/17
+ * PicnomeCommunication.java,v.1.6.02(148) 2012/02/10
  */
 
 // RXTX
@@ -36,7 +36,7 @@ import java.io.*;
 import java.net.*;
 
 public class PicnomeCommunication implements PicnomeSystems {
-  private static final String APP_VERSION = "1.6.01";
+  private static final String APP_VERSION = "1.6.02";
   private static final int MAX_CONNECTABLE_NUM = 2;
   private static final int MAX_ADCON_NUM = 11;
 
@@ -185,7 +185,6 @@ public class PicnomeCommunication implements PicnomeSystems {
     List<String> sfx = new ArrayList<String>();
 
     if(System.getProperty("os.name").startsWith("Mac OS X")) {
-System.out.println("test");
       try {
         ProcessBuilder pb = new ProcessBuilder("ioreg", "-w", "0", "-S", "-p", "IOUSB", "-n", name, "-r");
         Process p = pb.start();
@@ -202,7 +201,6 @@ System.out.println("test");
       List<String> pid = new ArrayList<String>();
 
       while(iousbdevices.indexOf(name) != -1) {
-System.out.println("test0");
         int pos_start = iousbdevices.indexOf(name);
         int pos_end = iousbdevices.indexOf(" }");
         String iousbdevice = iousbdevices.substring(pos_start, pos_end);
@@ -756,8 +754,12 @@ System.out.println("test0");
       if(str == null )
         return;
 
-      for(String str0 : str)
+      for(String str0 : str) {
         out[index].write(str0.getBytes());
+        int j = 0;
+        for(int i = 0; i < 100000; i++)
+          j++;
+      }
     }
     catch(IOException e) {}
   }
@@ -1029,7 +1031,7 @@ System.out.println("test0");
           try {
             ShortMessage sm = new ShortMessage();
             if(protocol_type[index].equals("DORAnome"))
-              sm.setMessage(ShortMessage.CONTROL_CHANGE, 1, adc_id, (int)(f * 127));
+              sm.setMessage(ShortMessage.CONTROL_CHANGE, 3, adc_id, (int)(f * 127));
             else
               sm.setMessage(ShortMessage.CONTROL_CHANGE, 0, adc_id, (int)(f * 127));
             midi_r[index].send(sm, 1);
@@ -1040,7 +1042,7 @@ System.out.println("test0");
         try {
           ShortMessage sm = new ShortMessage();
           if(protocol_type[index].equals("DORAnome"))
-            sm.setMessage(ShortMessage.CONTROL_CHANGE, 1, adc_id, (int)(f * 127));
+            sm.setMessage(ShortMessage.CONTROL_CHANGE, 3, adc_id, (int)(f * 127));
           else
             sm.setMessage(ShortMessage.CONTROL_CHANGE, 0, adc_id, (int)(f * 127));
           midi_r[index].send(sm, 1);
@@ -1408,18 +1410,29 @@ System.out.println("test0");
 
   private String[] controlMsgFrame(int index, OSCMessage message) {
     Object[] args0 = message.getArguments();
-    String[] str = new String[co_max_num[index] + 1];
+    StringBuilder[] str;
+    String[] str1;
     int sc = 0, sr = 0;
     int[] args = new int[16];
     int shift;
+
+    if(cable_orientation[index].equals("left") || cable_orientation[index].equals("right")) {
+      str = new StringBuilder[8];
+      str1 = new String[8];
+      for(int i = 0; i < 8; i++)
+        str[i] = new StringBuilder("lr " + i + " 0 " + (char)0x0D);
+    }
+    else {
+      str = new StringBuilder[co_max_num[index]];
+      str1 = new String[co_max_num[index]];
+      for(int i = 0; i < co_max_num[index]; i++)
+        str[i] = new StringBuilder("lc " + i + " 0 " + (char)0x0D);
+    }
+
     if(cable_orientation[index].equals("left") || cable_orientation[index].equals("right"))
       shift = starting_column[index] % (co_max_num[index] + 1);
     else
       shift = starting_column[index] % (7 + 1);
-
-    //sy0 if(args.length < 16)
-    if(message.getArgumentsLength() < 16)
-      return null;
 
     //sy0 for(int i = 0; i < args0.length; i++) {
     for(int i = 0; i < message.getArgumentsLength(); i++) {
@@ -1427,16 +1440,14 @@ System.out.println("test0");
     }
       
     for(int i = 0; i < (co_max_num[index] + 1); i++) {
-/*
-      if((cable_orientation[index].equals("left") || cable_orientation[index].equals("right")) && i > 7)
-        break;
-*/
       if(cable_orientation[index].equals("left")) {
+        if(i > 7)
+          break;
         sr = i - starting_row[index];
-        if(sr > 7)
-          return null;
       }
       else if(cable_orientation[index].equals("right")) {
+        if(i > 7)
+          break;
         sr = 7 - i + starting_row[index];
       }
       else if(cable_orientation[index].equals("up"))
@@ -1486,12 +1497,32 @@ System.out.println("test0");
         sc = (char)(sc1 << shift);
       }
           
-      if(cable_orientation[index].equals("left") || cable_orientation[index].equals("right"))
-        str[i] = new String("lr " + sr + " " + sc + (char)0x0D); // (l)ed_(r)ow
-      else
-        str[i] = new String("lc " + sr + " " + sc + (char)0x0D); // (l)ed_(c)ol
+      if(cable_orientation[index].equals("left") || cable_orientation[index].equals("right")) {
+        str[i].delete(0, str[i].length());
+        str[i].append("lr " + sr + " " + sc + (char)0x0D);
+        //sy str[i] = new String("lr " + sr + " " + sc + (char)0x0D); // (l)ed_(r)ow
+      }
+      else {
+        str[i].delete(0, str[i].length());
+        str[i].append("lc " + sr + " " + sc + (char)0x0D);
+        //sy str[i] = new String("lc " + sr + " " + sc + (char)0x0D); // (l)ed_(c)ol
+      }
     }//end for i
-    return str;
+
+    if(cable_orientation[index].equals("left") || cable_orientation[index].equals("right")) {
+      for(int i = 0; i < 8; i++) {
+        str1[i] = str[i].toString();
+        //debug System.out.println(str1[i]);
+      }
+    }
+    else {
+      for(int i = 0; i < co_max_num[index] + 1; i++) {
+        str1[i] = str[i].toString();
+        //debug System.out.println(str1[i]);
+      }
+    }
+    
+    return str1;
   }
 
   private String[] controlMsgClear(int index, OSCMessage message) {
@@ -1520,6 +1551,15 @@ System.out.println("test0");
         
       str[i] = new String("lr " + i + " " + state + (char)0x0D);
     }
+    return str;
+  }
+
+  private String controlMsgDrive(int index, OSCMessage message) {
+    Object[] args = message.getArguments();
+    String str = null;
+
+    if(message.getArgumentsLength() == 1)
+      str = new String("d " + (Integer)args[0] + (char)0x0D);
     return str;
   }
 
@@ -1898,6 +1938,10 @@ System.out.println("test0");
               sermsgs = controlMsgClear(i, om);
               sendDataToSerial(i, sermsgs);
             }
+            else if(address.equals(address_pattern_prefix[i] + "/drive")) {
+              sermsg = controlMsgDrive(i, om);
+              sendDataToSerial(i, sermsg);
+            }
             else if(address.equals(address_pattern_prefix[i] + "/adc_enable")) {
               sermsg = controlMsgAdcEnable(i, om);
               sendDataToSerial(i, sermsg);
@@ -1948,12 +1992,12 @@ System.out.println("test0");
             controlMsgCable(om);
           
           //You have to comment out if you compile win version.
-          //mac wait(0, 1);//mac
+          //win wait(0, 1);//mac
         }
       }
       catch(IOException e) {}
       //You have to comment out if you compile win version.
-      //mac catch(InterruptedException ioe) {}//mac
+      //win catch(InterruptedException ioe) {}//mac
     }
   }
 

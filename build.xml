@@ -30,8 +30,8 @@
     <jarbundler dir="."
                 name="pic2osc"
                 mainclass="PicnomeSerial"
-                build="147"
-                version="1.6.01"
+                build="148"
+                version="1.6.02"
                 icon="icon/pic2osc-v1.5.icns"
                 screenmenu="true">
       <jarfileset dir="lib">
