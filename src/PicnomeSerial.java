@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PicnomeSerial. if not, see <http:/www.gnu.org/licenses/>.
  *
- * PicnomeSerial.java,v.1.6.02(148) 2012/02/10
+ * PicnomeSerial.java,v.1.6.03(149) 2012/02/15
  */
 
 import java.io.*;
@@ -27,7 +27,10 @@ import javax.swing.text.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
 import org.jdesktop.swingx.*;
-import org.jdesktop.swingx.*;
+import org.pushingpixels.substance.api.SubstanceLookAndFeel;
+//sy import org.pushingpixels.substance.api.skin.*;
+import org.pushingpixels.substance.api.skin.TwilightSkin;
+import org.pushingpixels.substance.api.skin.SubstanceTwilightLookAndFeel;
 
 //You have to comment out if you compile win version.
 //win import com.apple.eawt.*;//mac
@@ -55,64 +58,11 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
     super("pic2osc ver. / f/w ver.");
 
     init();
-    if(System.getProperty("os.name").startsWith("Mac OS X")) {
-      setSize(430, 625);
-      //You have to comment out if you compile win version.
-      //mac
-      /*win
-      Application app = Application.getApplication();
-      app.addApplicationListener(new ApplicationAdapter() {
-          public void handleQuit(ApplicationEvent arg0) {
-            for(int i = 0; i < 6; i++) {
-              String str =new String("ae " + i + " " + 0 + (char)0x0D);
-              if(pserial.getCurrentNum() == 1) {
-                pserial.setAdcEnable(0, i, false);
-                pserial.sendDataToSerial(0, str);
-              }
-              if(pserial.getCurrentNum() == 2) {
-                pserial.setAdcEnable(1, i, false);
-                pserial.sendDataToSerial(1, str);
-              }
-            }
-            System.exit(0);
-          }
-        });
-        win*/
-      //mac end
-    }
-    else if(System.getProperty("os.name").startsWith("Windows"))
-      setSize(444, 680);
-    addWindowListener(
-      new WindowAdapter() {
-        public void windowClosing(WindowEvent e) {
-          for(int i = 0; i < 6; i++) {
-            String str =new String("ae " + i + " " + 0 + (char)0x0D);
-            if(pserial.getCurrentNum() == 1) {
-              pserial.setAdcEnable(0, i, false);
-              pserial.sendDataToSerial(0, str);
-            }
-            if(pserial.getCurrentNum() == 2) {
-              pserial.setAdcEnable(1, i, false);
-              pserial.sendDataToSerial(1, str);
-            }
-          }
-          System.exit(0);
-        }
-      }
-      );
-    mdf.init();
-    if(System.getProperty("os.name").startsWith("Mac OS X"))
-      mdf.setBounds(450, 0, 890, 620);// mac
-    else if(System.getProperty("os.name").startsWith("Windows"))
-      mdf.setBounds(470, 40, 990, 665);// win
-
     (new Thread(new AutoResizeThread())).start();
   }
 
   public static void main(String[] args) {
     PicnomeSerial psgui = new PicnomeSerial();
-
-    psgui.setVisible(true);
 
     for(int i = 0; i < psgui.pserial.getCurrentNum(); i++) {
       psgui.pserial.openSerialPort(i);
@@ -156,16 +106,85 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
   }
 
   private void init() {
-    SpringLayout sl = new SpringLayout();
-    Container c = getContentPane();
-    c.setLayout(sl);
-    c.add(createTaskPane());
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        JFrame.setDefaultLookAndFeelDecorated(true);
+        JDialog.setDefaultLookAndFeelDecorated(true);
+
+        SubstanceLookAndFeel.setSkin(new TwilightSkin());
+        //sy SubstanceLookAndFeel.setSkin(new GraphiteGlassSkin());
+        //sy SubstanceLookAndFeel.setSkin(new RavenSkin());
+
+        if(System.getProperty("os.name").startsWith("Windows")) {
+          ImageIcon icon;
+          icon = new ImageIcon("icon\\pic2osc-16x16.png");
+          setIconImage(icon.getImage());
+        }
+
+        SpringLayout sl = new SpringLayout();
+        Container c = getContentPane();
+        c.setLayout(sl);
+        c.add(createTaskPane());
+
+        if(System.getProperty("os.name").startsWith("Mac OS X")) {
+          setSize(430, 625);
+          //You have to comment out if you compile win version.
+          //mac
+          /*win
+          Application app = Application.getApplication();
+          app.addApplicationListener(new ApplicationAdapter() {
+            public void handleQuit(ApplicationEvent arg0) {
+              for(int i = 0; i < 6; i++) {
+                String str =new String("ae " + i + " " + 0 + (char)0x0D);
+                if(pserial.getCurrentNum() == 1) {
+                  pserial.setAdcEnable(0, i, false);
+                  pserial.sendDataToSerial(0, str);
+                }
+                if(pserial.getCurrentNum() == 2) {
+                  pserial.setAdcEnable(1, i, false);
+                  pserial.sendDataToSerial(1, str);
+                }
+              }
+              System.exit(0);
+            }
+          });
+          win*/
+          //mac end
+        }
+        else if(System.getProperty("os.name").startsWith("Windows"))
+          setSize(444, 680);
+        addWindowListener(
+          new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+              for(int i = 0; i < 6; i++) {
+                String str =new String("ae " + i + " " + 0 + (char)0x0D);
+                if(pserial.getCurrentNum() == 1) {
+                  pserial.setAdcEnable(0, i, false);
+                  pserial.sendDataToSerial(0, str);
+                }
+                if(pserial.getCurrentNum() == 2) {
+                  pserial.setAdcEnable(1, i, false);
+                  pserial.sendDataToSerial(1, str);
+                }
+              }
+              System.exit(0);
+            }
+          });
+
+        mdf.init();
+        if(System.getProperty("os.name").startsWith("Mac OS X"))
+          mdf.setBounds(450, 0, 890, 620);// mac
+        else if(System.getProperty("os.name").startsWith("Windows"))
+          mdf.setBounds(470, 40, 990, 665);// win
+
+        setVisible(true);
+      }
+    });
   }
 
   private JXTaskPaneContainer createTaskPane() {
     SpringLayout sl = new SpringLayout();
     container =new JXTaskPaneContainer();
-    container.setBackground(new Color(225, 225, 225, 255));
 
     JXTaskPane pane1 = new JXTaskPane("Protocol Settings");
     container.add(pane1);
@@ -656,7 +675,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
             if(System.getProperty("os.name").startsWith("Mac OS X"))
               setSize(427, (int)d + 20);
             else if(System.getProperty("os.name").startsWith("Windows"))
-              setSize(444, (int)d + 35);
+              setSize(418, (int)d + 25);
           }
           height_old = (int)d;
           Thread.sleep(10);
