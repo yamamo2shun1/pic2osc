@@ -673,7 +673,7 @@ public class PicnomeSerial extends JFrame implements ActionListener, ChangeListe
           double d = dim.getHeight();
           if((int)d != height_old) {
             if(System.getProperty("os.name").startsWith("Mac OS X"))
-              setSize(427, (int)d + 20);
+              setSize(402, (int)d + 10);
             else if(System.getProperty("os.name").startsWith("Windows"))
               setSize(418, (int)d + 25);
           }
